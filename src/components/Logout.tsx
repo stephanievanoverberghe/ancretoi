@@ -1,7 +1,7 @@
 'use client';
 import { useTransition } from 'react';
 
-export function LogoutButton() {
+export default function LogoutButton() {
     const [pending, start] = useTransition();
     return (
         <button

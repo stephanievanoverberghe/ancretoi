@@ -1,16 +1,18 @@
 import { Schema, model, models } from 'mongoose';
 
-/** User */
+/** Utilisateur */
 const UserSchema = new Schema(
     {
         email: { type: String, unique: true, index: true, required: true, lowercase: true, trim: true },
+        name: { type: String, trim: true },
         role: { type: String, default: 'user' },
         deletedAt: { type: Date, default: null },
     },
     { timestamps: true }
 );
+export const UserModel = models.User || model('User', UserSchema);
 
-/** MagicToken — TTL 15 min, usage unique */
+/** Jeton magic-link (TTL 15 min, usage unique) */
 const MagicTokenSchema = new Schema(
     {
         email: { type: String, required: true, lowercase: true, trim: true, index: true },
@@ -21,8 +23,7 @@ const MagicTokenSchema = new Schema(
     },
     { timestamps: true }
 );
-// TTL index: Mongo supprime auto après expiration
+// purge auto après expiration
 MagicTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-export const UserModel = models.User || model('User', UserSchema);
 export const MagicTokenModel = models.MagicToken || model('MagicToken', MagicTokenSchema);
