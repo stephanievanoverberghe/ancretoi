@@ -8,7 +8,11 @@ const g = global as GlobalWithMongoose;
 
 export async function dbConnect() {
     if (!g._mongoose) {
-        g._mongoose = mongoose.connect(MONGODB_URI, { dbName: 'ancretoi', autoIndex: true, maxPoolSize: 10 });
+        g._mongoose = mongoose.connect(MONGODB_URI, {
+            dbName: 'ancretoi',
+            autoIndex: true,
+            maxPoolSize: 10,
+        });
     }
     return g._mongoose;
 }

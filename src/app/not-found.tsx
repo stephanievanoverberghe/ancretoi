@@ -11,7 +11,7 @@ export default function NotFound() {
                     <Link href="/" className="rounded-lg bg-brand px-4 py-2 text-white hover:bg-brand-700">
                         Retour à l’accueil
                     </Link>
-                    <Link href="/programmes" className="rounded-lg border border-border px-4 py-2">
+                    <Link href="/programs" className="rounded-lg border border-border px-4 py-2">
                         Voir les programmes
                     </Link>
                     <Link href="/aide" className="rounded-lg border border-border px-4 py-2">

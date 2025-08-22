@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@stripe/stripe-js": "^7.8.0",
+    "bcryptjs": "^3.0.2",
     "hls.js": "^1.6.10",
     "jose": "^6.0.13",
     "mongodb": "^6.18.0",
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

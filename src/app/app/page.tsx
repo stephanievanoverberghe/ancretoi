@@ -1,30 +1,27 @@
 'use client';
 import { useEffect, useState } from 'react';
-
-type PublicUser = { email: string; name?: string | null; role?: string | null } | null;
+import Link from 'next/link';
 
 export default function Dashboard() {
-    const [user, setUser] = useState<PublicUser>(null);
+    const [email, setEmail] = useState<string | null>(null);
     useEffect(() => {
+        // Simple: lit le cookie via /api/me si tu crées cette route plus tard
         fetch('/api/me')
             .then((r) => r.json())
-            .then((d) => setUser(d.user));
+            .then((d) => setEmail(d?.user?.email || null))
+            .catch(() => {});
     }, []);
     return (
         <div className="space-y-3">
             <h1 className="text-3xl font-semibold">Espace membre</h1>
-            {user && (
+            {email && (
                 <p className="text-muted-foreground">
-                    Connectée en tant que <strong>{user.name || user.email}</strong>
+                    Connectée en tant que <strong>{email}</strong>
                 </p>
             )}
-            <ul className="list-disc pl-6">
-                <li>
-                    <a className="underline" href="/app/r7/d01/morning">
-                        RESET-7 · Day 1 · Morning
-                    </a>
-                </li>
-            </ul>
+            <Link className="underline" href="/">
+                Retour accueil
+            </Link>
         </div>
     );
 }
