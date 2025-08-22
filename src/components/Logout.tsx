@@ -5,16 +5,17 @@ export default function LogoutButton() {
     const [pending, start] = useTransition();
     return (
         <button
+            type="button"
             onClick={() =>
                 start(async () => {
                     await fetch('/api/auth/logout', { method: 'POST' });
                     location.href = '/';
                 })
             }
-            className="rounded-lg border border-border px-3 py-1.5 text-sm"
+            className="menu-item menu-button focusable cursor-pointer"
             disabled={pending}
         >
-            {pending ? '…' : 'Se déconnecter'}
+            {pending ? 'Déconnexion…' : 'Se déconnecter'}
         </button>
     );
 }

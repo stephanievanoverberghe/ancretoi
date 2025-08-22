@@ -1,97 +1,57 @@
 @import "tailwindcss";
 
+/* ============ DESIGN TOKENS (LIGHT ONLY) ============ */
 :root {
-  color-scheme: light dark;
-}
+  /* Neutres (pas de blanc/noir purs) */
+  --background: #F6F7FB;
+  /* off-white froid */
+  --foreground: #1C2434;
+  /* bleu-gris “ink” */
 
-/* ---------- Design tokens (CSS vars) ---------- */
-:root {
-  /* Light — plus doux & lisible */
-  --background: #f8fafc;
-  /* slate-50 (moins agressif que #fff) */
-  --foreground: #0f172a;
-  /* slate-900 (plus net que #111827) */
+  /* Surfaces & UI */
+  --card: #FBFCFE;
+  --muted: #ECF0F6;
+  --border: #CED6E2;
+  --input: #E6EBF3;
+  --ring: #0D9488;
+  /* teal-600 */
 
   /* Brand (teal) */
-  --brand-50: #ecfcf7;
-  --brand-100: #c5f7ea;
-  --brand-200: #98eedc;
-  --brand-300: #67e0cc;
-  --brand-400: #3cc8b6;
-  --brand-500: #22b1a2;
-  --brand-600: #0f8f82;
+  --brand-50: #E9FBF6;
+  --brand-100: #C6F4E9;
+  --brand-200: #9EEAD9;
+  --brand-300: #6DDCC7;
+  --brand-400: #3DC9B3;
+  --brand-500: #1FB4A0;
+  --brand-600: #0D9488;
   /* PRIMARY */
-  --brand-700: #0c6d63;
-  --brand-800: #0a554f;
-  --brand-900: #083f3a;
+  --brand-700: #0B776D;
+  --brand-800: #095E57;
+  --brand-900: #074A45;
+  --brand: var(--brand-600);
+  --brand-on: #FFFFFF;
 
-  /* Accent */
-  --accent-500: #f59e0b;
+  /* Interactions */
+  --tint-hover: color-mix(in oklab, var(--brand-600) 10%, transparent);
 
-  /* Surfaces */
-  --card: #ffffff;
-  /* cartes sur fond doux */
-  --muted: #f3f4f6;
-  /* slate-100 pour encarts */
-  --border: #d1d5db;
-  /* gray-300 → plus visible */
-
-  /* États & UI */
-  --muted-foreground: #6b7280;
-  /* texte secondaire */
-  --input: #e5e7eb;
-  /* bordure inputs */
-  --ring: var(--brand-600);
-  /* couleur de focus */
+  /* Header / avatar */
+  --avatar-bg: linear-gradient(135deg, var(--brand-600), var(--brand-700));
+  --header-shadow: 0 8px 30px rgb(15 23 42 / .08);
 }
 
-/* ---------- Dark mode (auto) ---------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b0f14;
-    --foreground: #f9fafb;
-
-    --card: #0e141b;
-    --muted: #121a22;
-    /* encarts foncés */
-    --border: #1f2937;
-
-    --muted-foreground: #94a3b8;
-    --input: #334155;
-    --ring: #22b1a2;
-  }
-}
-
-/* ---------- Overrides manuels (switch) ---------- */
-:root[data-theme="light"] {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --muted: #f3f4f6;
-  --border: #d1d5db;
-  --muted-foreground: #6b7280;
-  --input: #e5e7eb;
-  --ring: var(--brand-600);
-}
-
-:root[data-theme="dark"] {
-  --background: #0b0f14;
-  --foreground: #f9fafb;
-  --card: #0e141b;
-  --muted: #121a22;
-  --border: #1f2937;
-  --muted-foreground: #94a3b8;
-  --input: #334155;
-  --ring: #22b1a2;
-}
-
-/* ---------- Tailwind v4: @theme inline ---------- */
+/* ============ TAILWIND v4 MAPPINGS ============ */
 @theme inline {
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
@@ -104,19 +64,13 @@
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
   --color-brand: var(--brand-600);
-
-  --color-accent: var(--accent-500);
-
-  --color-card: var(--card);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-
-  --color-muted-foreground: var(--muted-foreground);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
 }
 
-/* ---------- Base ---------- */
+/* ============ BASE ============ */
+:root {
+  color-scheme: light;
+}
+
 html,
 body {
   min-height: 100%;
@@ -129,13 +83,141 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Accessibilité focus */
-:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 3px;
+::selection {
+  background: color-mix(in oklab, var(--brand-600) 26%, transparent);
 }
 
-/* Sélection de texte plus visible */
-::selection {
-  background: color-mix(in oklab, var(--brand-600) 20%, transparent);
+/* ============ HEADER (verre dépoli) ============ */
+.header-glass {
+  background: color-mix(in oklab, var(--card) 72%, transparent);
+  -webkit-backdrop-filter: saturate(1.1) blur(10px);
+  backdrop-filter: saturate(1.1) blur(10px);
+  box-shadow: var(--header-shadow);
+}
+
+/* ============ FOCUS A11Y ============ */
+.focusable {
+  outline: none;
+}
+
+.focusable:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--ring),
+    0 0 0 4px color-mix(in oklab, var(--background) 92%, transparent);
+}
+
+/* ============ LIENS NAV / ITEMS MENU ============ */
+.navlink,
+.menu-item {
+  transition: background-color .2s, color .2s, box-shadow .2s, transform .08s;
+  border-radius: .75rem;
+  padding: .375rem .75rem;
+}
+
+.navlink:hover,
+.menu-item:hover {
+  background: var(--tint-hover);
+}
+
+.navlink[aria-current="page"] {
+  background: var(--brand-600);
+  color: var(--brand-on);
+}
+
+/* ============ POPOVER COMPTE ============ */
+.account {
+  position: relative;
+  display: inline-block;
+}
+
+.account>summary {
+  list-style: none;
+  cursor: pointer;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  padding: .25rem;
+}
+
+.account>summary::-webkit-details-marker {
+  display: none;
+}
+
+.account-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--avatar-bg);
+  color: var(--brand-on);
+  font-weight: 600;
+  font-size: .95rem;
+}
+
+.account-pop {
+  position: absolute;
+  right: 0;
+  top: 2.75rem;
+  width: 16rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: var(--header-shadow);
+}
+
+.account-head {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .5rem .6rem;
+  background: color-mix(in oklab, var(--muted) 80%, transparent);
+  border-radius: 10px;
+}
+
+.account-name {
+  font-size: .95rem;
+  font-weight: 600;
+}
+
+.account-email {
+  font-size: .75rem;
+  color: var(--muted-foreground);
+}
+
+.account-item {
+  display: block;
+  border-radius: .6rem;
+  padding: .5rem .6rem;
+  margin-top: .25rem;
+}
+
+.account-item:hover {
+  background: var(--tint-hover);
+}
+
+.account-divider {
+  height: 1px;
+  background: var(--border);
+  margin: .4rem .25rem;
+  border: 0;
+}
+
+/* ============ MENU MOBILE (simple) ============ */
+.mobile {
+  position: relative;
+}
+
+.mobile-pop {
+  position: absolute;
+  right: 0;
+  top: 2.75rem;
+  width: 14rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: var(--header-shadow);
 }
