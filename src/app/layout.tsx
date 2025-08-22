@@ -2,6 +2,7 @@ import './globals.css';
 import Link from 'next/link';
 import { Inter, Playfair_Display } from 'next/font/google';
 import ThemeToggle from '@/components/ThemeToggle';
+import { LogoutButton } from '@/components/Logout';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', display: 'swap' });
@@ -26,6 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             <ThemeToggle />
                             <Link href="/login" className="rounded-lg bg-brand px-3 py-1.5 text-white">
                                 Se connecter
+                            </Link>
+                            <Link href="/logout">
+                                <LogoutButton />
                             </Link>
                         </nav>
                     </div>
