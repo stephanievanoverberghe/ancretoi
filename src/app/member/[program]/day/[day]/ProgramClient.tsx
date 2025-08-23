@@ -21,6 +21,14 @@ function formatSeconds(total: number) {
 }
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
+// ----- storage keys (namespacées par user) -----
+function keyDay(userKey: string, programSlug: string, day: number) {
+    return `${userKey}:${programSlug}:day:${day}`;
+}
+function keyLastDay(userKey: string, programSlug: string) {
+    return `${userKey}:${programSlug}:lastDay`;
+}
+
 // ---------- Timer ----------
 function Timer({ seconds = 0 }: { seconds?: number }) {
     const [left, setLeft] = useState(seconds);
@@ -208,7 +216,10 @@ function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
                                             onChange={(val) => {
                                                 const next = items.slice();
                                                 const current = isRecord(next[idx]) ? next[idx] : {};
-                                                next[idx] = { ...(current as Record<string, unknown>), [sub.key]: val };
+                                                next[idx] = {
+                                                    ...(current as Record<string, unknown>),
+                                                    [sub.key]: val,
+                                                };
                                                 onChange(next);
                                             }}
                                             namePath={`${namePath}[${idx}].${sub.key}`}
@@ -321,7 +332,17 @@ function Section({
 }
 
 // ---------- Page client ----------
-export default function ProgramClient({ program, programSlug, dayNum }: { program: ProgramJSON; programSlug: string; dayNum: number }) {
+export default function ProgramClient({
+    program,
+    programSlug,
+    dayNum,
+    userKey, // ✅ nouveau
+}: {
+    program: ProgramJSON;
+    programSlug: string;
+    dayNum: number;
+    userKey: string;
+}) {
     const router = useRouter();
     const maxDay = program.days.length;
     const dayData: Day | undefined = useMemo(() => program.days.find((d) => d.day === dayNum), [program.days, dayNum]);
@@ -331,26 +352,42 @@ export default function ProgramClient({ program, programSlug, dayNum }: { progra
     const [loaded, setLoaded] = useState(false);
     const [autoSaved, setAutoSaved] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-    // load
+    // load (avec migration éventuelle depuis anciennes clés non-namespacées)
     useEffect(() => {
         if (!dayId) return;
+        const k = keyDay(userKey, programSlug, dayId);
         try {
-            const raw = localStorage.getItem(`${programSlug}:day:${dayId}`);
+            let raw = localStorage.getItem(k);
+
+            // migration simple: ancien format `${programSlug}:day:${dayId}`
+            if (!raw) {
+                const oldK = `${programSlug}:day:${dayId}`;
+                const old = localStorage.getItem(oldK);
+                if (old) {
+                    localStorage.setItem(k, old);
+                    localStorage.removeItem(oldK);
+                    raw = old;
+                }
+            }
+
             setValues(raw ? (JSON.parse(raw) as ValuesMap) : {});
         } catch {
             setValues({});
         }
         setLoaded(true);
-    }, [dayId, programSlug]);
+    }, [dayId, programSlug, userKey]);
 
     // save
     useEffect(() => {
         if (!loaded || !dayId) return;
+        const k = keyDay(userKey, programSlug, dayId);
+        const kLast = keyLastDay(userKey, programSlug);
+
         setAutoSaved('saving');
         const id = setTimeout(() => {
             try {
-                localStorage.setItem(`${programSlug}:day:${dayId}`, JSON.stringify(values));
-                localStorage.setItem(`${programSlug}:lastDay`, String(dayId));
+                localStorage.setItem(k, JSON.stringify(values));
+                localStorage.setItem(kLast, String(dayId));
                 setAutoSaved('saved');
                 setTimeout(() => setAutoSaved('idle'), 1200);
             } catch {
@@ -358,7 +395,7 @@ export default function ProgramClient({ program, programSlug, dayNum }: { progra
             }
         }, 800);
         return () => clearTimeout(id);
-    }, [values, loaded, dayId, programSlug]);
+    }, [values, loaded, dayId, programSlug, userKey]);
 
     if (!dayData) return <div className="mx-auto max-w-3xl p-6">Jour introuvable.</div>;
 

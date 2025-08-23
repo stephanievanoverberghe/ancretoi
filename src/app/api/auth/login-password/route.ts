@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     }
 
     const jwt = await createSessionToken(user.email);
-    const res = NextResponse.json({ ok: true, redirectTo: next || '/app' });
+    const res = NextResponse.json({ ok: true, redirectTo: next || '/member' });
     setSessionCookie(res, jwt);
     return res;
 }

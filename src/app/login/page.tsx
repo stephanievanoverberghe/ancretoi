@@ -8,7 +8,7 @@ export default function LoginPage() {
     const [pending, setPending] = useState(false);
     const [error, setError] = useState('');
     const sp = useSearchParams();
-    const next = sp.get('next') || '/app';
+    const next = sp.get('next') || '/member';
 
     async function submit(e: React.FormEvent) {
         e.preventDefault();
@@ -21,8 +21,8 @@ export default function LoginPage() {
         });
         setPending(false);
         if (r.ok) {
-            const d = await r.json().catch(() => ({ redirectTo: '/app' }));
-            location.href = d.redirectTo || '/app';
+            const d = await r.json().catch(() => ({ redirectTo: '/member' }));
+            location.href = d.redirectTo || '/member';
             return;
         }
         const d = await r.json().catch(() => ({}));

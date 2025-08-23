@@ -1,33 +1,49 @@
 // src/app/member/[program]/day/[day]/page.tsx
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import ProgramClient from './ProgramClient';
 import type { ProgramJSON } from '@/types/program';
+import { requireEnrollment } from '@/lib/entitlement';
 
-// on tape l'import comme unknown pour éviter le conflit “string vs union”
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 const PROGRAM_FILES: Record<string, () => Promise<{ default: unknown }>> = {
     'reset-7': () => import('@/data/programs/reset7.json'),
-    // ajoute d'autres slugs ici
 } as const;
 
+// -- types sûrs pour l’accès
+type EnrollmentResult = { ok: true; userId: string } | { ok: false };
+
+function isProgramJSON(p: unknown): p is ProgramJSON {
+    if (typeof p !== 'object' || p === null) return false;
+    const o = p as Record<string, unknown>;
+    if (!Array.isArray(o.days)) return false;
+    return true;
+}
 function assertProgramShape(p: unknown): asserts p is ProgramJSON {
-    if (!p || typeof p !== 'object' || !Array.isArray((p as { days?: unknown }).days)) {
-        throw new Error('Invalid program JSON: missing days[]');
-    }
+    if (!isProgramJSON(p)) throw new Error('Invalid program JSON');
 }
 
-export default async function Page({ params }: { params: { program: string; day: string } }) {
-    const { program, day } = params;
+export default async function Page(props: { params: Promise<{ program: string; day: string }> }) {
+    const { program, day } = await props.params;
+
+    // 🔒 garde d’accès
+    const access = (await requireEnrollment(program)) as EnrollmentResult;
+    if (!access.ok) redirect('/member?error=not_enrolled');
 
     const loader = PROGRAM_FILES[program];
     if (!loader) notFound();
 
-    const mod = await loader();
-    assertProgramShape(mod.default);
-    const programData = mod.default; // ProgramJSON
+    const { default: raw } = await loader();
+    assertProgramShape(raw);
+    const programData = raw;
 
     const dayNum = Number(day);
-    const dayData = programData.days.find((d) => d.day === dayNum);
-    if (!Number.isInteger(dayNum) || !dayData) notFound();
+    const hasDay = programData.days.some((d) => d.day === dayNum);
+    if (!Number.isInteger(dayNum) || !hasDay) notFound();
 
-    return <ProgramClient programSlug={program} dayNum={dayNum} program={programData} />;
+    // ✅ n’utilise que userId (plus de access.email)
+    const userKey = access.userId;
+
+    return <ProgramClient program={programData} programSlug={program} dayNum={dayNum} userKey={userKey} />;
 }
