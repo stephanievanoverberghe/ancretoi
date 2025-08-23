@@ -29,14 +29,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="fr" className={`${inter.variable} ${playfair.variable}`}>
-            <body className="min-h-dvh bg-background text-foreground font-sans antialiased">
+        <html lang="fr" className={`h-full ${inter.variable} ${playfair.variable}`}>
+            {/* ✅ min-h-screen + flex-col + main.flex-1 = footer collé en bas quand peu de contenu */}
+            <body className="min-h-screen flex flex-col bg-background text-foreground font-sans antialiased">
                 <Suspense fallback={<div className="border-b border-border px-4 py-3 text-sm text-neutral-500">Chargement…</div>}>
                     <Header />
                 </Suspense>
-                <main className="mx-auto max-w-6xl px-4 py-8">
+
+                <main id="main" className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
                     <Suspense fallback={<div className="text-sm text-muted-foreground">Chargement…</div>}>{children}</Suspense>
                 </main>
+
                 <footer className="border-t border-border py-8 text-sm text-neutral-500">
                     <div className="mx-auto flex max-w-6xl flex-wrap gap-6 px-4">
                         <Link href="/legal">Mentions légales</Link>
