@@ -6,7 +6,7 @@ export default function MethodePage() {
     return (
         <>
             {/* Intro */}
-            <section aria-labelledby="method-h1" className="mb-8 sm:mb-10">
+            <section aria-labelledby="method-h1" className="py-14 sm:py-16 lg:py-20">
                 <nav aria-label="Fil d’Ariane" className="mb-4 text-sm text-muted-foreground">
                     <Link href="/" className="hover:text-foreground">
                         Accueil
@@ -128,7 +128,7 @@ export default function MethodePage() {
             </section>
 
             {/* CTA léger */}
-            <section className="mt-10 sm:mt-12 border-t border-gold-100/60 pt-6">
+            <section className="mt-10 sm:mt-12 border-t border-gold-100/60 pt-6 pb-14 sm:pb-16 lg:pb-20">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="text-[15px] text-muted-foreground">Prête à essayer ? Découvre les programmes guidés.</p>
                     <Link href="/programs" className="btn" aria-label="Voir les programmes guidés">

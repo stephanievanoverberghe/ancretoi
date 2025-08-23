@@ -16,8 +16,8 @@ type Pillar = {
     title: string;
     text: string;
     img: { src: string; alt: string };
-    number: string; // "01" | "02" | "03"
-    href: string; // /methode#...
+    number: string;
+    href: string;
 };
 
 export default function Pillars() {
@@ -109,7 +109,7 @@ export default function Pillars() {
 
             <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8">
                 <header className="mb-8 sm:mb-10 lg:mb-12 text-center">
-                    <h2 id="pillars-title" className="font-serif text-[clamp(1.25rem,3.4vw,1.75rem)] leading-tight">
+                    <h2 id="pillars-title" className="font-serif text-[clamp(1.4rem,4.2vw,2rem)] leading-tight">
                         Méthode & Philosophie
                     </h2>
                     <p className="mt-2 text-[14px] sm:text-[15px] text-muted-foreground">
@@ -150,7 +150,7 @@ export default function Pillars() {
                                             className="mt-1.5 text-[14px] leading-relaxed text-brand-900"
                                             style={{
                                                 display: '-webkit-box',
-                                                WebkitLineClamp: 3, // un peu plus de souffle en tablette
+                                                WebkitLineClamp: 3,
                                                 WebkitBoxOrient: 'vertical',
                                                 overflow: 'hidden',
                                             }}
