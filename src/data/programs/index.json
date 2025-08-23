@@ -9,7 +9,7 @@
             "duration_days": 7,
             "level": "Cible",
             "status": "published",
-            "cover": "/images/programs/reset7.png",
+            "cover": "/images/programs/reset7.webp",
             "price": {
                 "amount_cents": 3900,
                 "currency": "EUR",
@@ -37,7 +37,7 @@
             "duration_days": 10,
             "level": "Basique",
             "status": "published",
-            "cover": "/images/programs/boussole10.png",
+            "cover": "/images/programs/boussole10.webp",
             "price": {
                 "amount_cents": null,
                 "currency": "EUR",
@@ -62,7 +62,7 @@
             "duration_days": 30,
             "level": "Cible",
             "status": "draft",
-            "cover": "/images/programs/ancrage30.png",
+            "cover": "/images/programs/ancrage30.webp",
             "price": {
                 "amount_cents": null,
                 "currency": "EUR",
@@ -87,7 +87,7 @@
             "duration_days": 90,
             "level": "Premium",
             "status": "draft",
-            "cover": "/images/programs/alchimie90.png",
+            "cover": "/images/programs/alchimie90.webp",
             "price": {
                 "amount_cents": null,
                 "currency": "EUR",

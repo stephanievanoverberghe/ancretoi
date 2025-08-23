@@ -14,9 +14,7 @@ export default function SocialProof({ items = ['Paiement sécurisé (Stripe)', '
     const sectionRef = useRef<HTMLElement>(null);
 
     const track = useCallback((name: string) => {
-        // @ts-expect-error plausible global possible
         if (typeof window !== 'undefined' && window.plausible) window.plausible(name);
-        // @ts-expect-error posthog global possible
         if (typeof window !== 'undefined' && window.posthog) window.posthog.capture(name);
     }, []);
 
