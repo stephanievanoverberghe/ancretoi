@@ -1,4 +1,4 @@
-import { Schema, model, models } from 'mongoose';
+import { Schema, model, models, Types } from 'mongoose';
 
 export type UserRole = 'user' | 'admin';
 
@@ -13,6 +13,23 @@ const UserSchema = new Schema(
     },
     { timestamps: true }
 );
+
+UserSchema.add({
+    passwordChangedAt: { type: Date, default: null }, // invalider sessions anciennes
+});
+
+// Jeton de reset (usage unique, TTL)
+const PasswordResetSchema = new Schema(
+    {
+        userId: { type: Types.ObjectId, ref: 'User', index: true, required: true },
+        tokenHash: { type: String, unique: true, required: true }, // sha256(token)
+        expiresAt: { type: Date, required: true, index: true },
+        usedAt: { type: Date, default: null },
+    },
+    { timestamps: true }
+);
+// TTL automatique (document supprimé après expiration)
+PasswordResetSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 /* ---------- PROGRAMS (PARCOURS) ---------- */
 const ProgramSchema = new Schema(
@@ -61,3 +78,4 @@ export const UserModel = models.User || model('User', UserSchema);
 export const ProgramModel = models.Program || model('Program', ProgramSchema);
 export const PostModel = models.Post || model('Post', PostSchema);
 export const InspirationModel = models.Inspiration || model('Inspiration', InspirationSchema);
+export const PasswordResetModel = models.PasswordReset || model('PasswordReset', PasswordResetSchema);

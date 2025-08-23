@@ -54,12 +54,17 @@ export default function LoginPage() {
                     {pending ? 'Connexion…' : 'Se connecter'}
                 </button>
             </form>
-            <p className="mt-3 text-sm text-muted-foreground">
+            <div className="mt-3 text-sm text-muted-foreground">
                 Pas de compte ?{' '}
                 <a className="underline" href="/register">
                     Créer un compte
                 </a>
-            </p>
+            </div>
+            <div className="mt-2 text-sm text-muted-foreground">
+                <a className="underline" href="/forgot-password">
+                    Mot de passe oublié ?
+                </a>
+            </div>
         </div>
     );
 }

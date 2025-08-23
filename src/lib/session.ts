@@ -5,6 +5,8 @@ import { cookies } from 'next/headers';
 const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'dev');
 export const sessionCookieName = 'ancretoi_session';
 
+type SessionPayload = { email: string; iat?: number; exp?: number };
+
 export async function createSessionToken(email: string) {
     return await new SignJWT({ email }).setProtectedHeader({ alg: 'HS256' }).setIssuedAt().setExpirationTime('7d').sign(secret);
 }
@@ -28,13 +30,13 @@ export function clearSessionCookie(res: NextResponse) {
     });
 }
 
-export async function getSession() {
+export async function getSession(): Promise<SessionPayload | null> {
     const store = await cookies();
     const c = store.get(sessionCookieName)?.value;
     if (!c) return null;
     try {
         const { payload } = await jwtVerify(c, secret);
-        return payload as { email: string; exp?: number };
+        return payload as SessionPayload;
     } catch {
         return null;
     }
@@ -45,7 +47,7 @@ export async function readSessionFromRequest(req: NextRequest) {
     if (!c) return null;
     try {
         const { payload } = await jwtVerify(c, secret);
-        return payload as { email: string; exp?: number };
+        return payload as SessionPayload;
     } catch {
         return null;
     }
