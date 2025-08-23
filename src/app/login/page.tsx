@@ -5,13 +5,14 @@ import LoginForm from '@/components/LoginForm';
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-export default async function Page({ searchParams }: { searchParams?: { next?: string } }) {
+type SearchParams = { next?: string };
+
+export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
     const sess = await getSession();
 
-    // URL de destination après connexion (défaut: /member)
-    const nextUrl = (searchParams?.next && decodeURIComponent(searchParams.next)) || '/member';
+    const { next } = (await searchParams) ?? {};
+    const nextUrl = next ? decodeURIComponent(next) : '/member';
 
-    // Déjà connectée → redirige vers next
     if (sess?.email) redirect(nextUrl);
 
     return (
