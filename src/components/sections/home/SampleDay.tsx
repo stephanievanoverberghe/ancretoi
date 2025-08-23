@@ -92,15 +92,7 @@ export default function SampleDay({
     const iframeSrc = `https://www.youtube-nocookie.com/embed/${youtubeId}` + `?rel=0&modestbranding=1&playsinline=1&controls=1&mute=1${showPlayer ? '&autoplay=1' : ''}`;
 
     return (
-        <section
-            ref={sectionRef}
-            id="sample-day"
-            aria-labelledby="sample-title"
-            className="
-        relative mx-[calc(50%-50vw)] w-screen bg-brand-50/30
-        py-16 sm:py-20 lg:py-24
-      "
-        >
+        <section ref={sectionRef} id="sample-day" aria-labelledby="sample-title" className="relative mx-[calc(50%-50vw)] w-screen bg-brand-50/30 py-16 sm:py-20 lg:py-24">
             {/* halos premium + voile + filets or */}
             <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
                 <div
