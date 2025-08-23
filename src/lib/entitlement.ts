@@ -1,25 +1,31 @@
-// Garde d'accès centralisée : vérifie que l'utilisateur courant a bien acheté le programme
 import { getSession } from '@/lib/session';
 import { dbConnect } from '@/db/connect';
 import { UserModel } from '@/db/schemas';
 import Enrollment from '@/models/Enrollment';
+import { normalizeProgramSlug } from '@/lib/programs';
 
-export async function requireEnrollment(programSlug: string) {
+type Ok = { ok: true; userId: string; email: string };
+type No = { ok: false; reason: 'auth' | 'user' | 'enrollment' };
+
+export async function requireEnrollment(programSlugLike: string): Promise<Ok | No> {
     const sess = await getSession();
-    if (!sess?.email) return { ok: false as const, reason: 'auth' as const };
+    if (!sess?.email) return { ok: false, reason: 'auth' };
 
     await dbConnect();
-    const user = await UserModel.findOne({ email: sess.email }).select({ _id: 1, email: 1 }).lean<{ _id: unknown; email: string }>();
-    if (!user?._id) return { ok: false as const, reason: 'user' as const };
+    const user = await UserModel.findOne({ email: sess.email }).select({ _id: 1, email: 1 }).lean<{ _id: unknown; email: string }>().exec();
 
+    if (!user?._id) return { ok: false, reason: 'user' };
+
+    const slug = normalizeProgramSlug(programSlugLike);
     const enr = await Enrollment.findOne({
         userId: user._id,
-        programSlug,
+        programSlug: slug,
         status: { $in: ['active', 'completed'] },
     })
-        .select({ _id: 1, status: 1 })
-        .lean();
-    if (!enr) return { ok: false as const, reason: 'enrollment' as const };
+        .select({ _id: 1 })
+        .lean()
+        .exec();
 
-    return { ok: true as const, userId: String(user._id), email: user.email };
+    if (!enr) return { ok: false, reason: 'enrollment' };
+    return { ok: true, userId: String(user._id), email: user.email };
 }

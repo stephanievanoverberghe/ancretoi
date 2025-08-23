@@ -1,4 +1,3 @@
-// src/app/member/[program]/day/[day]/ProgramClient.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -21,7 +20,6 @@ function formatSeconds(total: number) {
 }
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
-// ----- storage keys (namespacées par user) -----
 function keyDay(userKey: string, programSlug: string, day: number) {
     return `${userKey}:${programSlug}:day:${day}`;
 }
@@ -29,7 +27,6 @@ function keyLastDay(userKey: string, programSlug: string) {
     return `${userKey}:${programSlug}:lastDay`;
 }
 
-// ---------- Timer ----------
 function Timer({ seconds = 0 }: { seconds?: number }) {
     const [left, setLeft] = useState(seconds);
     const [running, setRunning] = useState(false);
@@ -64,13 +61,7 @@ function Timer({ seconds = 0 }: { seconds?: number }) {
     );
 }
 
-// ---------- Fields ----------
-type FieldProps = {
-    field: AnyField;
-    value: unknown;
-    onChange: (val: unknown) => void;
-    namePath: string;
-};
+type FieldProps = { field: AnyField; value: unknown; onChange: (val: unknown) => void; namePath: string };
 
 function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
     const base = 'w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10';
@@ -84,7 +75,6 @@ function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
                     <input name={namePath} className={base} value={(value as string) ?? ''} onChange={(e) => onChange(e.target.value)} type="text" />
                 </label>
             );
-
         case 'textarea':
             return (
                 <label className="block">
@@ -92,7 +82,6 @@ function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
                     <textarea name={namePath} className={cls(base, 'min-h-[120px]')} value={(value as string) ?? ''} onChange={(e) => onChange(e.target.value)} />
                 </label>
             );
-
         case 'number': {
             const f = field as NumberField;
             const v = typeof value === 'number' ? value : '';
@@ -111,7 +100,6 @@ function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
                 </label>
             );
         }
-
         case 'slider': {
             const f = field as SliderField;
             const v = typeof value === 'number' ? value : Math.round((f.min + f.max) / 2);
@@ -125,7 +113,6 @@ function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
                 </label>
             );
         }
-
         case 'select': {
             const f = field as SelectField;
             return (
@@ -142,7 +129,6 @@ function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
                 </label>
             );
         }
-
         case 'multi_select': {
             const f = field as MultiSelectField;
             const selected = Array.isArray(value) ? (value as string[]) : [];
@@ -171,7 +157,6 @@ function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
                 </div>
             );
         }
-
         case 'boolean':
             return (
                 <label className="inline-flex items-center gap-2">
@@ -179,7 +164,6 @@ function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
                     <span className={labelCls}>{field.label}</span>
                 </label>
             );
-
         case 'repeater': {
             const f = field as RepeaterField;
             const items = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
@@ -216,10 +200,7 @@ function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
                                             onChange={(val) => {
                                                 const next = items.slice();
                                                 const current = isRecord(next[idx]) ? next[idx] : {};
-                                                next[idx] = {
-                                                    ...(current as Record<string, unknown>),
-                                                    [sub.key]: val,
-                                                };
+                                                next[idx] = { ...(current as Record<string, unknown>), [sub.key]: val };
                                                 onChange(next);
                                             }}
                                             namePath={`${namePath}[${idx}].${sub.key}`}
@@ -248,13 +229,11 @@ function FieldRenderer({ field, value, onChange, namePath }: FieldProps) {
                 </div>
             );
         }
-
         default:
             return <div className="text-sm text-gray-500">Type de champ non géré: {(field as { type: string }).type}</div>;
     }
 }
 
-// ---------- Exercise/Section ----------
 function ExerciseCard({ ex, values, setValue }: { ex: Exercise; values: Record<string, unknown>; setValue: (fieldPath: string, val: unknown) => void }) {
     const baseKey = `ex.${ex.key}`;
 
@@ -331,18 +310,7 @@ function Section({
     );
 }
 
-// ---------- Page client ----------
-export default function ProgramClient({
-    program,
-    programSlug,
-    dayNum,
-    userKey, // ✅ nouveau
-}: {
-    program: ProgramJSON;
-    programSlug: string;
-    dayNum: number;
-    userKey: string;
-}) {
+export default function ProgramClient({ program, programSlug, dayNum, userKey }: { program: ProgramJSON; programSlug: string; dayNum: number; userKey: string }) {
     const router = useRouter();
     const maxDay = program.days.length;
     const dayData: Day | undefined = useMemo(() => program.days.find((d) => d.day === dayNum), [program.days, dayNum]);
@@ -352,14 +320,11 @@ export default function ProgramClient({
     const [loaded, setLoaded] = useState(false);
     const [autoSaved, setAutoSaved] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-    // load (avec migration éventuelle depuis anciennes clés non-namespacées)
     useEffect(() => {
         if (!dayId) return;
         const k = keyDay(userKey, programSlug, dayId);
         try {
             let raw = localStorage.getItem(k);
-
-            // migration simple: ancien format `${programSlug}:day:${dayId}`
             if (!raw) {
                 const oldK = `${programSlug}:day:${dayId}`;
                 const old = localStorage.getItem(oldK);
@@ -369,7 +334,6 @@ export default function ProgramClient({
                     raw = old;
                 }
             }
-
             setValues(raw ? (JSON.parse(raw) as ValuesMap) : {});
         } catch {
             setValues({});
@@ -377,7 +341,6 @@ export default function ProgramClient({
         setLoaded(true);
     }, [dayId, programSlug, userKey]);
 
-    // save
     useEffect(() => {
         if (!loaded || !dayId) return;
         const k = keyDay(userKey, programSlug, dayId);
@@ -406,7 +369,6 @@ export default function ProgramClient({
 
     return (
         <div className="mx-auto max-w-4xl p-6">
-            {/* Header */}
             <div className="mb-6">
                 <div className="text-xs uppercase tracking-wider text-gray-500">
                     {program.product} • Jour {dayData.day}/{maxDay}
@@ -415,7 +377,6 @@ export default function ProgramClient({
                 <div className="mt-2 text-xs text-gray-500">Version {program.version}</div>
             </div>
 
-            {/* Objectifs / Résultats */}
             <div className="mb-6 grid gap-4 md:grid-cols-2">
                 {dayData.objectives?.length ? (
                     <div className="rounded-2xl border p-4">
@@ -439,7 +400,6 @@ export default function ProgramClient({
                 ) : null}
             </div>
 
-            {/* Daily check */}
             {dc && Object.keys(dc).length > 0 && (
                 <div className="mb-6 rounded-2xl border p-4">
                     <div className="mb-3 text-sm font-semibold">Check-in du jour</div>
@@ -457,14 +417,12 @@ export default function ProgramClient({
                 </div>
             )}
 
-            {/* Sections */}
             <div className="space-y-8">
                 <Section label="Matin" section={dayData.blocks.morning} values={values} setValue={setValue} />
                 <Section label="Midi" section={dayData.blocks.noon} values={values} setValue={setValue} />
                 <Section label="Soir" section={dayData.blocks.evening} values={values} setValue={setValue} />
             </div>
 
-            {/* Footer */}
             <div className="mt-10 flex items-center justify-between">
                 <div className="flex gap-2">
                     {dayNum > 1 && (
@@ -478,10 +436,7 @@ export default function ProgramClient({
                         </button>
                     )}
                 </div>
-                <div className="text-xs text-gray-500">
-                    {autoSaved === 'saving' && 'Sauvegarde…'}
-                    {autoSaved === 'saved' && 'Sauvegardé ✅'}
-                </div>
+                <div className="text-xs text-gray-500">{autoSaved === 'saving' ? 'Sauvegarde…' : autoSaved === 'saved' ? 'Sauvegardé ✅' : null}</div>
             </div>
         </div>
     );
