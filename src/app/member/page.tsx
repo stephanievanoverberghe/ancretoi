@@ -4,6 +4,7 @@ import { dbConnect } from '@/db/connect';
 import { UserModel } from '@/db/schemas';
 import Enrollment from '@/models/Enrollment';
 import Link from 'next/link';
+import ProgramCTA from '@/components/ProgramCTA';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -41,6 +42,9 @@ export default async function MemberHome() {
         );
     }
 
+    // on a accès à user._id ici → on peut le passer à ResumeLink pour namespacer le localStorage
+    const userKey = String(user._id);
+
     return (
         <div className="p-6">
             <h1 className="mb-4 text-3xl font-semibold">Mes programmes</h1>
@@ -52,10 +56,9 @@ export default async function MemberHome() {
                             <div className="text-xs uppercase tracking-wider text-gray-500">{programSlug}</div>
                             <h2 className="text-xl font-semibold">{meta.title}</h2>
                             {meta.desc && <p className="mt-1 text-sm text-gray-600">{meta.desc}</p>}
-                            <div className="mt-3 flex gap-2">
-                                <Link href={`/member/${programSlug}/day/1`} className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50">
-                                    Ouvrir
-                                </Link>
+                            <div className="mt-3">
+                                {/* Un seul bouton qui choisit automatiquement Commencer/Reprendre */}
+                                <ProgramCTA programSlug={programSlug} userKey={userKey} />
                             </div>
                         </div>
                     );
