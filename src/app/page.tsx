@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function HomePage() {
     return (
         <div className="space-y-16">
@@ -14,12 +16,12 @@ export default function HomePage() {
                     </p>
 
                     <div className="mt-6 flex flex-wrap gap-3">
-                        <a href="/register" className="button">
+                        <Link href="/register" className="button">
                             Commencer gratuitement
-                        </a>
-                        <a href="/programs" className="button secondary">
+                        </Link>
+                        <Link href="/programs" className="button secondary">
                             Découvrir les programmes
-                        </a>
+                        </Link>
                     </div>
 
                     <div className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -52,9 +54,9 @@ export default function HomePage() {
                         <article key={p.slug} className="card p-4">
                             <h3 className="text-lg font-semibold">{p.title}</h3>
                             <p className="mt-1 text-sm text-muted-foreground">{p.desc}</p>
-                            <a className="mt-3 inline-block underline" href={`/app/programs/${p.slug}`}>
+                            <Link className="mt-3 inline-block underline" href={`/app/programs/${p.slug}`}>
                                 Voir le parcours
-                            </a>
+                            </Link>
                         </article>
                     ))}
                 </div>
@@ -102,12 +104,12 @@ export default function HomePage() {
                 <h2 className="font-serif text-3xl">Prête à t’ancrer ?</h2>
                 <p className="mt-2 text-muted-foreground">Rejoins l’espace membre et lance RESET-7 aujourd’hui.</p>
                 <div className="mt-6 flex justify-center gap-3">
-                    <a href="/register" className="button">
+                    <Link href="/register" className="button">
                         Créer mon compte
-                    </a>
-                    <a href="/login" className="button secondary">
+                    </Link>
+                    <Link href="/login" className="button secondary">
                         J’ai déjà un compte
-                    </a>
+                    </Link>
                 </div>
             </section>
         </div>
