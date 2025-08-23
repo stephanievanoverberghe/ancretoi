@@ -7,7 +7,6 @@ import { requireEnrollmentOrPreview } from '@/lib/entitlement';
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-// On NE type pas le JSON importé ici.
 type ProgramModule = { default: unknown };
 
 const PROGRAM_FILES: Record<string, () => Promise<ProgramModule>> = {
@@ -33,46 +32,33 @@ function assertProgramShape(p: unknown): asserts p is ProgramJSON {
     }
 }
 
-export default async function Page({ params }: { params: Params }) {
-    const { program, day } = params;
+export default async function Page(props: { params: Promise<Params> }) {
+    const { program, day } = await props.params;
 
-    // Programme connu ?
     const loader = PROGRAM_FILES[program];
     if (!loader) notFound();
 
-    // Jour demandé
     const dayNum = Number(day);
     if (!Number.isInteger(dayNum)) notFound();
 
-    // 🔒 Accès : connecté obligatoire, puis enrolled OU preview day1
+    // Connexion requise + accès: inscrit OU preview pour day autorisés
     const access = await requireEnrollmentOrPreview(program, dayNum);
     if (!access.ok) {
         if (access.reason === 'auth') {
-            redirect(`/login?next=${encodeURIComponent(`/member/${program}/day/${dayNum}`)}`);
+            redirect(`/login?next=/member/${program}/day/${dayNum}`);
         }
-        // pas inscrit & jour non autorisé → fiche programme verrouillée
         redirect(`/programs/${program}?locked=1`);
     }
 
-    // Charge et valide le JSON
     const mod = await loader();
     assertProgramShape(mod.default);
     const programData = mod.default as ProgramJSON;
 
-    // Le jour existe ?
     const hasDay = programData.days.some((d) => d.day === dayNum);
     if (!hasDay) notFound();
 
-    // userKey: id user (toujours connecté à ce stade)
-    const userKey = access.userId;
+    // userKey: id utilisateur si enrolled, sinon 'preview'
+    const userKey = access.mode === 'enrolled' ? access.userId : 'preview';
 
-    return (
-        <ProgramClient
-            program={programData}
-            programSlug={program}
-            dayNum={dayNum}
-            userKey={userKey}
-            accessMode={access.mode} // 'enrolled' | 'preview'
-        />
-    );
+    return <ProgramClient program={programData} programSlug={program} dayNum={dayNum} userKey={userKey} accessMode={access.mode} />;
 }
