@@ -17,18 +17,18 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     );
 }
 
-export default function HeaderClient({ isAuthed, email, displayName }: { isAuthed: boolean; email: string | null; displayName: string | null }) {
+export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: { isAuthed: boolean; email: string | null; displayName: string | null; isAdmin?: boolean }) {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [userOpen, setUserOpen] = useState(false);
 
     const avatarInitial = initialFrom(displayName, email);
 
-    // ✅ Refs *spécifiques* (pas d'union)
+    // Refs strictes
     const btnRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const firstItemRef = useRef<HTMLAnchorElement>(null);
 
-    // Ferme le popover au clic extérieur + ESC
+    // Fermer le popover au clic extérieur + ESC
     useEffect(() => {
         if (!userOpen) return;
         const onDown = (e: MouseEvent) => {
@@ -79,7 +79,8 @@ export default function HeaderClient({ isAuthed, email, displayName }: { isAuthe
                 {/* Desktop nav (≥ md) */}
                 <nav className="hidden items-center gap-3 text-sm md:flex" aria-label="Navigation principale">
                     <NavLink href="/programs">Programmes</NavLink>
-                    <NavLink href="/help">Aide</NavLink>
+                    <NavLink href="/blog">Blog</NavLink>
+                    <NavLink href="/inspirations">Inspiration</NavLink>
 
                     {isAuthed ? (
                         <>
@@ -96,7 +97,7 @@ export default function HeaderClient({ isAuthed, email, displayName }: { isAuthe
                                     aria-controls="account-menu"
                                     onClick={() => setUserOpen((v) => !v)}
                                 >
-                                    <span className="account-avatar" aria-hidden>
+                                    <span className="account-avatar  cursor-pointer" aria-hidden>
                                         {avatarInitial}
                                     </span>
                                     <span className="sr-only">Ouvrir le menu du compte</span>
@@ -114,7 +115,7 @@ export default function HeaderClient({ isAuthed, email, displayName }: { isAuthe
                                             </div>
                                         </div>
 
-                                        {/* ✅ ref strictement HTMLAnchorElement */}
+                                        {/* Items du menu utilisateur */}
                                         <Link href="/app/settings" role="menuitem" ref={firstItemRef} className="account-item focusable" onClick={() => setUserOpen(false)}>
                                             Paramètres
                                         </Link>
@@ -122,6 +123,11 @@ export default function HeaderClient({ isAuthed, email, displayName }: { isAuthe
                                         <Link href="/help" role="menuitem" className="account-item focusable" onClick={() => setUserOpen(false)}>
                                             Aide
                                         </Link>
+                                        {isAdmin && (
+                                            <Link href="/admin" className="account-item focusable">
+                                                Admin
+                                            </Link>
+                                        )}
 
                                         <hr className="account-divider" />
                                         <div className="px-1 py-1">
@@ -157,15 +163,16 @@ export default function HeaderClient({ isAuthed, email, displayName }: { isAuthe
                 </button>
             </div>
 
-            {/* Overlay + Drawer mobile */}
+            {/* Overlay + Drawer mobile (seulement < md) */}
             <div
                 onClick={() => setMobileOpen(false)}
                 className={`fixed inset-0 z-[60] bg-black/30 transition-opacity md:hidden ${mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
                 aria-hidden
             />
             <aside
-                className={`fixed right-0 top-0 z-[61] h-dvh w-[86%] max-w-xs border-l border-border bg-card shadow-2xl transition-transform duration-200 md:hidden
-        ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                className={`fixed right-0 top-0 z-[61] h-dvh w-[86%] max-w-xs border-l border-border bg-card shadow-2xl transition-transform duration-200 md:hidden ${
+                    mobileOpen ? 'translate-x-0' : 'translate-x-full'
+                }`}
                 role="dialog"
                 aria-modal="true"
                 aria-label="Menu mobile"
@@ -191,9 +198,23 @@ export default function HeaderClient({ isAuthed, email, displayName }: { isAuthe
                             </div>
 
                             <nav className="flex flex-col gap-2">
+                                <Link href="/programs" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Programmes
+                                </Link>
+                                <Link href="/blog" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Blog
+                                </Link>
+                                <Link href="/inspirations" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Inspiration
+                                </Link>
                                 <Link href="/app" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Mon espace
                                 </Link>
+                                {isAdmin && (
+                                    <Link href="/admin" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                        Admin
+                                    </Link>
+                                )}
                                 <Link href="/app/settings" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Paramètres
                                 </Link>
@@ -210,6 +231,12 @@ export default function HeaderClient({ isAuthed, email, displayName }: { isAuthe
                             <nav className="flex flex-col gap-2">
                                 <Link href="/programs" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Programmes
+                                </Link>
+                                <Link href="/blog" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Blog
+                                </Link>
+                                <Link href="/inspirations" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Inspiration
                                 </Link>
                                 <Link href="/help" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Aide
