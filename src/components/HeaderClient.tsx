@@ -98,6 +98,7 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                 {/* Desktop nav */}
                 <nav className="hidden items-center gap-2 text-sm md:flex" aria-label="Navigation principale">
                     <NavLink href="/programs">Programmes</NavLink>
+                    <NavLink href="/methode">Méthode</NavLink>
                     <NavLink href="/blog">Blog</NavLink>
                     <NavLink href="/inspirations">Inspiration</NavLink>
 
@@ -242,6 +243,9 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                                 <Link href="/programs" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Programmes
                                 </Link>
+                                <Link href="/methode" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Méthode
+                                </Link>
                                 <Link href="/blog" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Blog
                                 </Link>
@@ -272,6 +276,9 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                             <nav className="flex flex-col gap-2">
                                 <Link href="/programs" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Programmes
+                                </Link>
+                                <Link href="/methode" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Méthode
                                 </Link>
                                 <Link href="/blog" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Blog

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { ProgramJSON, Day, DaySection, Exercise, AnyField, SliderField, SelectField, MultiSelectField, NumberField, RepeaterField } from '@/types/program';
 
@@ -310,7 +311,19 @@ function Section({
     );
 }
 
-export default function ProgramClient({ program, programSlug, dayNum, userKey }: { program: ProgramJSON; programSlug: string; dayNum: number; userKey: string }) {
+export default function ProgramClient({
+    program,
+    programSlug,
+    dayNum,
+    userKey,
+    accessMode, // 'enrolled' | 'preview'
+}: {
+    program: ProgramJSON;
+    programSlug: string;
+    dayNum: number;
+    userKey: string;
+    accessMode: 'enrolled' | 'preview';
+}) {
     const router = useRouter();
     const maxDay = program.days.length;
     const dayData: Day | undefined = useMemo(() => program.days.find((d) => d.day === dayNum), [program.days, dayNum]);
@@ -369,6 +382,20 @@ export default function ProgramClient({ program, programSlug, dayNum, userKey }:
 
     return (
         <div className="mx-auto max-w-4xl p-6">
+            {/* Bandeau preview si pas inscrit */}
+            {accessMode === 'preview' && (
+                <div className="mb-5 rounded-xl border border-brand-200 bg-brand-50/40 px-4 py-3 text-sm text-brand-900">
+                    <span className="mr-2 inline-block h-2 w-2 rounded-full bg-gold-400 align-middle" aria-hidden />
+                    <span className="font-medium">Jour 1 offert.</span> Débloque le programme complet pour accéder aux jours suivants.
+                    <Link
+                        href={`/programs/${programSlug}?locked=1`}
+                        className="ml-2 inline-flex items-center rounded-lg bg-brand-600 px-2.5 py-1.5 text-white shadow-sm hover:bg-brand-700"
+                    >
+                        Débloquer maintenant
+                    </Link>
+                </div>
+            )}
+
             <div className="mb-6">
                 <div className="text-xs uppercase tracking-wider text-gray-500">
                     {program.product} • Jour {dayData.day}/{maxDay}
@@ -430,11 +457,17 @@ export default function ProgramClient({ program, programSlug, dayNum, userKey }:
                             ← Jour précédent
                         </button>
                     )}
-                    {dayNum < maxDay && (
-                        <button onClick={() => goto(dayNum + 1)} className="rounded-md border px-3 py-2 hover:bg-gray-50">
-                            Jour suivant →
-                        </button>
-                    )}
+                    {dayNum < maxDay &&
+                        (accessMode === 'enrolled' ? (
+                            <button onClick={() => goto(dayNum + 1)} className="rounded-md border px-3 py-2 hover:bg-gray-50">
+                                Jour suivant →
+                            </button>
+                        ) : (
+                            // preview → bloque et propose l’upsell
+                            <Link href={`/programs/${programSlug}?locked=1`} className="rounded-md border px-3 py-2 hover:bg-gray-50">
+                                Débloquer le reste →
+                            </Link>
+                        ))}
                 </div>
                 <div className="text-xs text-gray-500">{autoSaved === 'saving' ? 'Sauvegarde…' : autoSaved === 'saved' ? 'Sauvegardé ✅' : null}</div>
             </div>

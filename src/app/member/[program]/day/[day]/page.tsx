@@ -2,12 +2,12 @@
 import { notFound, redirect } from 'next/navigation';
 import ProgramClient from './ProgramClient';
 import type { ProgramJSON } from '@/types/program';
-import { requireEnrollment } from '@/lib/entitlement';
+import { requireEnrollmentOrPreview } from '@/lib/entitlement';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-// ❗️On NE type PAS le JSON importé comme ProgramJSON ici.
+// On NE type pas le JSON importé ici.
 type ProgramModule = { default: unknown };
 
 const PROGRAM_FILES: Record<string, () => Promise<ProgramModule>> = {
@@ -17,46 +17,62 @@ const PROGRAM_FILES: Record<string, () => Promise<ProgramModule>> = {
 
 type Params = { program: string; day: string };
 
-/* ---------- petites helpers sans `any` ---------- */
+// helpers
 function get(obj: unknown, key: string): unknown {
     return typeof obj === 'object' && obj !== null ? (obj as Record<string, unknown>)[key] : undefined;
 }
 function isNumber(v: unknown): v is number {
     return typeof v === 'number' && Number.isFinite(v);
 }
-
-/* ---------- assertion runtime → confère à TS que c'est bien ProgramJSON ---------- */
 function assertProgramShape(p: unknown): asserts p is ProgramJSON {
     const days = get(p, 'days');
     if (!Array.isArray(days)) throw new Error('Invalid program JSON: missing days[]');
-
     for (const d of days) {
         const dayVal = get(d, 'day');
         if (!isNumber(dayVal)) throw new Error('Invalid program JSON: day.day must be number');
-        // on pourrait pousser plus loin, mais ceci suffit pour lever l’ambiguïté de types
     }
 }
 
-export default async function Page(props: { params: Promise<Params> }) {
-    const { program, day } = await props.params;
+export default async function Page({ params }: { params: Params }) {
+    const { program, day } = params;
 
-    // 🔒 Garde d’accès
-    const access = await requireEnrollment(program);
-    if (!access.ok) redirect('/member?error=not_enrolled');
-
+    // Programme connu ?
     const loader = PROGRAM_FILES[program];
     if (!loader) notFound();
 
-    // ⬇️ charge le JSON en `unknown`, puis on vérifie la forme
+    // Jour demandé
+    const dayNum = Number(day);
+    if (!Number.isInteger(dayNum)) notFound();
+
+    // 🔒 Accès : connecté obligatoire, puis enrolled OU preview day1
+    const access = await requireEnrollmentOrPreview(program, dayNum);
+    if (!access.ok) {
+        if (access.reason === 'auth') {
+            redirect(`/login?next=${encodeURIComponent(`/member/${program}/day/${dayNum}`)}`);
+        }
+        // pas inscrit & jour non autorisé → fiche programme verrouillée
+        redirect(`/programs/${program}?locked=1`);
+    }
+
+    // Charge et valide le JSON
     const mod = await loader();
     assertProgramShape(mod.default);
-    const programData = mod.default; // ← maintenant typé ProgramJSON
+    const programData = mod.default as ProgramJSON;
 
-    const dayNum = Number(day);
+    // Le jour existe ?
     const hasDay = programData.days.some((d) => d.day === dayNum);
-    if (!Number.isInteger(dayNum) || !hasDay) notFound();
+    if (!hasDay) notFound();
 
-    const userKey = access.userId; // identifiant stable pour le localStorage namespacé
+    // userKey: id user (toujours connecté à ce stade)
+    const userKey = access.userId;
 
-    return <ProgramClient program={programData} programSlug={program} dayNum={dayNum} userKey={userKey} />;
+    return (
+        <ProgramClient
+            program={programData}
+            programSlug={program}
+            dayNum={dayNum}
+            userKey={userKey}
+            accessMode={access.mode} // 'enrolled' | 'preview'
+        />
+    );
 }
