@@ -8,8 +8,6 @@ import { dbConnect } from '@/db/connect';
 import { UserModel } from '@/db/schemas';
 import Enrollment from '@/models/Enrollment';
 import { getSession } from '@/lib/session';
-
-// Ton index/catalogue programme (adapte si c'est ailleurs)
 import { PROGRAMS } from '@/lib/programs-index';
 
 type LeanUser = { _id: Types.ObjectId; email: string };
@@ -24,20 +22,49 @@ type LeanEnrollment = {
 
 export async function POST(req: Request) {
     const { slug } = await req.json().catch(() => ({}));
-    if (!slug) return NextResponse.json({ error: 'slug requis' }, { status: 400 });
+    if (!slug) {
+        return NextResponse.json({ error: 'slug requis' }, { status: 400 });
+    }
 
     const sess = await getSession();
-    if (!sess?.email) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (!sess?.email) {
+        // ⛔️ Non connecté → on renvoie un 401 + une cible claire
+        const next = `/programs/${slug}#commencer`;
+        return NextResponse.json(
+            {
+                error: 'Non authentifié',
+                redirectTo: `/login?next=${encodeURIComponent(next)}`,
+            },
+            { status: 401 }
+        );
+    }
 
     const program = PROGRAMS.find((p) => p.slug === slug && p.status === 'published');
-    if (!program) return NextResponse.json({ error: 'Programme introuvable' }, { status: 404 });
+    if (!program) {
+        return NextResponse.json({ error: 'Programme introuvable' }, { status: 404 });
+    }
 
     await dbConnect();
 
-    // ✅ findOne + lean typé -> jamais un tableau, plus d’erreur sur _id
+    // ✅ user unique
     const user = await UserModel.findOne({ email: sess.email }).select({ _id: 1, email: 1 }).lean<LeanUser>().exec();
 
-    if (!user?._id) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 401 });
+    if (!user?._id) {
+        return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 401 });
+    }
+
+    // Déjà inscrit ? → renvoie direct vers le programme (UX + idempotence)
+    const existing = await Enrollment.findOne({
+        userId: user._id,
+        programSlug: slug,
+        status: { $in: ['active', 'completed'] },
+    })
+        .select({ _id: 1 })
+        .lean<Pick<LeanEnrollment, '_id'> | null>();
+
+    if (existing?._id) {
+        return NextResponse.json({ ok: true, redirectTo: `/member/${slug}/day/1` });
+    }
 
     // Gratuit → inscription directe
     if (program.price?.amount_cents === 0) {
@@ -46,13 +73,17 @@ export async function POST(req: Request) {
             { $setOnInsert: { userId: user._id, programSlug: slug, status: 'active' } },
             { upsert: true, new: true, setDefaultsOnInsert: true }
         ).lean<LeanEnrollment>();
-        return NextResponse.json({ ok: true, redirectTo: `/member/${slug}/day/1`, enrollmentId: enr?._id?.toString() });
+        return NextResponse.json({
+            ok: true,
+            redirectTo: `/member/${slug}/day/1`,
+            enrollmentId: enr?._id?.toString(),
+        });
     }
 
     // Payant → Stripe
     const stripe = getStripe();
 
-    // Mode dev optionnel
+    // Mode dev optionnel (bypass Stripe)
     if (!stripe && process.env.CHECKOUT_DEV_BYPASS === 'true') {
         const enr = await Enrollment.findOneAndUpdate(
             { userId: user._id, programSlug: slug },
@@ -67,16 +98,19 @@ export async function POST(req: Request) {
         });
     }
 
-    if (!stripe) return NextResponse.json({ error: 'Stripe non configuré' }, { status: 501 });
+    if (!stripe) {
+        return NextResponse.json({ error: 'Stripe non configuré' }, { status: 501 });
+    }
 
     const amount = program.price?.amount_cents;
     const currency = (program.price?.currency || 'EUR').toUpperCase();
-    if (!amount || amount <= 0) return NextResponse.json({ error: 'Montant invalide.' }, { status: 400 });
+    if (!amount || amount <= 0) {
+        return NextResponse.json({ error: 'Montant invalide.' }, { status: 400 });
+    }
 
     const base = process.env.APP_URL || '';
     const success = `${base}/checkout/success?program=${slug}&session_id={CHECKOUT_SESSION_ID}`;
     const cancel = `${base}/programs/${slug}#commencer`;
-
     const priceId = program.price?.stripe_price_id;
 
     const session = priceId
