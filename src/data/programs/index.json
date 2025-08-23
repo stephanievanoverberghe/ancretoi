@@ -39,7 +39,7 @@
             "status": "published",
             "cover": "/images/programs/boussole10.png",
             "price": {
-                "amount_cents": 4900,
+                "amount_cents": null,
                 "currency": "EUR",
                 "tax_included": true,
                 "compare_at_cents": null,

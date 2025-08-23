@@ -84,7 +84,7 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
 
                     {isAuthed ? (
                         <>
-                            <NavLink href="/app">Mon espace</NavLink>
+                            <NavLink href="/member">Mon espace</NavLink>
 
                             {/* Popover "Compte" */}
                             <div className="relative inline-block">
@@ -116,7 +116,7 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                                         </div>
 
                                         {/* Items du menu utilisateur */}
-                                        <Link href="/app/settings" role="menuitem" ref={firstItemRef} className="account-item focusable" onClick={() => setUserOpen(false)}>
+                                        <Link href="/settings" role="menuitem" ref={firstItemRef} className="account-item focusable" onClick={() => setUserOpen(false)}>
                                             Paramètres
                                         </Link>
 
@@ -207,7 +207,7 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                                 <Link href="/inspirations" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Inspiration
                                 </Link>
-                                <Link href="/app" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                <Link href="/member" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Mon espace
                                 </Link>
                                 {isAdmin && (
@@ -215,7 +215,7 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                                         Admin
                                     </Link>
                                 )}
-                                <Link href="/app/settings" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                <Link href="/settings" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
                                     Paramètres
                                 </Link>
                                 <Link href="/help" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">

@@ -23,11 +23,12 @@ const PasswordResetSchema = new Schema(
     {
         userId: { type: Types.ObjectId, ref: 'User', index: true, required: true },
         tokenHash: { type: String, unique: true, required: true }, // sha256(token)
-        expiresAt: { type: Date, required: true, index: true },
+        expiresAt: { type: Date, required: true }, // <-- plus de "index: true" ici
         usedAt: { type: Date, default: null },
     },
     { timestamps: true }
 );
+
 // TTL automatique (document supprimé après expiration)
 PasswordResetSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
