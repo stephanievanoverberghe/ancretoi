@@ -30,15 +30,11 @@ export default function Hero({ onProgramsClickEvent, onQuizClickEvent }: Props) 
         <section
             id="hero"
             aria-labelledby="hero-title"
-            className="
-        relative isolate mx-[calc(50%-50vw)] w-screen overflow-hidden
-        min-h-[86svh] md:min-h-[88svh]
-        flex items-center px-4 md:px-10
-      "
+            className="relative isolate mx-[calc(50%-50vw)] w-screen overflow-hidden min-h-[86svh] md:min-h-[88svh] flex items-center px-4 md:px-10"
         >
             {/* BACKGROUND full-bleed décoratif */}
             <div className="pointer-events-none absolute inset-0 -z-20" aria-hidden="true">
-                <Image src="/images/hero-amethyste.png" alt="" aria-hidden="true" fill sizes="100vw" priority={false} className="object-cover" />
+                <Image src="/images/hero-amethyste.webp" alt="" aria-hidden="true" fill sizes="100vw" priority={false} className="object-cover" />
                 {/* Voiles adaptatifs pour la lisibilité */}
                 <div className="absolute inset-0 md:hidden bg-gradient-to-b from-white/95 via-white/80 to-white/30" />
                 <div className="absolute inset-0 hidden md:block bg-gradient-to-r from-white/90 via-white/70 to-transparent" />
