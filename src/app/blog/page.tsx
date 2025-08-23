@@ -1,4 +1,5 @@
 // src/app/blog/page.tsx
+import Link from 'next/link';
 import { dbConnect } from '@/db/connect';
 import { PostModel } from '@/db/schemas';
 
@@ -9,15 +10,17 @@ export default async function BlogList() {
     return (
         <div className="mx-auto max-w-3xl space-y-4">
             <h1 className="font-serif text-3xl">Blog</h1>
+
             {posts.map((p) => (
-                <article key={p.slug} className="card p-4">
-                    <a className="text-lg font-semibold underline" href={`/blog/${p.slug}`}>
+                <article key={p.slug} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                    <Link className="text-lg font-semibold underline decoration-brand-300 underline-offset-4 hover:decoration-brand-500" href={`/blog/${p.slug}`}>
                         {p.title}
-                    </a>
-                    {p.publishedAt && <div className="text-xs text-muted-foreground mt-1">{new Date(p.publishedAt).toLocaleDateString('fr-FR')}</div>}
+                    </Link>
+                    {p.publishedAt && <div className="mt-1 text-xs text-muted-foreground">{new Date(p.publishedAt).toLocaleDateString('fr-FR')}</div>}
                     {p.summary && <p className="mt-2 text-sm text-muted-foreground">{p.summary}</p>}
                 </article>
             ))}
+
             {!posts.length && <p className="text-muted-foreground">Aucun article publié pour l’instant.</p>}
         </div>
     );

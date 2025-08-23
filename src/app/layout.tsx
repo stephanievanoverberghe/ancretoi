@@ -2,7 +2,7 @@
 import './globals.css';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
 import Header from '@/components/Header';
 
@@ -16,36 +16,52 @@ export const metadata: Metadata = {
         index: false,
         follow: false,
         nocache: true,
-        googleBot: {
-            index: false,
-            follow: false,
-            noimageindex: true,
-            'max-snippet': -1,
-            'max-image-preview': 'none',
-            'max-video-preview': -1,
-        },
+        googleBot: { index: false, follow: false, noimageindex: true, 'max-snippet': -1, 'max-image-preview': 'none', 'max-video-preview': -1 },
     },
+};
+
+export const viewport: Viewport = {
+    // ✅ mettre themeColor ici (tu peux gérer light/dark si tu veux)
+    themeColor: [
+        { media: '(prefers-color-scheme: dark)', color: '#6B4F93' }, // brand-700
+        { media: '(prefers-color-scheme: light)', color: '#815FB2' }, // brand-600
+    ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="fr" className={`h-full ${inter.variable} ${playfair.variable}`}>
-            {/* ✅ min-h-screen + flex-col + main.flex-1 = footer collé en bas quand peu de contenu */}
+        <html lang="fr" className={`${inter.variable} ${playfair.variable}`}>
             <body className="min-h-screen flex flex-col bg-background text-foreground font-sans antialiased">
-                <Suspense fallback={<div className="border-b border-border px-4 py-3 text-sm text-neutral-500">Chargement…</div>}>
+                {/* Lien d’évitement (a11y) */}
+                <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 z-[100] rounded-lg bg-brand-600 px-3 py-2 text-sm text-white shadow">
+                    Aller au contenu
+                </a>
+
+                {/* Header en verre dépoli */}
+                <Suspense fallback={<div className="border-b border-brand-100 bg-brand-50/70 px-4 py-3 text-sm text-brand-800">Chargement…</div>}>
                     <Header />
                 </Suspense>
 
-                <main id="main" className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
-                    <Suspense fallback={<div className="text-sm text-muted-foreground">Chargement…</div>}>{children}</Suspense>
+                {/* Contenu principal */}
+                <main id="main" className="flex-1 mx-auto w-full max-w-6xl px-4 py-10">
+                    <Suspense fallback={<div className="text-sm text-secondary-700">Chargement…</div>}>{children}</Suspense>
                 </main>
 
-                <footer className="border-t border-border py-8 text-sm text-neutral-500">
+                {/* Footer doux (sauge) */}
+                <footer className="border-t border-secondary-100 bg-secondary-50/50 py-8 text-sm text-secondary-800">
                     <div className="mx-auto flex max-w-6xl flex-wrap gap-6 px-4">
-                        <Link href="/legal">Mentions légales</Link>
-                        <Link href="/privacy">Confidentialité</Link>
-                        <Link href="/cookies">Cookies</Link>
+                        <Link className="transition-colors hover:text-secondary-900" href="/legal">
+                            Mentions légales
+                        </Link>
+                        <Link className="transition-colors hover:text-secondary-900" href="/privacy">
+                            Confidentialité
+                        </Link>
+                        <Link className="transition-colors hover:text-secondary-900" href="/cookies">
+                            Cookies
+                        </Link>
                     </div>
+                    <div className="mx-auto mt-6 h-px max-w-6xl bg-gold-100/70" />
+                    <div className="mx-auto max-w-6xl px-4 pt-4 text-xs text-muted-foreground">© {new Date().getFullYear()} Ancre-toi — Tous droits réservés.</div>
                 </footer>
             </body>
         </html>

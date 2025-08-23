@@ -1,58 +1,97 @@
 @import "tailwindcss";
 
-/* ============ DESIGN TOKENS (LIGHT ONLY) ============ */
+/* =========================================================
+   THEME — "Serenity" (spirituel, pastel, haut de gamme)
+   ========================================================= */
+
 :root {
-  /* Neutres (pas de blanc/noir purs) */
-  --background: #F6F7FB;
-  /* off-white froid */
-  --foreground: #1C2434;
-  /* bleu-gris “ink” */
+  /* ---------- Neutres élégants ---------- */
+  --background: #F8F7FB;
+  /* porcelaine lilas */
+  --foreground: #1C2330;
+  /* encre profonde, lisible */
 
-  /* Surfaces & UI */
-  --card: #FBFCFE;
-  --muted: #ECF0F6;
-  --border: #CED6E2;
-  --input: #E6EBF3;
-  --ring: #0D9488;
-  /* teal-600 */
+  --card: #FFFFFF;
+  --muted: #EFF1F6;
+  --muted-foreground: #6B7280;
+  /* gris froid pour textes secondaires */
+  --border: #E1E4EC;
+  --input: #E9EDF5;
 
-  /* Brand (teal) */
-  --brand-50: #E9FBF6;
-  --brand-100: #C6F4E9;
-  --brand-200: #9EEAD9;
-  --brand-300: #6DDCC7;
-  --brand-400: #3DC9B3;
-  --brand-500: #1FB4A0;
-  --brand-600: #0D9488;
+  /* ---------- Brand (Violet Améthyste) ---------- */
+  --brand-50: #F7F4FB;
+  --brand-100: #EEE8F6;
+  --brand-200: #DED3EE;
+  --brand-300: #C7B2E1;
+  --brand-400: #AD91D3;
+  --brand-500: #9677C4;
+  --brand-600: #815FB2;
   /* PRIMARY */
-  --brand-700: #0B776D;
-  --brand-800: #095E57;
-  --brand-900: #074A45;
+  --brand-700: #6B4F93;
+  --brand-800: #564174;
+  --brand-900: #45355D;
   --brand: var(--brand-600);
   --brand-on: #FFFFFF;
 
-  /* Interactions */
-  --tint-hover: color-mix(in oklab, var(--brand-600) 10%, transparent);
+  /* ---------- Secondaire (Sauge Poudrée) ---------- */
+  --secondary-50: #F6FAF7;
+  --secondary-100: #E9F3EE;
+  --secondary-200: #D6E7DE;
+  --secondary-300: #BCD7C7;
+  --secondary-400: #A4C9B1;
+  --secondary-500: #8BB99B;
+  --secondary-600: #769E85;
+  /* liens / boutons secondaires */
+  --secondary-700: #5F806B;
+  --secondary-800: #4C6756;
+  --secondary-900: #3E5446;
 
-  /* Header / avatar */
-  --avatar-bg: linear-gradient(135deg, var(--brand-600), var(--brand-700));
+  /* ---------- Accent (Or Doux) ---------- */
+  --gold-50: #FFF9EC;
+  --gold-100: #FCEFD3;
+  --gold-200: #F6E1AD;
+  --gold-300: #EBCB80;
+  --gold-400: #DDB65E;
+  --gold-500: #C9A044;
+  --gold-600: #A88537;
+  --gold-700: #876A2C;
+  --gold-800: #6B5323;
+  --gold-900: #55431D;
+
+  /* ---------- Effets / Focus / Ombres ---------- */
+  --ring: var(--brand-600);
+  /* focus violet */
+  --tint-hover: color-mix(in oklab, var(--brand-600) 12%, transparent);
   --header-shadow: 0 8px 30px rgb(15 23 42 / .08);
+  --avatar-bg: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+
+  /* ---------- Dégradés d’ambiance ---------- */
+  --gradient-hero:
+    radial-gradient(1200px 600px at 20% -10%,
+      color-mix(in oklab, var(--brand-200) 65%, transparent),
+      transparent 60%),
+    radial-gradient(900px 480px at 90% -20%,
+      color-mix(in oklab, var(--secondary-200) 60%, transparent),
+      transparent 55%);
 }
 
-/* ============ TAILWIND v4 MAPPINGS ============ */
+/* =========================================================
+   MAPPINGS TAILWIND v4 (utilisables via bg-*, text-*, border-*)
+   ========================================================= */
 @theme inline {
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
   --color-card: var(--card);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  /* Brand (violet) */
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
   --color-brand-200: var(--brand-200);
@@ -64,9 +103,35 @@
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
   --color-brand: var(--brand-600);
+
+  /* Secondaire (sauge) */
+  --color-secondary-50: var(--secondary-50);
+  --color-secondary-100: var(--secondary-100);
+  --color-secondary-200: var(--secondary-200);
+  --color-secondary-300: var(--secondary-300);
+  --color-secondary-400: var(--secondary-400);
+  --color-secondary-500: var(--secondary-500);
+  --color-secondary-600: var(--secondary-600);
+  --color-secondary-700: var(--secondary-700);
+  --color-secondary-800: var(--secondary-800);
+  --color-secondary-900: var(--secondary-900);
+
+  /* Or */
+  --color-gold-50: var(--gold-50);
+  --color-gold-100: var(--gold-100);
+  --color-gold-200: var(--gold-200);
+  --color-gold-300: var(--gold-300);
+  --color-gold-400: var(--gold-400);
+  --color-gold-500: var(--gold-500);
+  --color-gold-600: var(--gold-600);
+  --color-gold-700: var(--gold-700);
+  --color-gold-800: var(--gold-800);
+  --color-gold-900: var(--gold-900);
 }
 
-/* ============ BASE ============ */
+/* =========================================================
+   BASE
+   ========================================================= */
 :root {
   color-scheme: light;
 }
@@ -78,25 +143,48 @@ body {
 }
 
 body {
-  background: var(--background);
+  position: relative;
+  /* pour caler l’overlay */
+  background:
+    var(--gradient-hero),
+    var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-::selection {
-  background: color-mix(in oklab, var(--brand-600) 26%, transparent);
+/* --- Ambiance overlay (radial, fixe, non interactif) --- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  /* sous le contenu, au-dessus du fond */
+  background: var(--gradient-hero);
+  opacity: .65;
+  /* douceur */
+  filter: saturate(1.04);
+  /* légère richesse de teinte */
 }
 
-/* ============ HEADER (verre dépoli) ============ */
+::selection {
+  background: color-mix(in oklab, var(--brand-600) 24%, transparent);
+}
+
+/* =========================================================
+   HEADER (verre dépoli)
+   ========================================================= */
 .header-glass {
   background: color-mix(in oklab, var(--card) 72%, transparent);
-  -webkit-backdrop-filter: saturate(1.1) blur(10px);
-  backdrop-filter: saturate(1.1) blur(10px);
+  -webkit-backdrop-filter: saturate(1.08) blur(10px);
+  backdrop-filter: saturate(1.08) blur(10px);
   box-shadow: var(--header-shadow);
 }
 
-/* ============ FOCUS A11Y ============ */
+/* =========================================================
+   ACCESSIBILITÉ / FOCUS
+   ========================================================= */
 .focusable {
   outline: none;
 }
@@ -104,10 +192,12 @@ body {
 .focusable:focus-visible {
   box-shadow:
     0 0 0 2px var(--ring),
-    0 0 0 4px color-mix(in oklab, var(--background) 92%, transparent);
+    0 0 0 6px color-mix(in oklab, var(--background) 92%, transparent);
 }
 
-/* ============ LIENS NAV / ITEMS MENU ============ */
+/* =========================================================
+   NAV / MENUS
+   ========================================================= */
 .navlink,
 .menu-item {
   transition: background-color .2s, color .2s, box-shadow .2s, transform .08s;
@@ -125,7 +215,9 @@ body {
   color: var(--brand-on);
 }
 
-/* ============ POPOVER COMPTE ============ */
+/* =========================================================
+   POPOVER COMPTE
+   ========================================================= */
 .account {
   position: relative;
   display: inline-block;
@@ -174,8 +266,8 @@ body {
   align-items: center;
   gap: .6rem;
   padding: .5rem .6rem;
-  background: color-mix(in oklab, var(--muted) 80%, transparent);
   border-radius: 10px;
+  background: color-mix(in oklab, var(--muted) 80%, transparent);
 }
 
 .account-name {
@@ -185,40 +277,74 @@ body {
 
 .account-email {
   font-size: .75rem;
-  color: var(--muted-foreground);
+  color: var(--color-muted-foreground);
 }
 
-.account-item {
-  display: block;
-  border-radius: .6rem;
-  padding: .5rem .6rem;
-  margin-top: .25rem;
+/* =========================================================
+   UTILITAIRES
+   ========================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .625rem 1rem;
+  border-radius: .75rem;
+  background: var(--brand-600);
+  color: var(--brand-on);
+  transition: transform .06s ease, filter .15s ease, background-color .2s ease;
 }
 
-.account-item:hover {
-  background: var(--tint-hover);
+.btn:hover {
+  background: var(--brand-700);
 }
 
-.account-divider {
-  height: 1px;
-  background: var(--border);
-  margin: .4rem .25rem;
-  border: 0;
+.btn:active {
+  transform: translateY(1px);
 }
 
-/* ============ MENU MOBILE (simple) ============ */
-.mobile {
-  position: relative;
+.btn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
 }
 
-.mobile-pop {
-  position: absolute;
-  right: 0;
-  top: 2.75rem;
-  width: 14rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: var(--header-shadow);
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .625rem 1rem;
+  border-radius: .75rem;
+  color: var(--secondary-700);
+  border: 1px solid var(--secondary-300);
+  background: #fff;
+  transition: background-color .2s ease, transform .06s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--secondary-50);
+}
+
+.btn-secondary:active {
+  transform: translateY(1px);
+}
+
+.badge-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .2rem .5rem;
+  border-radius: .5rem;
+  background: var(--gold-50);
+  color: var(--gold-700);
+  border: 1px solid color-mix(in oklab, var(--gold-400) 35%, transparent);
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+/* Réduction d’effet si demandé par l’utilisateur */
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    opacity: .45;
+  }
 }

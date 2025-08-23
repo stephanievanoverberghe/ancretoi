@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import LogoutButton from './Logout';
 
 function initialFrom(name?: string | null, email?: string | null) {
@@ -10,9 +11,20 @@ function initialFrom(name?: string | null, email?: string | null) {
 }
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+    const pathname = usePathname();
+    const isActive = pathname === href || pathname.startsWith(`${href}/`);
     return (
-        <Link href={href} className="navlink focusable">
-            {children}
+        <Link
+            href={href}
+            aria-current={isActive ? 'page' : undefined}
+            className={['navlink focusable', 'transition-all', isActive ? 'bg-brand-600 text-white shadow-sm' : 'bg-transparent text-foreground/80 hover:text-foreground'].join(
+                ' '
+            )}
+        >
+            <span className="inline-flex items-center gap-2">
+                {children}
+                {isActive && <span className="h-1.5 w-1.5 rounded-full bg-gold-300" aria-hidden />}
+            </span>
         </Link>
     );
 }
@@ -23,7 +35,6 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
 
     const avatarInitial = initialFrom(displayName, email);
 
-    // Refs strictes
     const btnRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const firstItemRef = useRef<HTMLAnchorElement>(null);
@@ -51,7 +62,7 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
         if (userOpen) firstItemRef.current?.focus();
     }, [userOpen]);
 
-    // Drawer mobile : bloque scroll + ESC
+    // Drawer mobile : bloque le scroll + ESC
     useEffect(() => {
         if (mobileOpen) document.body.style.overflow = 'hidden';
         else document.body.style.overflow = '';
@@ -64,20 +75,28 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
     }, [mobileOpen]);
 
     return (
-        <header className="header-glass sticky top-0 z-50 border-b border-border" role="banner">
-            <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 rounded bg-brand px-3 py-1.5 text-white">
+        <header className="header-glass sticky top-0 z-50 border-b border-border">
+            <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 rounded bg-brand-600 px-3 py-1.5 text-white shadow">
                 Passer au contenu
             </a>
 
-            <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-                {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 font-serif text-xl">
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-brand text-[11px] font-bold text-white">A</span>
-                    <span>Ancre-toi</span>
+            {/* Barre principale */}
+            <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+                {/* Logo + petite pastille or */}
+                <Link href="/" className="group flex items-center gap-2 font-serif text-xl">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-[11px] font-bold text-white shadow-sm ring-1 ring-brand-400/40">
+                        A
+                    </span>
+                    <span className="tracking-tight">
+                        Ancre-toi
+                        <span className="ml-2 inline-block align-middle">
+                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-gold-300 opacity-90 group-hover:opacity-100 transition-opacity" />
+                        </span>
+                    </span>
                 </Link>
 
-                {/* Desktop nav (≥ md) */}
-                <nav className="hidden items-center gap-3 text-sm md:flex" aria-label="Navigation principale">
+                {/* Desktop nav */}
+                <nav className="hidden items-center gap-2 text-sm md:flex" aria-label="Navigation principale">
                     <NavLink href="/programs">Programmes</NavLink>
                     <NavLink href="/blog">Blog</NavLink>
                     <NavLink href="/inspirations">Inspiration</NavLink>
@@ -86,25 +105,25 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                         <>
                             <NavLink href="/member">Mon espace</NavLink>
 
-                            {/* Popover "Compte" */}
+                            {/* Compte */}
                             <div className="relative inline-block">
                                 <button
                                     ref={btnRef}
                                     type="button"
-                                    className="focusable inline-flex items-center justify-center rounded-full p-1"
+                                    className="focusable inline-flex items-center justify-center rounded-full p-1 ring-1 ring-brand-200/50 hover:ring-brand-300/60 transition cursor-pointer"
                                     aria-haspopup="menu"
                                     aria-expanded={userOpen}
                                     aria-controls="account-menu"
                                     onClick={() => setUserOpen((v) => !v)}
                                 >
-                                    <span className="account-avatar  cursor-pointer" aria-hidden>
+                                    <span className="account-avatar ring-2 ring-white/70 shadow-sm" aria-hidden>
                                         {avatarInitial}
                                     </span>
                                     <span className="sr-only">Ouvrir le menu du compte</span>
                                 </button>
 
                                 {userOpen && (
-                                    <div ref={menuRef} id="account-menu" role="menu" aria-label="Menu du compte" className="account-pop">
+                                    <div ref={menuRef} id="account-menu" role="menu" aria-label="Menu du compte" className="account-pop shadow-xl ring-1 ring-border/70">
                                         <div className="account-head">
                                             <span className="account-avatar" aria-hidden>
                                                 {avatarInitial}
@@ -115,22 +134,38 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                                             </div>
                                         </div>
 
-                                        {/* Items du menu utilisateur */}
-                                        <Link href="/settings" role="menuitem" ref={firstItemRef} className="account-item focusable" onClick={() => setUserOpen(false)}>
-                                            Paramètres
-                                        </Link>
+                                        {/* Liens style NavLink, verticaux, avec gap */}
+                                        <nav aria-label="Liens du compte" className="my-2 flex flex-col gap-1.5 px-1">
+                                            {(() => {
+                                                const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+                                                const mkCls = (href: string) =>
+                                                    [
+                                                        'navlink focusable block w-full text-left transition-all',
+                                                        pathname === href || pathname.startsWith(`${href}/`)
+                                                            ? 'bg-brand-600 text-white shadow-sm'
+                                                            : 'bg-transparent text-foreground/80 hover:text-foreground',
+                                                    ].join(' ');
 
-                                        <Link href="/help" role="menuitem" className="account-item focusable" onClick={() => setUserOpen(false)}>
-                                            Aide
-                                        </Link>
-                                        {isAdmin && (
-                                            <Link href="/admin" className="account-item focusable">
-                                                Admin
-                                            </Link>
-                                        )}
+                                                return (
+                                                    <>
+                                                        <Link href="/settings" role="menuitem" ref={firstItemRef} className={mkCls('/settings')} onClick={() => setUserOpen(false)}>
+                                                            Paramètres
+                                                        </Link>
+                                                        <Link href="/help" role="menuitem" className={mkCls('/help')} onClick={() => setUserOpen(false)}>
+                                                            Aide
+                                                        </Link>
+                                                        {isAdmin && (
+                                                            <Link href="/admin" role="menuitem" className={mkCls('/admin')} onClick={() => setUserOpen(false)}>
+                                                                Admin
+                                                            </Link>
+                                                        )}
+                                                    </>
+                                                );
+                                            })()}
+                                        </nav>
 
                                         <hr className="account-divider" />
-                                        <div className="px-1 py-1">
+                                        <div className="px-1 py-2">
                                             <LogoutButton />
                                         </div>
                                     </div>
@@ -139,17 +174,23 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                         </>
                     ) : (
                         <>
-                            <Link href="/register" className="navlink focusable border border-border bg-card">
+                            <Link
+                                href="/register"
+                                className="focusable inline-flex items-center rounded-xl border border-secondary-200 bg-white px-3 py-2 text-sm text-secondary-800 shadow-sm transition hover:bg-secondary-50"
+                            >
                                 S’inscrire
                             </Link>
-                            <Link href="/login" className="navlink focusable" style={{ background: 'var(--brand-600)', color: 'var(--brand-on)' }}>
+                            <Link
+                                href="/login"
+                                className="focusable inline-flex items-center rounded-xl bg-brand-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700"
+                            >
                                 Se connecter
                             </Link>
                         </>
                     )}
                 </nav>
 
-                {/* Burger (< md) */}
+                {/* Burger */}
                 <button
                     type="button"
                     aria-label="Ouvrir le menu"
@@ -163,7 +204,7 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                 </button>
             </div>
 
-            {/* Overlay + Drawer mobile (seulement < md) */}
+            {/* Overlay + Drawer mobile */}
             <div
                 onClick={() => setMobileOpen(false)}
                 className={`fixed inset-0 z-[60] bg-black/30 transition-opacity md:hidden ${mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
@@ -177,7 +218,7 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                 aria-modal="true"
                 aria-label="Menu mobile"
             >
-                <div className="flex items-center justify-between border-b border-border p-4">
+                <div className="flex items-center justify-between border-b border-border p-4 bg-gradient-to-b from-brand-50/70 to-transparent">
                     <span className="font-serif text-lg">Menu</span>
                     <button onClick={() => setMobileOpen(false)} aria-label="Fermer le menu" className="focusable rounded-lg border border-border p-2">
                         ✕
@@ -247,14 +288,14 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
                                 <Link
                                     href="/login"
                                     onClick={() => setMobileOpen(false)}
-                                    className="block w-full rounded-xl bg-brand px-4 py-3 text-center text-[15px] font-medium text-white hover:bg-brand-700"
+                                    className="block w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-[15px] font-medium text-white shadow-sm transition hover:bg-brand-700"
                                 >
                                     Se connecter
                                 </Link>
                                 <Link
                                     href="/register"
                                     onClick={() => setMobileOpen(false)}
-                                    className="block w-full rounded-xl border border-border bg-card px-4 py-3 text-center text-[15px] font-medium hover:bg-brand-50"
+                                    className="block w-full rounded-xl border border-secondary-200 bg-white px-4 py-3 text-center text-[15px] font-medium transition hover:bg-secondary-50"
                                 >
                                     S’inscrire
                                 </Link>
