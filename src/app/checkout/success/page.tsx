@@ -71,7 +71,7 @@ export default function SuccessPage() {
     }, [confirm]);
 
     return (
-        <div className="mx-auto max-w-md p-6">
+        <div className="mx-auto max-w-md py-16 sm:py-20 lg:py-24">
             <h1 className="mb-2 font-serif text-3xl">Merci 🙏</h1>
             <p className="text-sm text-muted-foreground">{message}</p>
 

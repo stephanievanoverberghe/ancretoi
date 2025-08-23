@@ -6,16 +6,36 @@ import ProgramsGrid from '@/components/sections/home/ProgramsGrid';
 import ResultsFelt from '@/components/sections/home/ResultsFelt';
 import SocialProof from '@/components/sections/home/SocialProof';
 import data from '@/data/programs/index.json';
+import { getSession } from '@/lib/session';
 
-export default function HomePage() {
+type ProgramJSON = {
+    slug: string;
+    title: string;
+    duration_days: number;
+    status?: string | null;
+    price?: { amount_cents?: number | null } | null;
+};
+
+export default async function HomePage() {
+    const session = await getSession();
+    const isAuthed = !!session?.email;
+
+    const programs = (data.programs as ProgramJSON[]).map((p) => ({
+        slug: p.slug,
+        title: p.title,
+        duration_days: p.duration_days,
+        status: p.status === 'published' ? 'published' : p.status === 'draft' ? 'draft' : undefined,
+        price: { amount_cents: p.price?.amount_cents ?? null },
+    }));
+
     return (
         <>
             <Hero />
             <SocialProof />
-            <ProgramsGrid programs={data.programs} />
+            <ProgramsGrid programs={programs} />
             <Pillars />
             <ResultsFelt />
-            <HowItWorks />
+            <HowItWorks isAuthed={isAuthed} />
         </>
     );
 }

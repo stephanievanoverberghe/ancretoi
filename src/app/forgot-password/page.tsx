@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="mx-auto max-w-md">
+        <div className="mx-auto max-w-md py-16 sm:py-20 lg:py-24">
             <h1 className="mb-2 font-serif text-3xl">Mot de passe oublié</h1>
             <p className="mb-4 text-sm text-muted-foreground">Entre ton e-mail : si un compte existe, tu recevras un lien de réinitialisation.</p>
             <form onSubmit={submit} className="space-y-3">

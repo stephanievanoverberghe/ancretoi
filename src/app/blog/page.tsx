@@ -8,7 +8,7 @@ export default async function BlogList() {
     const posts = await PostModel.find({ status: 'published', deletedAt: null }).sort({ publishedAt: -1 }).select({ title: 1, slug: 1, summary: 1, publishedAt: 1, _id: 0 }).lean();
 
     return (
-        <div className="mx-auto max-w-3xl space-y-4">
+        <div className="mx-auto max-w-3xl space-y-4 py-16 sm:py-20 lg:py-24">
             <h1 className="font-serif text-3xl">Blog</h1>
 
             {posts.map((p) => (

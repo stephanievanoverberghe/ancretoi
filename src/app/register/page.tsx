@@ -36,7 +36,7 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="mx-auto max-w-md">
+        <div className="mx-auto max-w-md py-16 sm:py-20 lg:py-24">
             <h1 className="mb-2 font-serif text-3xl">Créer un compte</h1>
             <form onSubmit={submit} className="space-y-3">
                 <input

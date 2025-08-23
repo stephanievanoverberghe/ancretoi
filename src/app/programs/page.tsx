@@ -6,7 +6,7 @@ import { PROGRAMS, formatPrice } from '@/lib/programs-index';
 
 export default function ProgramsPage() {
     return (
-        <div className="mx-auto max-w-5xl p-6">
+        <div className="mx-auto max-w-5xl py-16 sm:py-20 lg:py-24">
             <h1 className="mb-6 font-serif text-4xl">Programmes</h1>
             <div className="grid gap-6 md:grid-cols-2">
                 {PROGRAMS.map((p) => {

@@ -112,7 +112,7 @@ export default function Pillars() {
                     <h2 id="pillars-title" className="font-serif text-[clamp(1.4rem,4.2vw,2rem)] leading-tight">
                         Méthode & Philosophie
                     </h2>
-                    <p className="mt-2 text-[14px] sm:text-[15px] text-muted-foreground">
+                    <p className="mt-3 text-[15px] sm:text-base text-muted-foreground">
                         3 piliers qui structurent l’expérience : <span className="font-medium text-foreground">Ancrage</span>,{' '}
                         <span className="font-medium text-foreground">Boussole</span>, <span className="font-medium text-foreground">Alchimie</span>.
                     </p>

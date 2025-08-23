@@ -17,7 +17,7 @@ export default async function ProgramDetail({ params }: Props) {
     const isFree = p.price?.amount_cents === 0;
 
     return (
-        <div className="mx-auto max-w-3xl space-y-6 p-6">
+        <div className="mx-auto max-w-3xl space-y-6 py-16 sm:py-20 lg:py-24">
             <Link href="/programs" className="underline">
                 ← Programmes
             </Link>

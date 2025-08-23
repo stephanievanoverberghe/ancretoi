@@ -18,7 +18,7 @@ export default async function ProfilePage() {
         .exec();
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 py-16 sm:py-20 lg:py-24">
             <h1 className="text-3xl font-semibold">Mon profil</h1>
             <div className="rounded-xl border border-border bg-card p-4">
                 <p>

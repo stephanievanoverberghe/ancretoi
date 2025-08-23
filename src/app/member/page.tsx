@@ -46,7 +46,7 @@ export default async function MemberHome() {
     const userKey = String(user._id);
 
     return (
-        <div className="p-6">
+        <div className="py-16 sm:py-20 lg:py-24">
             <h1 className="mb-4 text-3xl font-semibold">Mes programmes</h1>
             <div className="grid gap-4 sm:grid-cols-2">
                 {enrollments.map(({ programSlug }) => {

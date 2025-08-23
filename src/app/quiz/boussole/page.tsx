@@ -1,3 +1,3 @@
 export default function QuizBoussolePage() {
-    return <h1>Quiz Boussole</h1>;
+    return <div className="space-y-16 py-16 sm:py-20 lg:py-24">Quiz boussole</div>;
 }
