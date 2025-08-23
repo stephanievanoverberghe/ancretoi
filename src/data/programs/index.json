@@ -1,0 +1,109 @@
+{
+    "version": "1.1",
+    "updated_at": "2025-08-23",
+    "programs": [
+        {
+            "slug": "reset-7",
+            "title": "RESET-7",
+            "tagline": "7 jours pour te recentrer et remettre ton axe en place.",
+            "duration_days": 7,
+            "level": "Cible",
+            "status": "published",
+            "cover": "/images/programs/reset7.png",
+            "price": {
+                "amount_cents": 3900,
+                "currency": "EUR",
+                "tax_included": true,
+                "compare_at_cents": null,
+                "stripe_price_id": null
+            },
+            "card_highlights": ["Rituel quotidien ≤ 20 min", "Journal exportable (PDF/JSON)", "Respiration 4-6 & limites saines"],
+            "detail": {
+                "who": "Pour celles qui veulent une remise à l’axe douce mais efficace, en 1 semaine.",
+                "goals": ["Clarifier 1 intention prioritaire", "Installer un rituel court matin/soir", "Apaiser le système (respiration 4-6)"],
+                "includes": ["7 jours guidés (matin / midi / soir)", "Exercices pas à pas + minuteurs", "Journal intégré + export"],
+                "prerequisites": ["Aucun prérequis"],
+                "outcomes": ["Un quotidien plus calme et structuré", "Une intention claire et tenable", "Une base pour continuer"],
+                "faq": [
+                    { "q": "Combien de temps par jour ?", "a": "15–25 minutes en moyenne." },
+                    { "q": "Accès mobile ?", "a": "Oui, tout est mobile-first." }
+                ]
+            }
+        },
+        {
+            "slug": "boussole-10",
+            "title": "BOUSSOLE-10",
+            "tagline": "10 jours pour retrouver ta direction et tes limites saines.",
+            "duration_days": 10,
+            "level": "Basique",
+            "status": "published",
+            "cover": "/images/programs/boussole10.png",
+            "price": {
+                "amount_cents": 4900,
+                "currency": "EUR",
+                "tax_included": true,
+                "compare_at_cents": null,
+                "stripe_price_id": null
+            },
+            "card_highlights": ["Carte perso (valeurs, besoins)", "Limites dites sans culpabilité", "Mini-actions quotidiennes"],
+            "detail": {
+                "who": "Pour avancer quand tout semble flou, sans te perdre.",
+                "goals": ["Identifier 3 valeurs-boussole", "Poser 1 limite réelle dans ta semaine", "Rituel d’auto-check simple"],
+                "includes": ["10 capsules courtes", "Fiches d’auto-enquête", "Journal guidé + export"],
+                "prerequisites": ["Aucun, RESET-7 recommandé en amont"],
+                "outcomes": ["Plus de clarté", "Une limite posée et tenue", "Un cap réaliste à 30 jours"],
+                "faq": [{ "q": "Je peux le faire en parallèle d’un autre programme ?", "a": "Oui, il est léger." }]
+            }
+        },
+        {
+            "slug": "ancrage-30",
+            "title": "ANCRAGE-30",
+            "tagline": "30 jours pour stabiliser ton axe, ton énergie et ta discipline douce.",
+            "duration_days": 30,
+            "level": "Cible",
+            "status": "draft",
+            "cover": "/images/programs/ancrage30.png",
+            "price": {
+                "amount_cents": null,
+                "currency": "EUR",
+                "tax_included": true,
+                "compare_at_cents": null,
+                "stripe_price_id": null
+            },
+            "card_highlights": ["Routine corps-cœur-tête", "Plan d’action 30 jours", "Suivi hebdo + bilans"],
+            "detail": {
+                "who": "Pour consolider tes bases et éviter l’effet yo-yo émotionnel.",
+                "goals": ["Ancrer 3 habitudes piliers", "Réguler le stress au quotidien", "Tenir un plan 4 semaines"],
+                "includes": ["30 jours guidés", "4 bilans hebdo", "Templates d’habitudes"],
+                "prerequisites": ["RESET-7 ou expérience équivalente"],
+                "outcomes": ["Énergie plus stable", "Routine réaliste", "Sentiment d’auto-maîtrise"],
+                "faq": [{ "q": "Et si je loupe un jour ?", "a": "On reprend simplement le lendemain." }]
+            }
+        },
+        {
+            "slug": "alchimie-90",
+            "title": "ALCHIMIE-90",
+            "tagline": "3 mois pour transformer en profondeur : du chaos à l’axe vivant.",
+            "duration_days": 90,
+            "level": "Premium",
+            "status": "draft",
+            "cover": "/images/programs/alchimie90.png",
+            "price": {
+                "amount_cents": null,
+                "currency": "EUR",
+                "tax_included": true,
+                "compare_at_cents": null,
+                "stripe_price_id": null
+            },
+            "card_highlights": ["Chemin complet en 3 actes", "Exercices d’introspection avancés", "Vision 12 mois + premiers pas"],
+            "detail": {
+                "who": "Pour une mue profonde, avec accompagnement progressif.",
+                "goals": ["Pacifier les nœuds récurrents", "Clarifier une vision alignée", "Mettre en route 3 chantiers concrets"],
+                "includes": ["90 jours guidés (3×30)", "Bilans et jalons clés", "Journal, cartes & exports"],
+                "prerequisites": ["Avoir déjà traversé RESET-7 ou ANCRAGE-30"],
+                "outcomes": ["Alignement intérieur", "Cap à 12 mois incarné", "Habitudes stables"],
+                "faq": [{ "q": "Charge quotidienne ?", "a": "20–35 minutes en moyenne." }]
+            }
+        }
+    ]
+}

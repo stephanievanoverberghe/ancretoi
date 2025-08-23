@@ -1,25 +1,53 @@
-import Link from 'next/link';
+// app/programs/page.tsx
+'use client';
 
-const progs = [
-    { slug: 'reset-7', title: 'RESET-7', desc: '7 jours · 10–15 min/jour', price: '39 €' },
-    { slug: 'boussole-10', title: 'BOUSSOLE-10', desc: '10 jours · clarté & cap', price: '69 €' },
-    { slug: 'ancre-30', title: 'ANCRE-30', desc: '30 jours · ancrage quotidien', price: '149 €' },
-    { slug: 'alchimie-90', title: 'ALCHIMIE-90', desc: '12 semaines · transformation', price: '399 €' },
-];
+import Image from 'next/image';
+import { PROGRAMS, formatPrice } from '@/lib/programs-index';
 
-export default function Programs() {
+export default function ProgramsPage() {
     return (
-        <section className="space-y-6">
-            <h1 className="text-3xl font-semibold">Programmes</h1>
-            <div className="grid gap-4 sm:grid-cols-2">
-                {progs.map((p) => (
-                    <Link key={p.slug} href={`/programs/${p.slug}`} className="rounded-xl border p-4 hover:shadow-sm">
-                        <h2 className="text-xl font-semibold">{p.title}</h2>
-                        <p className="text-neutral-600">{p.desc}</p>
-                        <div className="mt-2 text-sm text-neutral-900">{p.price}</div>
-                    </Link>
-                ))}
+        <div className="mx-auto max-w-5xl p-6">
+            <h1 className="mb-6 font-serif text-4xl">Programmes</h1>
+            <div className="grid gap-6 md:grid-cols-2">
+                {PROGRAMS.map((p) => {
+                    const price = formatPrice(p.price);
+                    const isDraft = p.status !== 'published';
+                    return (
+                        <a key={p.slug} href={`/programs/${p.slug}`} className="rounded-2xl border p-4 transition hover:shadow">
+                            {/* ⬇️ ajoute relative ici */}
+                            <div className="relative mb-3 aspect-[16/9] w-full overflow-hidden rounded-xl bg-muted">
+                                {p.cover ? (
+                                    <Image
+                                        src={p.cover}
+                                        alt={`Couverture du programme ${p.title}`}
+                                        fill // ⬅️ pas besoin de width/height
+                                        sizes="(max-width: 768px) 100vw, 50vw"
+                                        className="object-cover"
+                                    />
+                                ) : null}
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                                <div className="text-xs uppercase tracking-wider text-muted-foreground">{p.level}</div>
+                                <div className="text-sm font-medium">
+                                    {isDraft ? <span className="rounded bg-muted px-2 py-0.5">Bientôt</span> : price ?? <span className="text-muted-foreground">À venir</span>}
+                                </div>
+                            </div>
+
+                            <h2 className="mt-1 text-xl font-semibold">{p.title}</h2>
+                            <p className="text-sm text-muted-foreground">{p.tagline}</p>
+
+                            <ul className="mt-3 list-disc pl-5 text-sm">
+                                {p.card_highlights.slice(0, 3).map((h, i) => (
+                                    <li key={i}>{h}</li>
+                                ))}
+                            </ul>
+
+                            <div className="mt-3 text-sm text-muted-foreground">{p.duration_days} jours</div>
+                        </a>
+                    );
+                })}
             </div>
-        </section>
+        </div>
     );
 }
