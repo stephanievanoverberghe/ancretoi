@@ -21,10 +21,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-    // ✅ mettre themeColor ici (tu peux gérer light/dark si tu veux)
     themeColor: [
-        { media: '(prefers-color-scheme: dark)', color: '#6B4F93' }, // brand-700
-        { media: '(prefers-color-scheme: light)', color: '#815FB2' }, // brand-600
+        { media: '(prefers-color-scheme: dark)', color: '#6B4F93' },
+        { media: '(prefers-color-scheme: light)', color: '#815FB2' },
     ],
 };
 
@@ -43,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </Suspense>
 
                 {/* Contenu principal */}
-                <main id="main" className="flex-1 mx-auto w-full max-w-6xl px-4 py-10">
+                <main id="main" className="flex-1 mx-auto w-full max-w-7xl">
                     <Suspense fallback={<div className="text-sm text-secondary-700">Chargement…</div>}>{children}</Suspense>
                 </main>
 
