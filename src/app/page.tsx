@@ -10,6 +10,7 @@ import SampleDay from '@/components/sections/home/SampleDay';
 import data from '@/data/programs/index.json';
 import { getUserState } from '@/lib/user-state';
 import Testimonials from '@/components/sections/home/Testimonials';
+import Founder from '@/components/sections/home/Founder';
 
 export default async function HomePage() {
     const { isAuthed, hasActiveProgram, activeProgramSlug } = await getUserState();
@@ -32,6 +33,7 @@ export default async function HomePage() {
                     ]
                 }
             />
+            <Founder />
         </>
     );
 }

@@ -70,7 +70,7 @@ export default function Testimonials({
             aria-labelledby="testimonials-title"
             className="
         relative mx-[calc(50%-50vw)] w-screen
-        bg-secondary-50
+        bg-white
         py-16 sm:py-20 lg:py-24
       "
         >
@@ -80,7 +80,7 @@ export default function Testimonials({
 
             <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8">
                 <header className="mb-10 sm:mb-12 lg:mb-14 text-center">
-                    <h2 id="testimonials-title" className="font-serif text-[clamp(1.35rem,3.8vw,2rem)] leading-tight">
+                    <h2 id="testimonials-title" className="font-serif text-[clamp(1.4rem,4.2vw,2rem)] leading-tight">
                         {title}
                     </h2>
                     <p className="mt-3 text-[15px] sm:text-base text-muted-foreground">{subtitle}</p>
