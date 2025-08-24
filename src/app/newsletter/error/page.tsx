@@ -1,3 +1,4 @@
+// src/app/newsletter/error/page.tsx
 import Link from 'next/link';
 
 export const metadata = {
@@ -5,7 +6,7 @@ export const metadata = {
     description: 'Impossible de confirmer ton adresse email.',
 };
 
-type Props = { searchParams?: { code?: string } };
+type SP = { code?: string };
 
 const messages: Record<string, { title: string; body: string }> = {
     invalid_token: {
@@ -22,8 +23,9 @@ const messages: Record<string, { title: string; body: string }> = {
     },
 };
 
-export default function Page({ searchParams }: Props) {
-    const code = searchParams?.code ?? 'invalid_token';
+export default async function Page({ searchParams }: { searchParams?: Promise<SP> }) {
+    const sp = (await searchParams) ?? {};
+    const code = sp.code ?? 'invalid_token';
     const msg = messages[code] ?? {
         title: 'Oups, une erreur est survenue',
         body: 'Impossible de confirmer ton adresse pour le moment.',
@@ -38,8 +40,7 @@ export default function Page({ searchParams }: Props) {
             <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8">
                 <div className="mx-auto max-w-md overflow-hidden rounded-2xl bg-white ring-1 ring-brand-200 shadow-[0_8px_24px_rgb(0_0_0/0.06)]">
                     <div className="px-5 py-6 sm:px-6 sm:py-7">
-                        <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 ring-1 ring-rose-200 text-rose-700">
-                            {/* icône warning */}
+                        <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 ring-1 ring-brand-200 text-brand-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden className="opacity-90">
                                 <path
                                     d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
