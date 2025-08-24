@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
-                <button className="rounded-lg bg-brand px-4 py-2 text-white hover:bg-brand-700">Envoyer le lien</button>
+                <button className="rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700 cursor-pointer">Envoyer le lien</button>
             </form>
             {sent && (
                 <div className="mt-4 rounded-lg border p-3 text-sm">

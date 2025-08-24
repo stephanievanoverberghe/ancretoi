@@ -68,7 +68,7 @@ export default function ResetPasswordPage() {
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
                 />
-                <button className="rounded-lg bg-brand px-4 py-2 text-white hover:bg-brand-700">Enregistrer</button>
+                <button className="rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700 cursor-pointer">Enregistrer</button>
                 {ok && <p className="text-sm text-green-700">Mot de passe mis à jour. Redirection…</p>}
                 {error && <p className="text-sm text-red-600">{error}</p>}
             </form>

@@ -24,7 +24,7 @@ type Props = {
 export default function LeadMagnet({
     title = 'Ressource gratuite — inspiration de la semaine',
     subtitle = 'Reçois un mini-rituel et une inspiration douce chaque semaine. Simple, tenable, apaisant.',
-    imageSrc = '/images/lead-still-life.jpg',
+    imageSrc = '/images/lead-still-life.webp',
     placeholder = 'Ton email',
     ctaLabel = 'Recevoir l’inspiration',
     privacyHref = '/privacy',

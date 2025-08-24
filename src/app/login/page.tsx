@@ -50,7 +50,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                 />
                 {error && <p className="text-sm text-red-600">{error}</p>}
-                <button className="rounded-lg bg-brand px-4 py-2 text-white hover:bg-brand-700 disabled:opacity-50" disabled={pending || !email || !password}>
+                <button className="rounded-lg bg-brand-600 px-4 py-2 text-white hover:bg-brand-700 disabled:opacity-50 cursor-pointer" disabled={pending || !email || !password}>
                     {pending ? 'Connexion…' : 'Se connecter'}
                 </button>
             </form>
