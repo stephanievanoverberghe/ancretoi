@@ -9,27 +9,15 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 function assertEnv() {
-    if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM || !process.env.APP_URL || !process.env.MONGODB_URI) {
+    if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM) {
         throw new Error('missing_env');
     }
-}
-
-let _resend: Resend | null = null;
-function getResend(): Resend {
-    if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY!);
-    return _resend;
 }
 
 export async function POST(req: Request) {
     try {
         assertEnv();
-
-        try {
-            await dbConnect();
-        } catch (e) {
-            console.error('DB connect failed:', e);
-            return NextResponse.json({ ok: false, error: 'db_connect_failed' }, { status: 500 });
-        }
+        await dbConnect();
 
         const body = await req.json().catch(() => ({} as Record<string, unknown>));
         const email = String(body?.email ?? '')
@@ -64,36 +52,34 @@ export async function POST(req: Request) {
             { new: true, upsert: true, runValidators: false }
         ).lean();
 
-        const APP_URL = process.env.APP_URL!;
-        const FROM = process.env.RESEND_FROM!;
-        const confirmUrl = `${APP_URL}/api/newsletter/confirm?token=${confirmToken}`;
-        const unsubUrl = `${APP_URL}/api/newsletter/unsubscribe?token=${unsubToken}`;
+        const origin = process.env.APP_URL ?? new URL(req.url).origin;
+        const confirmUrl = `${origin}/api/newsletter/confirm?token=${confirmToken}`;
+        const unsubUrl = `${origin}/api/newsletter/unsubscribe?token=${unsubToken}`;
+
         const html = renderConfirmHtml(confirmUrl, unsubUrl);
 
-        try {
-            const resend = getResend();
-            const { error } = await resend.emails.send({
-                from: FROM,
-                to: email,
-                subject: 'Confirme ton inscription à Ancre-toi',
-                html,
-                headers: { 'List-Unsubscribe': `<${unsubUrl}>` },
-            });
-            if (error) {
-                console.error('Resend returned error:', error);
-                return NextResponse.json({ ok: false, error: 'email_send_failed' }, { status: 500 });
-            }
-        } catch (e: unknown) {
-            console.error('Resend threw:', e);
-            // erreurs fréquentes: from_domain_not_verified / missing_api_key / rate_limited
-            return NextResponse.json({ ok: false, error: 'email_send_exception' }, { status: 500 });
+        const resend = new Resend(process.env.RESEND_API_KEY!);
+        const { error } = await resend.emails.send({
+            from: process.env.RESEND_FROM!,
+            to: email,
+            subject: 'Confirme ton inscription à Ancre-toi',
+            html,
+            headers: { 'List-Unsubscribe': `<${unsubUrl}>` },
+        });
+
+        if (error) {
+            console.error('Resend error:', error);
+            return NextResponse.json({ ok: false, error: 'email_send_failed' }, { status: 500 });
         }
 
         return NextResponse.json({ ok: true });
-    } catch (e: unknown) {
-        console.error('newsletter/subscribe catch-all:', e);
-        const code = (e as Error)?.message === 'missing_env' ? 'missing_env' : 'server_error';
-        return NextResponse.json({ ok: false, error: code }, { status: 500 });
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (message === 'missing_env') {
+            return NextResponse.json({ ok: false, error: 'missing_env' }, { status: 500 });
+        }
+        console.error('newsletter/subscribe error:', message);
+        return NextResponse.json({ ok: false, error: 'server_error' }, { status: 500 });
     }
 }
 
@@ -113,7 +99,7 @@ function renderConfirmHtml(confirmUrl: string, unsubUrl: string) {
       Si tu n’es pas à l’origine de cette demande, ignore ce message.
     </p>
     <p style="color:#666;font-size:12px;margin:0">
-      Tu ne veux plus recevoir ces emails ? 
+      Tu ne veux plus recevoir ces emails ?
       <a href="${unsubUrl}" style="color:#6d5ba4">Se désinscrire</a>.
     </p>
   </div>`;

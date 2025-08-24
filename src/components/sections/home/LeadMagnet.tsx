@@ -140,7 +140,7 @@ export default function LeadMagnet({
 
                                     {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
 
-                                    <button type="submit" className="btn w-full sm:w-auto" disabled={status === 'loading'} aria-busy={status === 'loading'}>
+                                    <button type="submit" className="btn w-full sm:w-auto cursor-pointer" disabled={status === 'loading'} aria-busy={status === 'loading'}>
                                         {status === 'loading' ? 'Envoi…' : ctaLabel}
                                     </button>
 

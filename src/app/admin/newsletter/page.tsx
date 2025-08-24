@@ -161,7 +161,7 @@ export default async function AdminNewsletterPage({ searchParams }: { searchPara
                                         {d.unsubToken ? (
                                             <a
                                                 className="rounded-lg border border-border px-2.5 py-1.5 text-xs transition hover:bg-brand-50"
-                                                href={`${process.env.APP_URL}/api/newsletter/unsubscribe?token=${d.unsubToken}`}
+                                                href={`/api/newsletter/unsubscribe?token=${d.unsubToken}`}
                                                 target="_blank"
                                                 rel="noreferrer"
                                             >
