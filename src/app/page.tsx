@@ -11,6 +11,7 @@ import data from '@/data/programs/index.json';
 import { getUserState } from '@/lib/user-state';
 import Testimonials from '@/components/sections/home/Testimonials';
 import Founder from '@/components/sections/home/Founder';
+import LeadMagnet from '@/components/sections/home/LeadMagnet';
 
 export default async function HomePage() {
     const { isAuthed, hasActiveProgram, activeProgramSlug } = await getUserState();
@@ -34,6 +35,7 @@ export default async function HomePage() {
                 }
             />
             <Founder />
+            <LeadMagnet />
         </>
     );
 }

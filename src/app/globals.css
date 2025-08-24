@@ -1,24 +1,22 @@
 @import "tailwindcss";
 
-/* =========================================================
-   THEME — "Serenity" (spirituel, pastel, haut de gamme)
-   ========================================================= */
+/* ===============================
+   THEME — Serenity (light only)
+   =============================== */
 
 :root {
-  /* ---------- Neutres élégants ---------- */
+  /* Neutres */
   --background: #F8F7FB;
-  /* porcelaine lilas */
   --foreground: #1C2330;
-  /* encre profonde, lisible */
-
   --card: #FFFFFF;
   --muted: #EFF1F6;
   --muted-foreground: #6B7280;
-  /* gris froid pour textes secondaires */
   --border: #E1E4EC;
   --input: #E9EDF5;
+  --ring: #815FB2;
+  /* brand-600 */
 
-  /* ---------- Brand (Violet Améthyste) ---------- */
+  /* Brand (violet) */
   --brand-50: #F7F4FB;
   --brand-100: #EEE8F6;
   --brand-200: #DED3EE;
@@ -30,10 +28,8 @@
   --brand-700: #6B4F93;
   --brand-800: #564174;
   --brand-900: #45355D;
-  --brand: var(--brand-600);
-  --brand-on: #FFFFFF;
 
-  /* ---------- Secondaire (Sauge Poudrée) ---------- */
+  /* Secondaire (sauge) */
   --secondary-50: #F6FAF7;
   --secondary-100: #E9F3EE;
   --secondary-200: #D6E7DE;
@@ -41,12 +37,11 @@
   --secondary-400: #A4C9B1;
   --secondary-500: #8BB99B;
   --secondary-600: #769E85;
-  /* liens / boutons secondaires */
   --secondary-700: #5F806B;
   --secondary-800: #4C6756;
   --secondary-900: #3E5446;
 
-  /* ---------- Accent (Or Doux) ---------- */
+  /* Or */
   --gold-50: #FFF9EC;
   --gold-100: #FCEFD3;
   --gold-200: #F6E1AD;
@@ -57,27 +52,9 @@
   --gold-700: #876A2C;
   --gold-800: #6B5323;
   --gold-900: #55431D;
-
-  /* ---------- Effets / Focus / Ombres ---------- */
-  --ring: var(--brand-600);
-  /* focus violet */
-  --tint-hover: color-mix(in oklab, var(--brand-600) 12%, transparent);
-  --header-shadow: 0 8px 30px rgb(15 23 42 / .08);
-  --avatar-bg: linear-gradient(135deg, var(--brand-500), var(--brand-700));
-
-  /* ---------- Dégradés d’ambiance ---------- */
-  --gradient-hero:
-    radial-gradient(1200px 600px at 20% -10%,
-      color-mix(in oklab, var(--brand-200) 65%, transparent),
-      transparent 60%),
-    radial-gradient(900px 480px at 90% -20%,
-      color-mix(in oklab, var(--secondary-200) 60%, transparent),
-      transparent 55%);
 }
 
-/* =========================================================
-   MAPPINGS TAILWIND v4 (utilisables via bg-*, text-*, border-*)
-   ========================================================= */
+/* Tailwind v4 custom properties map */
 @theme inline {
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
@@ -91,7 +68,6 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Brand (violet) */
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
   --color-brand-200: var(--brand-200);
@@ -102,9 +78,7 @@
   --color-brand-700: var(--brand-700);
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
-  --color-brand: var(--brand-600);
 
-  /* Secondaire (sauge) */
   --color-secondary-50: var(--secondary-50);
   --color-secondary-100: var(--secondary-100);
   --color-secondary-200: var(--secondary-200);
@@ -116,7 +90,6 @@
   --color-secondary-800: var(--secondary-800);
   --color-secondary-900: var(--secondary-900);
 
-  /* Or */
   --color-gold-50: var(--gold-50);
   --color-gold-100: var(--gold-100);
   --color-gold-200: var(--gold-200);
@@ -129,113 +102,65 @@
   --color-gold-900: var(--gold-900);
 }
 
-/* =========================================================
-   BASE
-   ========================================================= */
-:root {
-  color-scheme: light;
-}
-
+/* ========= Base propres ========= */
 html,
 body {
-  min-height: 100%;
+  height: 100%;
   overflow-x: hidden;
 }
 
 body {
-  position: relative;
-  /* pour caler l’overlay */
-  background:
-    var(--gradient-hero),
-    var(--background);
+  min-height: 100vh;
+  background: var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* --- Ambiance overlay (radial, fixe, non interactif) --- */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  /* sous le contenu, au-dessus du fond */
-  background: var(--gradient-hero);
-  opacity: .65;
-  /* douceur */
-  filter: saturate(1.04);
-  /* légère richesse de teinte */
+@supports (min-height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--brand-600) 24%, transparent);
+  background: rgba(129, 95, 178, 0.22);
+  /* brand-600 à ~22% */
 }
 
-/* =========================================================
-   HEADER (verre dépoli)
-   ========================================================= */
+/* Header “verre dépoli” safe (sans overlay global) */
 .header-glass {
-  background: color-mix(in oklab, var(--card) 72%, transparent);
-  -webkit-backdrop-filter: saturate(1.08) blur(10px);
-  backdrop-filter: saturate(1.08) blur(10px);
-  box-shadow: var(--header-shadow);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
 }
 
-/* =========================================================
-   ACCESSIBILITÉ / FOCUS
-   ========================================================= */
-.focusable {
-  outline: none;
-}
-
+/* Focus accessible et simple */
 .focusable:focus-visible {
-  box-shadow:
-    0 0 0 2px var(--ring),
-    0 0 0 6px color-mix(in oklab, var(--background) 92%, transparent);
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
-/* =========================================================
-   NAV / MENUS
-   ========================================================= */
+/* Liens nav simples */
 .navlink,
 .menu-item {
-  transition: background-color .2s, color .2s, box-shadow .2s, transform .08s;
   border-radius: .75rem;
   padding: .375rem .75rem;
+  transition: background-color .2s, color .2s, transform .06s;
 }
 
 .navlink:hover,
 .menu-item:hover {
-  background: var(--tint-hover);
+  background: rgba(129, 95, 178, 0.10);
+  /* brand-600 10% */
 }
 
 .navlink[aria-current="page"] {
   background: var(--brand-600);
-  color: var(--brand-on);
+  color: #fff;
 }
 
-/* =========================================================
-   POPOVER COMPTE
-   ========================================================= */
-.account {
-  position: relative;
-  display: inline-block;
-}
-
-.account>summary {
-  list-style: none;
-  cursor: pointer;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  padding: .25rem;
-}
-
-.account>summary::-webkit-details-marker {
-  display: none;
-}
-
+/* Popover compte */
 .account-avatar {
   display: inline-flex;
   align-items: center;
@@ -243,8 +168,8 @@ body::before {
   width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  background: var(--avatar-bg);
-  color: var(--brand-on);
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+  color: #fff;
   font-weight: 600;
   font-size: .95rem;
 }
@@ -258,31 +183,10 @@ body::before {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 8px;
-  box-shadow: var(--header-shadow);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, .08);
 }
 
-.account-head {
-  display: flex;
-  align-items: center;
-  gap: .6rem;
-  padding: .5rem .6rem;
-  border-radius: 10px;
-  background: color-mix(in oklab, var(--muted) 80%, transparent);
-}
-
-.account-name {
-  font-size: .95rem;
-  font-weight: 600;
-}
-
-.account-email {
-  font-size: .75rem;
-  color: var(--color-muted-foreground);
-}
-
-/* =========================================================
-   UTILITAIRES
-   ========================================================= */
+/* Boutons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -291,8 +195,8 @@ body::before {
   padding: .625rem 1rem;
   border-radius: .75rem;
   background: var(--brand-600);
-  color: var(--brand-on);
-  transition: transform .06s ease, filter .15s ease, background-color .2s ease;
+  color: #fff;
+  transition: background-color .2s, transform .06s;
 }
 
 .btn:hover {
@@ -318,7 +222,7 @@ body::before {
   color: var(--secondary-700);
   border: 1px solid var(--secondary-300);
   background: #fff;
-  transition: background-color .2s ease, transform .06s ease;
+  transition: background-color .2s, transform .06s;
 }
 
 .btn-secondary:hover {
@@ -329,22 +233,39 @@ body::before {
   transform: translateY(1px);
 }
 
-.badge-gold {
-  display: inline-flex;
-  align-items: center;
-  gap: .35rem;
-  padding: .2rem .5rem;
-  border-radius: .5rem;
-  background: var(--gold-50);
-  color: var(--gold-700);
-  border: 1px solid color-mix(in oklab, var(--gold-400) 35%, transparent);
-  font-size: .75rem;
-  font-weight: 600;
+/* Filet or utile */
+.hr-gold {
+  height: 1px;
+  background: var(--gold-100);
 }
 
-/* Réduction d’effet si demandé par l’utilisateur */
-@media (prefers-reduced-motion: reduce) {
-  body::before {
-    opacity: .45;
-  }
+/* (Optionnel) halo local pour une section précise — pas global */
+.ambient-violet {
+  position: relative;
+}
+
+.ambient-violet::before,
+.ambient-violet::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: 9999px;
+  filter: blur(50px);
+}
+
+.ambient-violet::before {
+  width: 280px;
+  height: 280px;
+  left: -60px;
+  top: -80px;
+  background: var(--brand-100);
+}
+
+.ambient-violet::after {
+  width: 360px;
+  height: 360px;
+  right: -60px;
+  bottom: -100px;
+  background: var(--gold-100);
 }

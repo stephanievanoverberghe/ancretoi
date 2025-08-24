@@ -10,13 +10,9 @@ declare global {
 }
 
 type Testimonial = {
-    /** ex: "Léa M." */
     name: string;
-    /** phrase avant le bénéfice en gras */
     before?: string;
-    /** bénéfice mis en gras */
     highlight: string;
-    /** phrase après le bénéfice en gras */
     after?: string;
 };
 
@@ -24,7 +20,7 @@ type Props = {
     title?: string;
     subtitle?: string;
     items?: Testimonial[];
-    textureSrc?: string; // ex: /images/card-texture.jpg
+    textureSrc?: string;
 };
 
 function initialFrom(name: string) {
@@ -64,16 +60,7 @@ export default function Testimonials({
     }, [track]);
 
     return (
-        <section
-            ref={sectionRef}
-            id="testimonials"
-            aria-labelledby="testimonials-title"
-            className="
-        relative mx-[calc(50%-50vw)] w-screen
-        bg-white
-        py-16 sm:py-20 lg:py-24
-      "
-        >
+        <section ref={sectionRef} id="testimonials" aria-labelledby="testimonials-title" className="relative mx-[calc(50%-50vw)] w-screen bg-white py-16 sm:py-20 lg:py-24">
             {/* filets or haut/bas */}
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gold-100/70" aria-hidden />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gold-100/70" aria-hidden />
@@ -88,14 +75,7 @@ export default function Testimonials({
 
                 {items.length === 0 ? (
                     // ÉTAT VIDE — “Bientôt”
-                    <div
-                        className="
-              relative mx-auto max-w-3xl overflow-hidden rounded-2xl
-              border border-secondary-200 bg-white/85 backdrop-blur-[2px]
-              ring-1 ring-white/60 shadow-[0_8px_24px_rgb(0_0_0/0.06)]
-              px-5 py-7 text-center
-            "
-                    >
+                    <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl border border-secondary-200 bg-white/85 backdrop-blur-[2px] ring-1 ring-white/60 shadow-[0_8px_24px_rgb(0_0_0/0.06)] px-5 py-7 text-center">
                         {/* texture douce */}
                         <div
                             className="pointer-events-none absolute inset-0 opacity-[0.07] mix-blend-multiply"
@@ -112,23 +92,12 @@ export default function Testimonials({
                     </div>
                 ) : (
                     // LISTE DE TÉMOIGNAGES
-                    <ul
-                        className="
-              grid grid-cols-1 gap-5
-              sm:grid-cols-2 lg:grid-cols-3
-            "
-                    >
+                    <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                         {items.map((t, i) => (
                             <li key={`${t.name}-${i}`}>
                                 <article
                                     onClick={() => track('testimonial_interaction', { i, name: t.name })}
-                                    className="
-                    group relative overflow-hidden rounded-2xl
-                    border border-secondary-200 bg-white/85 backdrop-blur-[2px]
-                    ring-1 ring-white/60 shadow-[0_1px_12px_rgb(0_0_0/0.06)]
-                    transition hover:-translate-y-[1px] hover:shadow-[0_10px_26px_rgb(0_0_0/0.07)]
-                    p-5
-                  "
+                                    className="group relative overflow-hidden rounded-2xl border border-secondary-200 bg-white/85 backdrop-blur-[2px] ring-1 ring-white/60 shadow-[0_1px_12px_rgb(0_0_0/0.06)] transition hover:-translate-y-[1px] hover:shadow-[0_10px_26px_rgb(0_0_0/0.07)] p-5"
                                 >
                                     {/* texture subtile */}
                                     <div
@@ -140,11 +109,7 @@ export default function Testimonials({
                                     <div className="relative flex items-start gap-3">
                                         {/* Avatar initiale */}
                                         <span
-                                            className="
-                        inline-flex h-10 w-10 shrink-0 items-center justify-center
-                        rounded-full bg-brand-600 text-white text-sm font-bold
-                        ring-2 ring-white shadow-sm
-                      "
+                                            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white text-sm font-bold ring-2 ring-white shadow-sm"
                                             aria-hidden
                                         >
                                             {initialFrom(t.name)}
