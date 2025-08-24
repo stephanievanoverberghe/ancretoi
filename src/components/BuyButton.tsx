@@ -68,7 +68,7 @@ export default function BuyButton({ slug, isFree }: { slug: string; isFree: bool
     }
 
     return (
-        <button className="rounded-lg bg-brand px-4 py-2 text-white disabled:opacity-50" onClick={click} disabled={pending} aria-busy={pending}>
+        <button className="btn not-disabled:cursor-pointer rounded-lg bg-brand px-4 py-2 text-white disabled:opacity-50" onClick={click} disabled={pending} aria-busy={pending}>
             {pending ? (isFree ? 'Ouverture…' : 'Redirection…') : isFree ? 'Commencer' : 'Acheter'}
         </button>
     );
