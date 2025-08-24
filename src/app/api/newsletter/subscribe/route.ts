@@ -6,15 +6,20 @@ import { Resend } from 'resend';
 import crypto from 'node:crypto';
 
 export const runtime = 'nodejs';
-
-const resend = new Resend(process.env.RESEND_API_KEY ?? '');
-const FROM = process.env.RESEND_FROM ?? '';
-const APP_URL = process.env.APP_URL ?? '';
+export const dynamic = 'force-dynamic';
 
 function assertEnv() {
     if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM || !process.env.APP_URL) {
         throw new Error('Missing RESEND_API_KEY / RESEND_FROM / APP_URL');
     }
+}
+
+// Singleton paresseux pour éviter l’instanciation au build
+let _resend: Resend | null = null;
+function getResend(): Resend {
+    const key = process.env.RESEND_API_KEY!;
+    if (!_resend) _resend = new Resend(key);
+    return _resend;
 }
 
 export async function POST(req: Request) {
@@ -43,7 +48,7 @@ export async function POST(req: Request) {
                     status: 'pending',
                     source,
                     confirmToken,
-                    unsubToken, // ← token de désinscription stocké
+                    unsubToken,
                     consentAt: null,
                     meta: {
                         ip: req.headers.get('x-forwarded-for') ?? null,
@@ -55,21 +60,20 @@ export async function POST(req: Request) {
             { new: true, upsert: true, runValidators: false }
         ).lean();
 
+        const APP_URL = process.env.APP_URL!;
+        const FROM = process.env.RESEND_FROM!;
+
         const confirmUrl = `${APP_URL}/api/newsletter/confirm?token=${confirmToken}`;
         const unsubUrl = `${APP_URL}/api/newsletter/unsubscribe?token=${unsubToken}`;
-
-        // Corps HTML avec bouton de confirmation + lien de désinscription
         const html = renderConfirmHtml(confirmUrl, unsubUrl);
 
+        const resend = getResend();
         const { error } = await resend.emails.send({
             from: FROM,
             to: email,
             subject: 'Confirme ton inscription à Ancre-toi',
             html,
-            headers: {
-                // Header standard pour les clients mail (Gmail, Apple Mail, etc.)
-                'List-Unsubscribe': `<${unsubUrl}>`,
-            },
+            headers: { 'List-Unsubscribe': `<${unsubUrl}>` },
         });
 
         if (error) {
@@ -100,7 +104,7 @@ function renderConfirmHtml(confirmUrl: string, unsubUrl: string) {
       Si tu n’es pas à l’origine de cette demande, ignore ce message.
     </p>
     <p style="color:#666;font-size:12px;margin:0">
-      Tu ne veux plus recevoir ces emails ? 
+      Tu ne veux plus recevoir ces emails ?
       <a href="${unsubUrl}" style="color:#6d5ba4">Se désinscrire</a>.
     </p>
   </div>`;
