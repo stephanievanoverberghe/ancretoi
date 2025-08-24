@@ -6,6 +6,7 @@ import CollectionsGrid from '@/components/sections/programs/CollectionsGrid';
 import ProgramsCompare from '@/components/sections/programs/Compare';
 import Inside from '@/components/sections/programs/Inside';
 import MethodMini from '@/components/sections/programs/MethodMini';
+import ProgramsFAQ from '@/components/sections/programs/ProgramsFAQ';
 
 export const metadata: Metadata = {
     title: 'Programmes — Ancre-toi',
@@ -24,6 +25,7 @@ export default function ProgramsPage() {
             <ProgramsCompare />
             <Inside />
             <MethodMini />
+            <ProgramsFAQ />
         </>
     );
 }
