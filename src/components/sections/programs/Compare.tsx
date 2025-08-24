@@ -82,17 +82,17 @@ export default function ProgramsCompare() {
                 style={{ background: 'radial-gradient(closest-side, rgba(199,178,225,0.35), rgba(199,178,225,0.18) 45%, rgba(0,0,0,0) 70%)' }}
             />
 
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
                 {/* Header éditorial premium */}
                 <header className="mb-6 sm:mb-8 flex items-start gap-3">
                     <div className="mt-0.5 rounded-xl bg-white/70 ring-1 ring-gold-200 p-2 text-ormat shadow-sm">
                         <Info className="h-5 w-5" aria-hidden />
                     </div>
                     <div className="relative">
-                        <h2 id="compare-title" className="text-xl sm:text-2xl font-semibold tracking-tight">
+                        <h2 id="compare-title" className="font-serif text-[clamp(1.4rem,4.2vw,2rem)] leading-tight">
                             Quel programme pour moi&nbsp;?
                         </h2>
-                        <p className="mt-1 max-w-2xl text-sm sm:text-base text-muted-foreground">
+                        <p className="mt-3 text-[15px] sm:text-base text-muted-foreground">
                             Un coup d’œil sur l’<span className="font-medium">objectif</span>, la <span className="font-medium">durée</span>, la{' '}
                             <span className="font-medium">charge/jour</span> et le <span className="font-medium">niveau</span> — et tu choisis.
                         </p>
