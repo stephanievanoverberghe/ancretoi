@@ -1,8 +1,8 @@
 // app/programs/page.tsx
 import type { Metadata } from 'next';
+import data from '@/data/programs/index.json';
 import ProgramsHero from '@/components/sections/programs/ProgramsHero';
-import ProgramsGrid from '@/components/sections/home/ProgramsGrid';
-import { PROGRAMS } from '@/lib/programs-index';
+import CollectionsGrid from '@/components/sections/programs/CollectionsGrid';
 
 export const metadata: Metadata = {
     title: 'Programmes — Ancre-toi',
@@ -17,12 +17,7 @@ export default function ProgramsPage() {
     return (
         <>
             <ProgramsHero />
-            <section id="grid" aria-labelledby="programs-grid-title" className="py-10">
-                <h2 id="programs-grid-title" className="sr-only">
-                    Choisir mon programme
-                </h2>
-                <ProgramsGrid programs={PROGRAMS} />
-            </section>
+            <CollectionsGrid programs={data.programs} />
         </>
     );
 }

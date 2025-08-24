@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef } from 'react';
 import { Clock3, Gauge, Sparkles } from 'lucide-react';
 
-/* --------- Analytics types (zéro any) --------- */
+/* --------- Analytics types --------- */
 type HeroEvent = 'programs_hero_view' | 'programs_hero_cta_click';
 type AnalyticsProps = Record<string, unknown>;
 
@@ -26,7 +26,7 @@ type Props = {
     title?: string;
     subtitle?: string;
     chips?: Chip[];
-    heroSrc?: string; // ex: /images/programs/hero-programs-21x9.webp
+    heroSrc?: string;
 };
 
 export default function ProgramsHero({
@@ -157,7 +157,7 @@ export default function ProgramsHero({
                         <Link
                             href="/methode"
                             onClick={() => track('programs_hero_cta_click', { target: 'understand_method' })}
-                            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl border border-brand-900 px-4 py-3.5 text-brand-900 text-[15px] sm:text-sm transition hover:bg-brand-100"
+                            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-secondary-600 px-4 py-3.5 text-white text-[15px] sm:text-sm transition-colors hover:bg-secondary-700"
                             aria-label="Comprendre la méthode"
                         >
                             Comprendre la méthode
