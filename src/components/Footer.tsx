@@ -20,7 +20,7 @@ export default function Footer() {
                             </Link>
                             <Link
                                 href="/programs"
-                                className="inline-flex items-center justify-center rounded-xl border border-secondary-200 bg-white px-4 py-2.5 text-[15px] transition hover:bg-secondary-50"
+                                className="inline-flex items-center justify-center rounded-xl border border-brand-200 bg-white px-4 py-2.5 text-[15px] transition hover:bg-brand-50"
                             >
                                 Voir les programmes
                             </Link>

@@ -192,7 +192,7 @@ export default function ProgramsCompare() {
                                         <Link
                                             href={`/programs/${r.slug}`}
                                             onClick={() => track('programs_compare_cta', { slug: r.slug, source: 'mobile' })}
-                                            className="btn"
+                                            className="btn w-full sm:w-auto justify-center"
                                             aria-label={r.cta}
                                         >
                                             {r.cta}
