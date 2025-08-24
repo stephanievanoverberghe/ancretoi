@@ -96,24 +96,24 @@ export default function LeadMagnet({
     }
 
     return (
-        <section ref={sectionRef} id="newsletter" aria-labelledby="lead-title" className="relative mx-[calc(50%-50vw)] w-screen bg-brand-50/50 py-16 sm:py-20 lg:py-24">
+        <section ref={sectionRef} id="newsletter" aria-labelledby="lead-title" className="relative mx-[calc(50%-50vw)] w-screen bg-white py-16 sm:py-20 lg:py-24">
             {/* filets or haut/bas */}
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gold-100/70" aria-hidden />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gold-100/70" aria-hidden />
 
             <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8">
                 <header className="mb-8 sm:mb-10 text-center">
-                    <h2 id="lead-title" className="font-serif text-[clamp(1.35rem,3.6vw,1.9rem)] leading-tight">
+                    <h2 id="lead-title" className="font-serif text-[clamp(1.4rem,4.2vw,2rem)] leading-tight">
                         {title}
                     </h2>
                     <p className="mt-3 text-[15px] sm:text-base text-muted-foreground">{subtitle}</p>
                 </header>
 
                 {/* Carte + image décorative */}
-                <div className="grid gap-6 md:grid-cols-5 md:gap-8">
+                <div className="grid gap-6 md:grid-cols-5 md:gap-8 items-center">
                     {/* Form card */}
                     <div className="md:col-span-3">
-                        <div className="rounded-2xl border border-brand-100/70 bg-white/90 backdrop-blur-[2px] ring-1 ring-white/60 shadow-[0_8px_24px_rgb(0_0_0/0.06)] p-4 sm:p-6">
+                        <div className="rounded-2xl border border-brand-100/70 bg-brand-50/50 backdrop-blur-[2px] ring-1 ring-white/60 shadow-[0_8px_24px_rgb(0_0_0/0.06)] p-4 sm:p-6">
                             {status !== 'ok' ? (
                                 <form onSubmit={onSubmit} className="space-y-4">
                                     {/* Honeypot */}

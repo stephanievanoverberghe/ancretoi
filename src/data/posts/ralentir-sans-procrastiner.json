@@ -1,0 +1,73 @@
+{
+    "version": 1,
+    "slug": "ralentir-sans-procrastiner",
+    "title": "Ralentir (sans procrastiner)",
+    "date": "2025-01-28",
+    "author": { "name": "Stéphanie Vanoverberghe" },
+    "excerpt": "Ralentir, ce n’est pas faire moins : c’est choisir le rythme juste. Trois ancrages pour avancer avec calme.",
+    "readingTime": 7,
+    "tags": ["présence", "tempo", "ancrage"],
+    "hero": {
+        "src": "/images/post3.jpg",
+        "alt": "Sablier minimal en tons améthyste et sauge, lumière studio",
+        "ratio": "4:3"
+    },
+    "content": [
+        {
+            "type": "p",
+            "text": "On confond souvent ralentir et remettre à plus tard. Le premier apaise et clarifie. Le second stresse et embrouille. Ici, on apprend à rythmer, pas à figer."
+        },
+        { "type": "quote", "text": "Ralentir, c’est donner de la qualité au temps." },
+        { "type": "hr" },
+
+        { "type": "h2", "text": "La différence en une phrase" },
+        { "type": "list", "style": "ul", "items": ["Ralentir : j’avance en conscience, à la bonne vitesse.", "Procrastiner : j’évite, je m’éparpille, je me culpabilise."] },
+
+        { "type": "h2", "text": "3 ancrages pour un rythme juste" },
+        { "type": "h3", "text": "1) Souffle 4–6 avant d’agir" },
+        { "type": "p", "text": "Quatre temps d’inspiration, six d’expiration, six cycles. Micro-reset du système nerveux, impulsion plus claire." },
+        { "type": "h3", "text": "2) One True Thing" },
+        { "type": "p", "text": "Une seule chose qui, si elle est faite, fait vraiment avancer la journée. Bloque 20 minutes en début d’après-midi." },
+        { "type": "h3", "text": "3) Pause consciente 90/3" },
+        { "type": "p", "text": "Toutes les 90 minutes, 3 minutes sans écran. Étirements, verre d’eau, respiration profonde." },
+
+        {
+            "type": "image",
+            "src": "/images/post3-detail1.webp",
+            "alt": "Sablier posé sur un carnet, ambiance lilas/sauge",
+            "caption": "Le temps se muscle avec des micro-rites réguliers.",
+            "ratio": "4:3"
+        },
+
+        { "type": "h2", "text": "Script anti-procrastination (5 min)" },
+        {
+            "type": "list",
+            "style": "ol",
+            "items": [
+                "Nommer la résistance : « Je repousse car… »",
+                "Rendre minuscule : un micro-pas de 5 min (ouvrir le doc, lister 3 points).",
+                "Timer 5 min, stop à la fin.",
+                "Reboucler si besoin, ou planifier demain."
+            ]
+        },
+
+        { "type": "h2", "text": "Organiser sans sur-organiser" },
+        {
+            "type": "list",
+            "style": "ul",
+            "items": [
+                "Hebdo (10 min) : 3 intentions pour la semaine.",
+                "Quotidien (3 min) : 1 priorité + 1 micro-pas + 1 bonus.",
+                "Débrief (2 min) le soir : ce qui a aidé / ralenti."
+            ]
+        },
+
+        { "type": "h2", "text": "Quand ralentir n’est pas la bonne réponse" },
+        { "type": "p", "text": "Si tu te sens éteint·e depuis des semaines, n’hésite pas à consulter un pro. Si ralentir devient une excuse, reviens au micro-pas et au timer." },
+
+        { "type": "callout", "title": "Pacte léger", "text": "1) Souffle 4–6 avant « envoyer ». 2) One True Thing chaque jour. 3) Pause 90/3 sans écran." },
+
+        { "type": "hr" },
+        { "type": "p", "text": "Trois gestes. Un nouveau tempo. Et plus de douceur dans ta façon d’avancer." }
+    ]
+}
