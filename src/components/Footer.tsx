@@ -1,5 +1,6 @@
 // src/components/Footer.tsx
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
     const year = new Date().getFullYear();
@@ -32,9 +33,8 @@ export default function Footer() {
                 <div className="grid gap-10 md:grid-cols-12">
                     <div className="md:col-span-5">
                         <Link href="/" className="group inline-flex items-center gap-2 font-serif text-xl">
-                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-brand-600 text-[12px] font-bold text-white shadow-sm ring-1 ring-brand-400/40">
-                                A
-                            </span>
+                            {/* Logo 32×32 à la place du span “A” */}
+                            <Image src="/images/logo.png" alt="Ancre-toi — logo" width={35} height={35} className="rounded-md bg-white p-1" priority={false} />
                             <span className="tracking-tight">
                                 Ancre-toi
                                 <span className="ml-2 inline-block align-middle">

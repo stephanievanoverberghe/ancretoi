@@ -7,6 +7,7 @@ import ProgramsCompare from '@/components/sections/programs/Compare';
 import Inside from '@/components/sections/programs/Inside';
 import MethodMini from '@/components/sections/programs/MethodMini';
 import ProgramsFAQ from '@/components/sections/programs/ProgramsFAQ';
+import FinalCTA from '@/components/sections/home/FinalCTA';
 
 export const metadata: Metadata = {
     title: 'Programmes — Ancre-toi',
@@ -26,6 +27,7 @@ export default function ProgramsPage() {
             <Inside />
             <MethodMini />
             <ProgramsFAQ />
+            <FinalCTA />
         </>
     );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import LogoutButton from './Logout';
@@ -84,13 +85,11 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
             <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
                 {/* Logo + petite pastille or */}
                 <Link href="/" className="group flex items-center gap-2 font-serif text-xl">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-[11px] font-bold text-white shadow-sm ring-1 ring-brand-400/40">
-                        A
-                    </span>
+                    <Image src="/images/logo.png" alt="Ancre-toi — logo" width={35} height={35} priority={false} className="rounded-md bg- p-1" />
                     <span className="tracking-tight">
                         Ancre-toi
                         <span className="ml-2 inline-block align-middle">
-                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-gold-300 opacity-90 group-hover:opacity-100 transition-opacity" />
+                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-gold-300 opacity-90 transition-opacity group-hover:opacity-100" />
                         </span>
                     </span>
                 </Link>
