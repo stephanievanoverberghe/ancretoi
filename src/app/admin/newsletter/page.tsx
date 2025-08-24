@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
 import Newsletter from '@/models/Newsletter';
 import Link from 'next/link';
+import ComposeSendForm from './ComposeSendForm';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -202,52 +203,8 @@ export default async function AdminNewsletterPage({ searchParams }: { searchPara
             <div className="rounded-xl border border-border bg-card p-4">
                 <h2 className="text-lg font-semibold">Envoyer une campagne</h2>
                 <p className="mb-3 text-sm text-muted-foreground">Envoi HTML via Resend. Tu peux faire un envoi test à une adresse avant l’envoi global.</p>
-                <form action="/api/admin/newsletter/send" method="post" className="grid gap-3">
-                    <label className="block">
-                        <span className="mb-1 block text-sm text-muted-foreground">Sujet</span>
-                        <input
-                            name="subject"
-                            required
-                            placeholder="Inspiration de la semaine ✨"
-                            className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600/20"
-                        />
-                    </label>
-                    <label className="block">
-                        <span className="mb-1 block text-sm text-muted-foreground">HTML</span>
-                        <textarea
-                            name="html"
-                            required
-                            rows={10}
-                            placeholder="<h2>Bonjour</h2><p>Contenu...</p>"
-                            className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600/20"
-                        />
-                    </label>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="block">
-                            <span className="mb-1 block text-sm text-muted-foreground">Email test (optionnel)</span>
-                            <input
-                                name="testEmail"
-                                type="email"
-                                placeholder="moi@example.com"
-                                className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600/20"
-                            />
-                        </label>
-                        <label className="block">
-                            <span className="mb-1 block text-sm text-muted-foreground">Tag (optionnel)</span>
-                            <input
-                                name="tag"
-                                placeholder="ex: vip"
-                                className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600/20"
-                            />
-                        </label>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button className="btn">Envoyer</button>
-                        <span className="text-xs text-muted-foreground">
-                            Sans <em>Email test</em>, l’envoi part à tous les <strong>confirmed</strong> (filtrable par tag).
-                        </span>
-                    </div>
-                </form>
+
+                <ComposeSendForm />
             </div>
         </div>
     );
