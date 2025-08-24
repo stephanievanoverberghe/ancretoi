@@ -8,7 +8,7 @@
     "readingTime": 6,
     "tags": ["rituels", "respiration", "journal"],
     "hero": {
-        "src": "/images/post1.jpg",
+        "src": "/images/blog/post1.webp",
         "alt": "Carnet et stylo plume sur papier crème, lumière douce or",
         "ratio": "4:3"
     },
@@ -49,7 +49,7 @@
 
         {
             "type": "image",
-            "src": "/images/post1-detail1.webp",
+            "src": "/images/blog/post1-detail1.webp",
             "alt": "Main posée sur le cœur, lumière douce",
             "caption": "Un geste simple ancre une intention abstraite.",
             "ratio": "4:3"

@@ -8,7 +8,7 @@
     "readingTime": 7,
     "tags": ["équilibre", "limites", "énergie"],
     "hero": {
-        "src": "/images/post2.jpg",
+        "src": "/images/blog/post2.webp",
         "alt": "Balance minimaliste en papier découpé, sauge et or, ombres douces",
         "ratio": "4:3"
     },
@@ -38,7 +38,7 @@
 
         {
             "type": "image",
-            "src": "/images/post2-detail1.webp",
+            "src": "/images/blog/post2-detail1.webp",
             "alt": "Carte de limites douces écrite au stylo",
             "caption": "Un délai simple protège ta clarté intérieure.",
             "ratio": "4:3"

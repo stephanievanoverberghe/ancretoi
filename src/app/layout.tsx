@@ -1,16 +1,17 @@
-// src/app/layout.tsx
 import './globals.css';
 import { Suspense } from 'react';
-import Link from 'next/link';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', display: 'swap' });
 
 export const metadata: Metadata = {
-    title: 'Ancre-toi',
+    // ✅ important pour OG/Twitter (URLs absolues)
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+    title: { default: 'Ancre-toi', template: '%s — Ancre-toi' },
     description: 'RESET-7, BOUSSOLE-10, ANCRE-30, ALCHIMIE-90',
     robots: {
         index: false,
@@ -18,6 +19,8 @@ export const metadata: Metadata = {
         nocache: true,
         googleBot: { index: false, follow: false, noimageindex: true, 'max-snippet': -1, 'max-image-preview': 'none', 'max-video-preview': -1 },
     },
+    openGraph: { siteName: 'Ancre-toi', type: 'website', locale: 'fr_FR' },
+    twitter: { card: 'summary_large_image' },
 };
 
 export const viewport: Viewport = {
@@ -44,21 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <Suspense fallback={<div className="text-sm text-secondary-700">Chargement…</div>}>{children}</Suspense>
                 </main>
 
-                <footer className="mt-auto border-t border-secondary-100 bg-secondary-50/50 py-8 text-sm text-secondary-800">
-                    <div className="mx-auto flex max-w-6xl flex-wrap gap-6 px-4">
-                        <Link className="transition-colors hover:text-secondary-900" href="/legal">
-                            Mentions légales
-                        </Link>
-                        <Link className="transition-colors hover:text-secondary-900" href="/privacy">
-                            Confidentialité
-                        </Link>
-                        <Link className="transition-colors hover:text-secondary-900" href="/cookies">
-                            Cookies
-                        </Link>
-                    </div>
-                    <div className="mx-auto mt-6 h-px max-w-6xl bg-gold-100/70"></div>
-                    <div className="mx-auto max-w-6xl px-4 pt-4 text-xs text-muted-foreground">© {new Date().getFullYear()} Ancre-toi — Tous droits réservés.</div>
-                </footer>
+                <Footer />
             </body>
         </html>
     );

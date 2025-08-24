@@ -69,7 +69,7 @@ export default function Founder({
             <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8">
                 {/* En-tête léger */}
                 <header className="mb-8 sm:mb-10 text-center">
-                    <h2 id="founder-title" className="font-serif text-[clamp(1.35rem,3.8vw,2rem)] leading-tight">
+                    <h2 id="founder-title" className="font-serif text-[clamp(1.4rem,4.2vw,2rem)] leading-tight">
                         Qui je suis — fondatrice
                     </h2>
                     <p className="mt-3 text-[15px] sm:text-base text-muted-foreground">Un lien humain, des valeurs claires — pour avancer en confiance.</p>
@@ -103,12 +103,7 @@ export default function Founder({
 
                     {/* Portrait 4:5 — carte clean */}
                     <div className="order-1 md:order-none">
-                        <figure
-                            className="
-                relative aspect-[4/5] w-full overflow-hidden rounded-2xl
-                bg-white ring-1 ring-brand-200 shadow-[0_8px_24px_rgb(0_0_0/0.06)]
-              "
-                        >
+                        <figure className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-white ring-1 ring-brand-200 shadow-[0_8px_24px_rgb(0_0_0/0.06)]">
                             <Image
                                 src={portraitSrc}
                                 alt={`${name} — portrait éditorial, lumière douce`}

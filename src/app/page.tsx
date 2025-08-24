@@ -14,6 +14,7 @@ import Founder from '@/components/sections/home/Founder';
 import LeadMagnet from '@/components/sections/home/LeadMagnet';
 import FAQ from '@/components/sections/home/FAQ';
 import FinalCTA from '@/components/sections/home/FinalCTA';
+import BlogTeasers from '@/components/sections/home/BlogTeasers';
 
 export default async function HomePage() {
     const { isAuthed, hasActiveProgram, activeProgramSlug } = await getUserState();
@@ -40,6 +41,7 @@ export default async function HomePage() {
             <LeadMagnet />
             <FAQ />
             <FinalCTA />
+            <BlogTeasers />
         </>
     );
 }

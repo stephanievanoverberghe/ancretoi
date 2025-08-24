@@ -8,7 +8,7 @@
     "readingTime": 7,
     "tags": ["présence", "tempo", "ancrage"],
     "hero": {
-        "src": "/images/post3.jpg",
+        "src": "/images/blog/post3.webp",
         "alt": "Sablier minimal en tons améthyste et sauge, lumière studio",
         "ratio": "4:3"
     },
@@ -33,7 +33,7 @@
 
         {
             "type": "image",
-            "src": "/images/post3-detail1.webp",
+            "src": "/images/blog/post3-detail1.webp",
             "alt": "Sablier posé sur un carnet, ambiance lilas/sauge",
             "caption": "Le temps se muscle avec des micro-rites réguliers.",
             "ratio": "4:3"
