@@ -1,40 +1,38 @@
 // src/models/Newsletter.ts
-import { Schema, models, model, type Model, type InferSchemaType } from 'mongoose';
+import mongoose, { Schema, type Model } from 'mongoose';
 
-const NewsletterSchema = new Schema(
+export type NewsletterDoc = {
+    email: string;
+    status?: 'pending' | 'confirmed' | 'unsubscribed' | 'bounced' | 'complained';
+    source?: string;
+    tags?: string[];
+    confirmToken?: string | null;
+    unsubToken?: string | null;
+    consentAt?: Date | null;
+    confirmedAt?: Date | null;
+    unsubscribedAt?: Date | null;
+    meta?: { ip?: string | null; userAgent?: string | null };
+    createdAt?: Date;
+    updatedAt?: Date;
+};
+
+const NewsletterSchema = new Schema<NewsletterDoc>(
     {
-        email: {
-            type: String,
-            required: true,
-            unique: true,
-            index: true,
-            trim: true,
-            lowercase: true,
-        },
-        source: { type: String, default: 'site' },
+        email: { type: String, required: true, unique: true, index: true },
+        status: { type: String, enum: ['pending', 'confirmed', 'unsubscribed', 'bounced', 'complained'], default: 'pending', index: true },
+        source: { type: String },
         tags: [{ type: String }],
-        consentAt: { type: Date, default: null },
-
-        // Statut & tokens
-        status: {
-            type: String,
-            enum: ['pending', 'confirmed', 'unsubscribed', 'bounced', 'complained'],
-            default: 'pending',
-            index: true,
-        },
         confirmToken: { type: String, index: true },
         unsubToken: { type: String, index: true },
-        confirmedAt: { type: Date },
-        unsubscribedAt: { type: Date },
-
+        consentAt: { type: Date, default: null },
+        confirmedAt: { type: Date, default: null },
+        unsubscribedAt: { type: Date, default: null },
         meta: {
-            ip: { type: String, default: null },
-            userAgent: { type: String, default: null },
+            ip: String,
+            userAgent: String,
         },
     },
     { timestamps: true, strict: true }
 );
 
-export type NewsletterDoc = InferSchemaType<typeof NewsletterSchema>;
-
-export default (models.Newsletter as Model<NewsletterDoc>) || model<NewsletterDoc>('Newsletter', NewsletterSchema);
+export default (mongoose.models.Newsletter as Model<NewsletterDoc>) || mongoose.model<NewsletterDoc>('Newsletter', NewsletterSchema);

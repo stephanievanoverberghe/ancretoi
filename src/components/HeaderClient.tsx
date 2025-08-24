@@ -125,7 +125,7 @@ export default function HeaderClient({ isAuthed, email, displayName, isAdmin }: 
 
                                 {userOpen && (
                                     <div ref={menuRef} id="account-menu" role="menu" aria-label="Menu du compte" className="account-pop shadow-xl ring-1 ring-border/70">
-                                        <div className="account-head">
+                                        <div className="account-head flex gap-2 items-center p-1 bg-muted rounded-xl">
                                             <span className="account-avatar" aria-hidden>
                                                 {avatarInitial}
                                             </span>

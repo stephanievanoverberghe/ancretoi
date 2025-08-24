@@ -55,7 +55,7 @@ export default async function Page({ searchParams }: { searchParams?: Promise<SP
                         <p className="mt-2 text-[15px] text-secondary-800">{msg.body}</p>
 
                         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-                            <Link href="/newsletter" className="btn w-full sm:w-auto">
+                            <Link href="/#newsletter" className="btn w-full sm:w-auto">
                                 Demander un nouveau lien
                             </Link>
                             <Link
