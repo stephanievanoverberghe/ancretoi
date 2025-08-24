@@ -1,0 +1,40 @@
+{
+    "rows": [
+        {
+            "slug": "reset-7",
+            "objectif": "Réinitialiser ton rythme",
+            "duree": "7 jours",
+            "charge": "15–25 min/j",
+            "niveau": "Cible",
+            "ideal_si": "Tu veux poser 3 micro-rituels tenables",
+            "cta": "Voir RESET-7"
+        },
+        {
+            "slug": "boussole-10",
+            "objectif": "Retrouver le cap & les limites",
+            "duree": "10 jours",
+            "charge": "15–25 min/j",
+            "niveau": "Basique",
+            "ideal_si": "Tu dois décider sans te perdre",
+            "cta": "Voir BOUSSOLE-10"
+        },
+        {
+            "slug": "ancrage-30",
+            "objectif": "Stabiliser l’énergie & la routine",
+            "duree": "30 jours",
+            "charge": "20–30 min/j",
+            "niveau": "Cible",
+            "ideal_si": "Tu veux une routine 4 semaines",
+            "cta": "Voir ANCRAGE-30"
+        },
+        {
+            "slug": "alchimie-90",
+            "objectif": "Transformer en profondeur",
+            "duree": "90 jours",
+            "charge": "20–35 min/j",
+            "niveau": "Premium",
+            "ideal_si": "Tu cherches une mue guidée et durable",
+            "cta": "Voir ALCHIMIE-90"
+        }
+    ]
+}

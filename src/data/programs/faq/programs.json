@@ -1,0 +1,28 @@
+{
+    "faq": [
+        {
+            "q": "Combien de temps par jour ?",
+            "a": "Entre 15 et 30 minutes selon le programme. Chaque rituel est pensé pour être tenable."
+        },
+        {
+            "q": "Je suis débutant·e, c’est pour moi ?",
+            "a": "Oui. Les pratiques sont guidées pas à pas, avec variantes et sous-titres FR."
+        },
+        {
+            "q": "Faut-il du matériel ?",
+            "a": "Non. Un téléphone et des écouteurs suffisent."
+        },
+        {
+            "q": "Accès mobile et sous-titres ?",
+            "a": "Oui, usage mobile-first, 100% sous-titres FR + transcripts téléchargeables."
+        },
+        {
+            "q": "Accès à vie ?",
+            "a": "Oui, l’accès reste ouvert et les mises à jour sont incluses."
+        },
+        {
+            "q": "Remboursement ?",
+            "a": "Si politique active : précise conditions (délai, éligibilité) sur la page CGV."
+        }
+    ]
+}
