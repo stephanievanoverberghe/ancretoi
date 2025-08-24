@@ -15,7 +15,7 @@
             "title": "RESET-7",
             "tagline": "7 jours pour te recentrer et remettre ton axe en place.",
             "duration_days": 7,
-            "level": "Cible",
+            "level": "Basique",
             "status": "published",
             "cover": "/images/programs/reset7.webp",
             "price": {
@@ -43,7 +43,7 @@
             "title": "BOUSSOLE-10",
             "tagline": "10 jours pour retrouver ta direction et tes limites saines.",
             "duration_days": 10,
-            "level": "Basique",
+            "level": "Cible",
             "status": "published",
             "cover": "/images/programs/boussole10.webp",
             "price": {
@@ -68,7 +68,7 @@
             "title": "ANCRAGE-30",
             "tagline": "30 jours pour stabiliser ton axe, ton énergie et ta discipline douce.",
             "duration_days": 30,
-            "level": "Cible",
+            "level": "Premium",
             "status": "draft",
             "cover": "/images/programs/ancrage30.webp",
             "price": {

@@ -122,7 +122,7 @@ export default function ProgramsHero({
             <div className="absolute inset-x-0 bottom-0 h-px bg-gold-200" aria-hidden="true" />
 
             {/* CONTENU */}
-            <div className="mx-auto w-full max-w-6xl py-10 sm:py-14 lg:py-16">
+            <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 md:px-8 py-10 sm:py-14 lg:py-16">
                 <div className="relative max-w-[44rem] text-center md:text-left">
                     {/* halo lisibilité */}
                     <div className="pointer-events-none absolute -inset-4 sm:-inset-6 -z-10 rounded-3xl bg-white/45 sm:bg-white/30 backdrop-blur-[2px] sm:backdrop-blur-[1.5px] ring-1 ring-white/50 sm:ring-white/40" />

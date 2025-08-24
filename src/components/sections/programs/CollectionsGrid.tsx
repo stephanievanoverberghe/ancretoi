@@ -138,7 +138,17 @@ export default function CollectionsGrid({ programs }: CollectionsGridProps) {
     }, [filter, programs]);
 
     return (
-        <section id="grid" aria-labelledby="programs-grid-title" className="relative mx-[calc(50%-50vw)] w-screen bg-brand-50/30 py-14 sm:py-16 lg:py-24">
+        <section id="grid" aria-labelledby="programs-grid-title" className="relative mx-[calc(50%-50vw)] w-screen overflow-hidden scroll-mt-24 py-12 sm:py-16 md:py-24">
+            {/* Fond papier zen */}
+            <div className="absolute inset-0 -z-10" aria-hidden="true">
+                <Image src="/images/texture-soft.webp" alt="" fill sizes="100vw" className="object-cover opacity-45" priority={false} />
+                <div className="absolute inset-0 bg-secondary-50/70" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gold-100/80" />
+                <div className="absolute inset-x-0 bottom-0 h-px bg-gold-100/80" />
+            </div>
+
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gold-100/70" aria-hidden />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gold-100/70" aria-hidden />
             <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
                 {/* Header éditorial + filtres compacts */}
                 <header className="mb-6 sm:mb-8">
