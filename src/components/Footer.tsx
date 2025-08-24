@@ -174,7 +174,7 @@ export default function Footer() {
                         <Link className="transition hover:text-secondary-900" href="/privacy">
                             Confidentialité
                         </Link>
-                        <Link className="transition hover:text-secondary-900" href="/cookies/préférences">
+                        <Link className="transition hover:text-secondary-900" href="/cookies/preferences">
                             Gérer les cookies
                         </Link>
                         <Link className="transition hover:text-secondary-900" href="/terms">
