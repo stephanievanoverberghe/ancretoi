@@ -136,7 +136,7 @@ export default function ProgramsCompare() {
                         <div className="rounded-lg border border-brand-100 bg-brand-50/40 p-3">
                             <div className="mb-1 inline-flex items-center gap-2">
                                 <span className="inline-flex items-center rounded-full border border-gold-200 bg-gold-50 px-2 py-0.5 text-[11px] font-medium">Premium</span>
-                                <span className="text:[11px] text-muted-foreground">≈ 40-60 min/j</span>
+                                <span className="text-[11px] text-muted-foreground">≈ 40-60 min/j</span>
                             </div>
                             <p className="text-sm text-muted-foreground">
                                 Pour <span className="font-medium">approfondir & transformer</span> : introspection, jalons, vision long terme.
@@ -236,7 +236,7 @@ export default function ProgramsCompare() {
                                     const title = TITLE_BY_SLUG[r.slug] ?? r.slug.toUpperCase();
                                     return (
                                         <tr key={r.slug} className={`transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-brand-50/20'} hover:bg-gold-50/40`}>
-                                            <th scope="row" className="px-4 py-3 font-semibold text-foreground">
+                                            <th scope="row" className="px-4 py-3 text-left font-semibold text-foreground">
                                                 {title}
                                             </th>
                                             <td className="px-4 py-3 text-muted-foreground">{r.objectif}</td>
