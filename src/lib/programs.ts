@@ -1,4 +1,4 @@
-// lib/programs.ts
+// src/lib/programs.ts
 import type { ProgramJSON } from '@/types/program';
 
 /** util simple pour garantir le même slug partout */
@@ -12,15 +12,15 @@ export function normalizeProgramSlug(s: string): string {
 /** Map des programmes (ajoute ici les autres plus tard) */
 export const PROGRAM_CATALOG = {
     'reset-7': { slug: 'reset-7', file: () => import('@/data/programs/reset7.json') },
-    // 'boussole-10': { slug: 'boussole-10', file: () => import('@/data/programs/boussole10.json') },
-    // 'ancrage-30':  { slug: 'ancrage-30',  file: () => import('@/data/programs/ancrage30.json') },
-    // 'alchimie-90': { slug: 'alchimie-90', file: () => import('@/data/programs/alchimie90.json') },
+    'boussole-10': { slug: 'boussole-10', file: () => import('@/data/programs/boussole10.json') },
+    'ancrage-30': { slug: 'ancrage-30', file: () => import('@/data/programs/ancrage30.json') },
+    'alchimie-90': { slug: 'alchimie-90', file: () => import('@/data/programs/alchimie90.json') },
 } as const;
 
 export type ProgramSlug = keyof typeof PROGRAM_CATALOG;
 
 export type ProgramCatalogEntry = {
-    slug: ProgramSlug | string;
+    slug: ProgramSlug;
     file: () => Promise<{ default: ProgramJSON }>;
 };
 

@@ -1,2187 +1,761 @@
 {
-    "product": "RESET 7",
+    "product": "RESET-7",
     "version": "1.0",
     "timezone": "Europe/Paris",
     "created_at": "2025-08-21T07:57:07.545567+02:00",
-    "updated_at": "2025-08-21T07:57:07.545567+02:00",
+    "updated_at": "2025-08-25T13:00:00+02:00",
     "days": [
         {
             "day": 1,
-            "title": "Clarté & engagement",
-            "objectives": [
-                "Formuler l’objectif prioritaire 7 jours.",
-                "Tracer une ligne de vie éclair (10 moments) et en extraire 3 thèmes.",
-                "Signer le contrat et installer 3 règles d’or."
-            ],
-            "outcomes": [
-                "1 phrase d’objectif au présent + 1 micro-action ≤ 25 min.",
-                "Contrat signé + 3 distracteurs neutralisés.",
-                "Scores de départ saisis (Énergie, Focus, Paix, Estime)."
-            ],
+            "title": "Recentrage & intention",
+            "objectives": ["Poser une intention simple et vraie pour J1→J7.", "Choisir 1 micro-pas concret (≤ 15 min)."],
+            "outcomes": ["1 phrase d’intention au présent.", "1 micro-pas défini pour aujourd’hui."],
             "blocks": {
                 "morning": {
-                    "duration_min": "30–35",
+                    "duration_min": "8",
                     "exercises": [
                         {
+                            "key": "intro_video_morning_d1",
+                            "title": "Comment faire la respiration 4–6 (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Regarde la vidéo d’explication rapide avant de pratiquer.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d1-morning.mp4",
+                                "poster": "/images/programs/reset-7/d1-morning.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d1-morning.vtt",
+                                "duration_sec": 60
+                            }
+                        },
+                        {
                             "key": "breath_46",
-                            "title": "Ancrage respiratoire 4–6",
+                            "title": "Ancrage respiratoire 4–6 (10 cycles)",
                             "type": "breath",
-                            "timer_sec": 300,
+                            "timer_sec": 420,
                             "required": true,
-                            "completed": false,
-                            "description": "Assieds-toi, pieds au sol. Inspire 4s, pause 0–1s, expire 6s. 10 cycles.",
+                            "description": "Assieds-toi, pieds au sol. Inspire 4s, pause 0–1s, expire 6s.",
                             "fields": []
-                        },
-                        {
-                            "key": "mini_journal",
-                            "title": "Mini-journal (3 questions)",
-                            "type": "journal",
-                            "timer_sec": 900,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "q1",
-                                    "label": "Qu’est-ce qui me pèse le plus aujourd’hui ? (liste)",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "q2",
-                                    "label": "Si je changeais une seule chose en 7 jours, ce serait quoi ? Pourquoi ?",
-                                    "type": "textarea",
-                                    "required": true
-                                },
-                                {
-                                    "key": "q3",
-                                    "label": "À quoi ressemble une victoire réaliste à J+7 (signes observables) ?",
-                                    "type": "textarea",
-                                    "required": true
-                                }
-                            ]
-                        },
-                        {
-                            "key": "baseline_scores",
-                            "title": "Scores de départ",
-                            "type": "journal",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "energy",
-                                    "label": "Énergie (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                },
-                                {
-                                    "key": "focus",
-                                    "label": "Focus (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                },
-                                {
-                                    "key": "peace",
-                                    "label": "Paix (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                },
-                                {
-                                    "key": "esteem",
-                                    "label": "Estime (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                }
-                            ]
-                        },
-                        {
-                            "key": "contract",
-                            "title": "Contrat 7 jours",
-                            "type": "journal",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "Recopie et signe le contrat.",
-                            "fields": [
-                                {
-                                    "key": "contract_text",
-                                    "label": "Texte copié",
-                                    "type": "textarea",
-                                    "required": true
-                                },
-                                {
-                                    "key": "signature",
-                                    "label": "Signature (nom)",
-                                    "type": "text",
-                                    "required": true
-                                },
-                                {
-                                    "key": "signed",
-                                    "label": "Je confirme avoir signé",
-                                    "type": "boolean"
-                                }
-                            ]
                         }
                     ]
                 },
                 "noon": {
-                    "duration_min": "10",
+                    "duration_min": "3",
                     "exercises": [
                         {
-                            "key": "walk_100",
-                            "title": "100 pas en conscience",
-                            "type": "walk",
-                            "timer_sec": 600,
+                            "key": "intro_video_noon_d1",
+                            "title": "Reset sensoriel : mode d’emploi (45s)",
+                            "type": "message",
+                            "timer_sec": 45,
                             "required": false,
-                            "completed": false,
-                            "description": "Sans téléphone. Attention au contact pied-sol, air sur la peau, posture.",
-                            "fields": []
+                            "description": "Une minute pour (re)voir la méthode 5-4-3-2-1.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d1-noon.mp4",
+                                "poster": "/images/programs/reset-7/d1-noon.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d1-noon.vtt",
+                                "duration_sec": 45
+                            }
                         },
                         {
-                            "key": "distraction_trim",
-                            "title": "Tri des distractions (top 5)",
-                            "type": "journal",
-                            "timer_sec": 600,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "distractors",
-                                    "label": "Distracteurs à mettre en pause",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "name",
-                                            "label": "Nom de la distraction (app/objet)",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "pause_until",
-                                            "label": "Mise en pause jusqu’à (jour/date)",
-                                            "type": "text",
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 3,
-                                    "required": true,
-                                    "max_items": 5
-                                }
-                            ]
+                            "key": "sensory_reset",
+                            "title": "Reset sensoriel 5-4-3-2-1",
+                            "type": "practice",
+                            "timer_sec": 180,
+                            "required": false,
+                            "description": "5 voir • 4 toucher • 3 entendre • 2 sentir • 1 goût",
+                            "fields": [{ "key": "state_word", "label": "1 mot d’état après", "type": "text" }]
                         }
                     ]
                 },
                 "evening": {
-                    "duration_min": "25–45",
+                    "duration_min": "7",
                     "exercises": [
                         {
-                            "key": "lifeline",
-                            "title": "Ligne de vie éclair (10 moments)",
-                            "type": "journal",
-                            "timer_sec": 1800,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "moments",
-                                    "label": "Moments clés",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "age_or_date",
-                                            "label": "Âge/Date",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "event",
-                                            "label": "Événement clé",
-                                            "type": "textarea",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "feeling",
-                                            "label": "Ressenti (1 mot)",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "learning",
-                                            "label": "Ce que ça m’a appris",
-                                            "type": "textarea",
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 5,
-                                    "required": true,
-                                    "max_items": 10
-                                }
-                            ]
+                            "key": "intro_video_evening_d1",
+                            "title": "Intention & micro-pas (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Comment formuler une intention simple et choisir un micro-pas réaliste.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d1-evening.mp4",
+                                "poster": "/images/programs/reset-7/d1-evening.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d1-evening.vtt",
+                                "duration_sec": 60
+                            }
                         },
                         {
-                            "key": "goal",
-                            "title": "Formulation de l’objectif (J1→J7)",
+                            "key": "intention_microstep",
+                            "title": "Intention & micro-pas",
                             "type": "planning",
-                            "timer_sec": 900,
+                            "timer_sec": 300,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "goal_text",
-                                    "label": "D’ici 7 jours, j’aurai…",
-                                    "type": "textarea",
-                                    "required": true
-                                },
-                                {
-                                    "key": "proof",
-                                    "label": "Je saurai que c’est fait car… (preuve observable)",
-                                    "type": "textarea",
-                                    "required": true
-                                },
-                                {
-                                    "key": "why",
-                                    "label": "Pourquoi c’est important maintenant",
-                                    "type": "textarea",
-                                    "required": true
-                                },
-                                {
-                                    "key": "first_micro_step",
-                                    "label": "1re micro-action (≤25 min)",
-                                    "type": "text",
-                                    "required": true
-                                }
+                                { "key": "goal_text", "label": "D’ici 7 jours, j’aurai…", "type": "textarea", "required": true },
+                                { "key": "proof", "label": "Preuve observable", "type": "text" },
+                                { "key": "first_step", "label": "Micro-pas (≤ 15 min)", "type": "text", "required": true }
                             ]
                         }
                     ]
                 }
             },
             "daily_check": {
-                "mood": {
-                    "key": "mood",
-                    "label": "Humeur (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "energy": {
-                    "key": "energy",
-                    "label": "Énergie (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "body": {
-                    "key": "body",
-                    "label": "Corps (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "intention": {
-                    "key": "intention",
-                    "label": "Intention du jour (1 phrase)",
-                    "type": "text",
-                    "required": false
-                }
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
             }
         },
         {
             "day": 2,
-            "title": "Corps & système nerveux",
-            "objectives": [
-                "Réduire la charge corporelle/mentale via régulation (respiration, scan, mouvement, marche).",
-                "Installer 1 routine personnelle reproductible.",
-                "Développer l’écoute du corps (tensions/besoins)."
-            ],
-            "outcomes": [
-                "Routine validée (scan + mouvement + ancrage).",
-                "Phrase ressource pour le corps (personnalisée).",
-                "Journal corporel rempli + marche décompressante réalisée."
-            ],
+            "title": "Corps & apaisement",
+            "objectives": ["Alléger les tensions (scan + micro-mouvements).", "Identifier 1 besoin corporel simple."],
+            "outcomes": ["Scan corporel réalisé.", "1 besoin corporel nommé."],
             "blocks": {
                 "morning": {
-                    "duration_min": "40–45",
+                    "duration_min": "8",
                     "exercises": [
                         {
-                            "key": "breath_46",
-                            "title": "Ancrage respiratoire 4–6",
-                            "type": "breath",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": []
+                            "key": "intro_video_morning_d2",
+                            "title": "Scan corporel : guide (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Repères pour un scan doux et efficace.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d2-morning.mp4",
+                                "poster": "/images/programs/reset-7/d2-morning.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d2-morning.vtt",
+                                "duration_sec": 60
+                            }
                         },
                         {
-                            "key": "body_scan",
-                            "title": "Scan corporel guidé",
+                            "key": "body_scan_mini",
+                            "title": "Scan corporel doux",
                             "type": "practice",
-                            "timer_sec": 720,
+                            "timer_sec": 420,
                             "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "notes",
-                                    "label": "Zones, sensations (chaud/froid, serré/relâché…)",
-                                    "type": "textarea",
-                                    "required": false
-                                }
-                            ]
-                        },
-                        {
-                            "key": "mobility_flow",
-                            "title": "Mobilité douce – Flow 1",
-                            "type": "movement",
-                            "timer_sec": 720,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "seated_variant",
-                                    "label": "J’ai utilisé des adaptations assises",
-                                    "type": "boolean"
-                                }
-                            ]
-                        },
-                        {
-                            "key": "strength_circuit",
-                            "title": "Mini-circuit force douce",
-                            "type": "movement",
-                            "timer_sec": 600,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "squats",
-                                    "label": "Squats lents effectués",
-                                    "type": "number",
-                                    "required": false,
-                                    "min": 0,
-                                    "max": 100
-                                },
-                                {
-                                    "key": "wall_pushups",
-                                    "label": "Pompes murales",
-                                    "type": "number",
-                                    "required": false,
-                                    "min": 0,
-                                    "max": 100
-                                },
-                                {
-                                    "key": "plank_sec",
-                                    "label": "Planche (secondes)",
-                                    "type": "number",
-                                    "required": false,
-                                    "min": 0,
-                                    "max": 600
-                                }
-                            ]
-                        },
-                        {
-                            "key": "body_journal",
-                            "title": "Journal corporel express",
-                            "type": "journal",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "tension_neck",
-                                    "label": "Tension nuque (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": false
-                                },
-                                {
-                                    "key": "tension_shoulders",
-                                    "label": "Tension épaules (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": false
-                                },
-                                {
-                                    "key": "tension_back",
-                                    "label": "Tension dos (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": false
-                                },
-                                {
-                                    "key": "tension_hips",
-                                    "label": "Tension hanches (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": false
-                                },
-                                {
-                                    "key": "tension_belly",
-                                    "label": "Tension ventre (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": false
-                                },
-                                {
-                                    "key": "need",
-                                    "label": "Besoin principal du corps aujourd’hui",
-                                    "type": "text",
-                                    "required": false
-                                }
-                            ]
+                            "fields": [{ "key": "notes", "label": "Zones/sensations", "type": "textarea" }]
                         }
                     ]
                 },
                 "noon": {
-                    "duration_min": "10–12",
+                    "duration_min": "3",
                     "exercises": [
                         {
-                            "key": "physio_sigh",
-                            "title": "Sigh physiologique ×3",
-                            "type": "breath",
-                            "timer_sec": 120,
+                            "key": "intro_video_noon_d2",
+                            "title": "Auto-soin nuque & yeux (45s)",
+                            "type": "message",
+                            "timer_sec": 45,
                             "required": false,
-                            "completed": false,
-                            "description": "Double inspiration (petite + grande) → longue expiration",
-                            "fields": []
+                            "description": "Rappels posturaux + gestes lents.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d2-noon.mp4",
+                                "poster": "/images/programs/reset-7/d2-noon.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d2-noon.vtt",
+                                "duration_sec": 45
+                            }
                         },
                         {
-                            "key": "neck_eyes",
-                            "title": "Détente nuque & yeux",
+                            "key": "neck_eyes_relax",
+                            "title": "Nuque & yeux (auto-soin)",
                             "type": "practice",
-                            "timer_sec": 420,
+                            "timer_sec": 150,
                             "required": false,
-                            "completed": false,
-                            "description": "Auto-massage trapèzes, inclinaisons, regard 6 m 20 s, cercles oculaires",
-                            "fields": []
-                        },
-                        {
-                            "key": "hydrate",
-                            "title": "Hydratation consciente",
-                            "type": "practice",
-                            "timer_sec": 90,
-                            "required": false,
-                            "completed": false,
-                            "description": "Boire un grand verre d’eau en pleine attention.",
+                            "description": "Trapèzes, inclinaisons, regard lointain, cercles oculaires.",
                             "fields": []
                         }
                     ]
                 },
                 "evening": {
-                    "duration_min": "20–30",
+                    "duration_min": "7",
                     "exercises": [
                         {
-                            "key": "decompress_walk",
-                            "title": "Marche décompressante (sans écouteurs)",
-                            "type": "walk",
-                            "timer_sec": 1200,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "post_walk_3notes",
-                                    "label": "3 ressentis/infos notables après la marche (liste)",
-                                    "type": "textarea",
-                                    "required": false
-                                }
-                            ]
+                            "key": "intro_video_evening_d2",
+                            "title": "Mobilité douce — Flow 1 (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Points d’attention pour un flow accessible.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d2-evening.mp4",
+                                "poster": "/images/programs/reset-7/d2-evening.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d2-evening.vtt",
+                                "duration_sec": 60
+                            }
                         },
                         {
-                            "key": "close_ritual",
-                            "title": "Rituel de fermeture + phrase ressource",
-                            "type": "reflection",
-                            "timer_sec": 420,
+                            "key": "mobility_flow_1",
+                            "title": "Mobilité douce — Flow 1",
+                            "type": "movement",
+                            "timer_sec": 300,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "resource_sentence",
-                                    "label": "Ma phrase ressource (ex. “Je ralentis, j’allonge l’expire.”)",
-                                    "type": "text",
-                                    "required": true
-                                }
+                                { "key": "seated_variant", "label": "Adaptations assises utilisées", "type": "boolean" },
+                                { "key": "after_word", "label": "1 mot après", "type": "text" }
                             ]
                         }
                     ]
                 }
             },
             "daily_check": {
-                "mood": {
-                    "key": "mood",
-                    "label": "Humeur (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "energy": {
-                    "key": "energy",
-                    "label": "Énergie (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "body": {
-                    "key": "body",
-                    "label": "Corps (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "intention": {
-                    "key": "intention",
-                    "label": "Intention du jour (1 phrase)",
-                    "type": "text",
-                    "required": false
-                }
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
             }
         },
         {
             "day": 3,
-            "title": "Émotions & auto-accueil",
-            "objectives": [
-                "Accueillir et traverser 1 émotion avec R.A.I.N.",
-                "Installer une pratique d’auto-compassion opérationnelle.",
-                "Mettre en place une hygiène émotionnelle simple (déclencheurs/besoins/micro-plan)."
-            ],
-            "outcomes": ["1 émotion traversée de bout en bout (avant/après notés).", "1 phrase de soin personnalisée.", "Journal émotionnel rempli + exercice du soir effectué."],
+            "title": "Émotions — R.A.I.N. mini",
+            "objectives": ["Traverser une émotion de bout en bout (version courte).", "Formuler une phrase de soin."],
+            "outcomes": ["Intensité avant/après notée.", "Phrase de soin choisie."],
             "blocks": {
                 "morning": {
-                    "duration_min": "40–45",
+                    "duration_min": "8",
                     "exercises": [
                         {
-                            "key": "breath_46",
-                            "title": "Ancrage respiratoire 4–6",
+                            "key": "intro_video_morning_d3",
+                            "title": "Respiration cohérente (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Rappels pour tenir l’expire long.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d3-morning.mp4",
+                                "poster": "/images/programs/reset-7/d3-morning.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d3-morning.vtt",
+                                "duration_sec": 60
+                            }
+                        },
+                        {
+                            "key": "breath_coherence",
+                            "title": "Respiration cohérente (4–6)",
                             "type": "breath",
-                            "timer_sec": 300,
+                            "timer_sec": 360,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": []
-                        },
-                        {
-                            "key": "emotion_select",
-                            "title": "Choix & nomination de l’émotion",
-                            "type": "journal",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "label",
-                                    "label": "Émotion",
-                                    "type": "select",
-                                    "options": ["peur", "colère", "tristesse", "honte", "culpabilité", "joie", "surprise", "dégoût"],
-                                    "required": true
-                                },
-                                {
-                                    "key": "intensity_before",
-                                    "label": "Intensité avant (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                },
-                                {
-                                    "key": "zones",
-                                    "label": "Zones corporelles (multi)",
-                                    "type": "multi_select",
-                                    "options": ["gorge", "poitrine", "plexus", "ventre", "tête", "épaules", "dos", "autre"],
-                                    "required": false
-                                },
-                                {
-                                    "key": "trigger",
-                                    "label": "Déclencheur (si connu)",
-                                    "type": "text",
-                                    "required": false
-                                }
-                            ]
-                        },
-                        {
-                            "key": "rain_R",
-                            "title": "R.A.I.N. — Recognize",
-                            "type": "practice",
-                            "timer_sec": 180,
-                            "required": true,
-                            "completed": false,
-                            "description": "Je remarque la présence de [émotion].",
-                            "fields": [
-                                {
-                                    "key": "notes",
-                                    "label": "Ce que je remarque, sans corriger",
-                                    "type": "textarea",
-                                    "required": true
-                                }
-                            ]
-                        },
-                        {
-                            "key": "rain_A",
-                            "title": "R.A.I.N. — Allow",
-                            "type": "practice",
-                            "timer_sec": 240,
-                            "required": true,
-                            "completed": false,
-                            "description": "J’autorise 2–3 minutes sans corriger.",
-                            "fields": [
-                                {
-                                    "key": "notes",
-                                    "label": "Comment j’autorise, où je sens de l’espace",
-                                    "type": "textarea",
-                                    "required": true
-                                }
-                            ]
-                        },
-                        {
-                            "key": "rain_I",
-                            "title": "R.A.I.N. — Investigate",
-                            "type": "practice",
-                            "timer_sec": 600,
-                            "required": true,
-                            "completed": false,
-                            "description": "Explorer avec douceur.",
-                            "fields": [
-                                {
-                                    "key": "body",
-                                    "label": "Dans le corps (qualité, mouvement)",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "thought",
-                                    "label": "Pensée clé qui l’amplifie",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "fear",
-                                    "label": "Peur sous-jacente",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "need",
-                                    "label": "Besoin non rejoint",
-                                    "type": "textarea",
-                                    "required": false
-                                }
-                            ]
-                        },
-                        {
-                            "key": "rain_N",
-                            "title": "R.A.I.N. — Nurture",
-                            "type": "practice",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "Nourrir/Apaiser.",
-                            "fields": [
-                                {
-                                    "key": "gesture",
-                                    "label": "Geste d’apaisement (main cœur/ventre…)",
-                                    "type": "text",
-                                    "required": true
-                                },
-                                {
-                                    "key": "words",
-                                    "label": "Phrase de soin (courte et vraie)",
-                                    "type": "text",
-                                    "required": true
-                                }
-                            ]
-                        },
-                        {
-                            "key": "parts_dialogue",
-                            "title": "Dialogue des parts (IFS maison)",
-                            "type": "journal",
-                            "timer_sec": 600,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "protector",
-                                    "label": "Partie protectrice — elle dit / elle a besoin",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "actor",
-                                    "label": "Partie orientée action — elle propose",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "sage",
-                                    "label": "Voix sage — relie / prochain pas concret (≤15 min)",
-                                    "type": "textarea",
-                                    "required": false
-                                }
-                            ]
                         }
                     ]
                 },
                 "noon": {
-                    "duration_min": "10–12",
+                    "duration_min": "3",
                     "exercises": [
                         {
+                            "key": "intro_video_noon_d3",
+                            "title": "Butterfly tap (45s)",
+                            "type": "message",
+                            "timer_sec": 45,
+                            "required": false,
+                            "description": "Tapotements croisés + respiration.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d3-noon.mp4",
+                                "poster": "/images/programs/reset-7/d3-noon.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d3-noon.vtt",
+                                "duration_sec": 45
+                            }
+                        },
+                        {
                             "key": "butterfly_tap",
-                            "title": "Butterfly tap",
+                            "title": "Butterfly tap + expire long",
                             "type": "practice",
-                            "timer_sec": 120,
+                            "timer_sec": 150,
                             "required": false,
-                            "completed": false,
-                            "description": "Tapotements croisés + respiration 4–6.",
-                            "fields": []
-                        },
-                        {
-                            "key": "sensory_reset",
-                            "title": "Reset sensoriel 5–4–3–2–1",
-                            "type": "practice",
-                            "timer_sec": 360,
-                            "required": false,
-                            "completed": false,
-                            "description": "5 voir / 4 toucher / 3 entendre / 2 sentir / 1 goût.",
-                            "fields": [
-                                {
-                                    "key": "state_word",
-                                    "label": "1 mot d’état après (ex. plus calme)",
-                                    "type": "text",
-                                    "required": false
-                                }
-                            ]
-                        },
-                        {
-                            "key": "hydrate",
-                            "title": "Hydratation consciente",
-                            "type": "practice",
-                            "timer_sec": 90,
-                            "required": false,
-                            "completed": false,
-                            "description": "",
                             "fields": []
                         }
                     ]
                 },
                 "evening": {
-                    "duration_min": "20–30",
+                    "duration_min": "7",
                     "exercises": [
                         {
-                            "key": "evening_rewrite",
-                            "title": "Réécriture de soin (auto-compassion)",
-                            "type": "reflection",
-                            "timer_sec": 900,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "scene_neutral",
-                                    "label": "Mini-scène (faits + sensations)",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "scene_ally",
-                                    "label": "Même scène avec voix alliée (gestes/phrases de soin)",
-                                    "type": "textarea",
-                                    "required": true
-                                }
-                            ]
+                            "key": "intro_video_evening_d3",
+                            "title": "R.A.I.N. — version courte (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Recognize • Allow • Investigate • Nurture.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d3-evening.mp4",
+                                "poster": "/images/programs/reset-7/d3-evening.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d3-evening.vtt",
+                                "duration_sec": 60
+                            }
                         },
                         {
-                            "key": "close_ritual",
-                            "title": "Rituel de fermeture",
+                            "key": "rain_mini",
+                            "title": "R.A.I.N. (version courte)",
                             "type": "reflection",
-                            "timer_sec": 300,
+                            "timer_sec": 360,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "intensity_after",
-                                    "label": "Intensité après (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                },
-                                {
-                                    "key": "pride",
-                                    "label": "Une chose dont je suis fier·e aujourd’hui",
-                                    "type": "text",
-                                    "required": false
-                                }
+                                { "key": "emotion", "label": "Émotion", "type": "select", "options": ["peur", "colère", "tristesse", "honte", "culpabilité", "joie"] },
+                                { "key": "intensity_before", "label": "Intensité avant (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "notes_allow", "label": "Allow (2 phrases)", "type": "textarea" },
+                                { "key": "nurture_words", "label": "Phrase de soin", "type": "text", "required": true },
+                                { "key": "intensity_after", "label": "Intensité après (0–10)", "type": "slider", "min": 0, "max": 10 }
                             ]
                         }
                     ]
                 }
             },
             "daily_check": {
-                "mood": {
-                    "key": "mood",
-                    "label": "Humeur (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "energy": {
-                    "key": "energy",
-                    "label": "Énergie (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "body": {
-                    "key": "body",
-                    "label": "Corps (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "intention": {
-                    "key": "intention",
-                    "label": "Intention du jour (1 phrase)",
-                    "type": "text",
-                    "required": false
-                }
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
             }
         },
         {
             "day": 4,
-            "title": "Croyances & voix intérieure",
-            "objectives": [
-                "Identifier 3 croyances actives et leur impact concret.",
-                "Appliquer C-I-A (Croyance → Impact → Alternative crédible) + mantra.",
-                "Tester 1 alternative avec une expérience ≤ 15 min."
-            ],
-            "outcomes": [
-                "3 croyances formulées + distorsions associées.",
-                "3 alternatives crédibles + 1 mantra personnel.",
-                "1 mini-courage planifié et réalisé (ou lancé) + bilan."
-            ],
+            "title": "Croyances → alternatives crédibles",
+            "objectives": ["Repérer une croyance active & son coût.", "Tester 1 alternative crédible."],
+            "outcomes": ["1 carte C-I-A complétée.", "Mini-expérience planifiée."],
             "blocks": {
                 "morning": {
-                    "duration_min": "40–45",
+                    "duration_min": "8",
                     "exercises": [
                         {
-                            "key": "breath_46",
-                            "title": "Ancrage respiratoire 4–6",
-                            "type": "breath",
+                            "key": "intro_video_morning_d4",
+                            "title": "Repérer une croyance (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Comment formuler la croyance au plus juste.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d4-morning.mp4",
+                                "poster": "/images/programs/reset-7/d4-morning.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d4-morning.vtt",
+                                "duration_sec": 60
+                            }
+                        },
+                        {
+                            "key": "belief_capture",
+                            "title": "Repérage — croyance #1",
+                            "type": "journal",
                             "timer_sec": 300,
                             "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": []
-                        },
-                        {
-                            "key": "beliefs_capture",
-                            "title": "Repérage des croyances (liste)",
-                            "type": "journal",
-                            "timer_sec": 600,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "beliefs_raw",
-                                    "label": "Pensées récurrentes",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "text",
-                                            "label": "Phrase (je…)",
-                                            "type": "text",
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 3,
-                                    "required": true,
-                                    "max_items": 10
-                                }
-                            ]
-                        },
-                        {
-                            "key": "cia_cards",
-                            "title": "C-I-A ×3",
-                            "type": "journal",
-                            "timer_sec": 1200,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "cia",
-                                    "label": "Cartes C-I-A",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "belief",
-                                            "label": "C — Croyance (phrase exacte)",
-                                            "type": "text",
-                                            "required": true
-                                        },
-                                        {
-                                            "key": "impact",
-                                            "label": "I — Impact (comportements/émotions/coûts)",
-                                            "type": "textarea",
-                                            "required": true
-                                        },
-                                        {
-                                            "key": "alternative",
-                                            "label": "A — Alternative crédible (testable)",
-                                            "type": "textarea",
-                                            "required": true
-                                        },
-                                        {
-                                            "key": "evidence",
-                                            "label": "Indice observable (preuve)",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "mantra",
-                                            "label": "Mantra (6–10 mots)",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "distortion",
-                                            "label": "Distorsion",
-                                            "type": "select",
-                                            "options": [
-                                                "tout_ou_rien",
-                                                "generalisation",
-                                                "filtre_negatif",
-                                                "lecture_pensee",
-                                                "prediction",
-                                                "catastrophisme",
-                                                "personalisation",
-                                                "exigences"
-                                            ],
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 3,
-                                    "required": true,
-                                    "max_items": 3
-                                }
+                                { "key": "belief", "label": "Croyance (phrase exacte)", "type": "text", "required": true },
+                                { "key": "impact", "label": "Impact (coûts/émotions)", "type": "textarea" }
                             ]
                         }
                     ]
                 },
                 "noon": {
-                    "duration_min": "10–12",
+                    "duration_min": "3",
                     "exercises": [
                         {
-                            "key": "defusion",
-                            "title": "Défusion — « Je remarque que je pense… »",
-                            "type": "practice",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "Ajouter « Je remarque que je pense que… » devant #1 et sentir la différence.",
-                            "fields": [
-                                {
-                                    "key": "notes",
-                                    "label": "Différence ressentie (1–2 phrases)",
-                                    "type": "text",
-                                    "required": false
-                                }
-                            ]
+                            "key": "intro_video_noon_d4",
+                            "title": "Défusion en pratique (45s)",
+                            "type": "message",
+                            "timer_sec": 45,
+                            "required": false,
+                            "description": "La phrase-clé et quand l’utiliser.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d4-noon.mp4",
+                                "poster": "/images/programs/reset-7/d4-noon.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d4-noon.vtt",
+                                "duration_sec": 45
+                            }
                         },
                         {
-                            "key": "experiment_plan",
-                            "title": "Expérience comportementale (plan)",
-                            "type": "planning",
-                            "timer_sec": 420,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "action",
-                                    "label": "Action mesurable (≤15 min)",
-                                    "type": "text",
-                                    "required": true
-                                },
-                                {
-                                    "key": "time",
-                                    "label": "Heure précise aujourd’hui",
-                                    "type": "text",
-                                    "required": true
-                                },
-                                {
-                                    "key": "success",
-                                    "label": "Critère de réussite (binaire)",
-                                    "type": "text",
-                                    "required": true
-                                }
-                            ]
+                            "key": "defusion_line",
+                            "title": "Défusion (1 minute)",
+                            "type": "practice",
+                            "timer_sec": 120,
+                            "required": false,
+                            "description": "Préfixer « Je remarque que je pense que… »",
+                            "fields": []
                         }
                     ]
                 },
                 "evening": {
-                    "duration_min": "20–30",
+                    "duration_min": "7",
                     "exercises": [
                         {
-                            "key": "experiment_review",
-                            "title": "Réalisation/Bilan de l’expérience",
-                            "type": "reflection",
-                            "timer_sec": 900,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "done",
-                                    "label": "Action faite ?",
-                                    "type": "select",
-                                    "options": ["oui", "non"],
-                                    "required": true
-                                },
-                                {
-                                    "key": "facts",
-                                    "label": "Faits observés (verbatim si possible)",
-                                    "type": "textarea",
-                                    "required": true
-                                },
-                                {
-                                    "key": "meaning",
-                                    "label": "Ce que ça dit sur ma croyance",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "adjust",
-                                    "label": "Ajustement alternative/mantra si besoin",
-                                    "type": "textarea",
-                                    "required": false
-                                }
-                            ]
+                            "key": "intro_video_evening_d4",
+                            "title": "Alternative crédible (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Fabriquer une alternative testable et réaliste.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d4-evening.mp4",
+                                "poster": "/images/programs/reset-7/d4-evening.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d4-evening.vtt",
+                                "duration_sec": 60
+                            }
                         },
                         {
-                            "key": "ally_voice",
-                            "title": "Voix alliée (réécriture de soutien)",
-                            "type": "reflection",
-                            "timer_sec": 600,
+                            "key": "cia_one",
+                            "title": "C-I-A — Alternative crédible",
+                            "type": "journal",
+                            "timer_sec": 360,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "dared",
-                                    "label": "Ce que j’ai osé",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "learned",
-                                    "label": "Ce que j’ai appris",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "next",
-                                    "label": "Prochain pas (≤10 min)",
-                                    "type": "text",
-                                    "required": false
-                                }
+                                { "key": "alternative", "label": "Alternative crédible", "type": "textarea", "required": true },
+                                { "key": "evidence", "label": "Indice observable", "type": "text" }
                             ]
-                        },
-                        {
-                            "key": "close_ritual",
-                            "title": "Rituel de fermeture",
-                            "type": "reflection",
-                            "timer_sec": 180,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": []
                         }
                     ]
                 }
             },
             "daily_check": {
-                "mood": {
-                    "key": "mood",
-                    "label": "Humeur (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "energy": {
-                    "key": "energy",
-                    "label": "Énergie (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "body": {
-                    "key": "body",
-                    "label": "Corps (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "intention": {
-                    "key": "intention",
-                    "label": "Intention du jour (1 phrase)",
-                    "type": "text",
-                    "required": false
-                }
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
             }
         },
         {
             "day": 5,
-            "title": "Relations, limites & communication",
-            "objectives": [
-                "Cartographier les relations et mesurer l’impact énergétique.",
-                "Écrire un script de limite (OSBD) et pratiquer un non propre/demande.",
-                "Exécuter l’action et débriefer."
-            ],
-            "outcomes": [
-                "Carte des relations complétée + 3 personnes clés.",
-                "1 script prêt et utilisé (ou planifié à heure précise).",
-                "Journal de débrief rempli + phrase ressource relationnelle."
-            ],
+            "title": "Limites saines (OSBD)",
+            "objectives": ["Écrire un script simple OSBD.", "Choisir 1 micro-action relationnelle sûre."],
+            "outcomes": ["Script prêt (ou planifié).", "Micro-action envoyée/posée ou planifiée."],
             "blocks": {
                 "morning": {
-                    "duration_min": "40–45",
+                    "duration_min": "8",
                     "exercises": [
                         {
-                            "key": "breath_46",
-                            "title": "Ancrage respiratoire 4–6",
-                            "type": "breath",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": []
+                            "key": "intro_video_morning_d5",
+                            "title": "OSBD en 1 minute",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Observation • Sentiment • Besoin • Demande.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d5-morning.mp4",
+                                "poster": "/images/programs/reset-7/d5-morning.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d5-morning.vtt",
+                                "duration_sec": 60
+                            }
                         },
                         {
-                            "key": "relation_map",
-                            "title": "Carte des relations (3 cercles)",
+                            "key": "osbd_script",
+                            "title": "Script OSBD (brouillon)",
                             "type": "journal",
-                            "timer_sec": 900,
+                            "timer_sec": 360,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "people",
-                                    "label": "Relations",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "name",
-                                            "label": "Nom",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "circle",
-                                            "label": "Cercle",
-                                            "type": "select",
-                                            "options": ["noyau", "proches", "peripherie"],
-                                            "required": true
-                                        },
-                                        {
-                                            "key": "energy",
-                                            "label": "Énergie (−5 → +5)",
-                                            "type": "slider",
-                                            "min": -5,
-                                            "max": 5,
-                                            "required": true
-                                        },
-                                        {
-                                            "key": "role",
-                                            "label": "Rôle",
-                                            "type": "select",
-                                            "options": ["soutien", "neutre", "prend_souvent"],
-                                            "required": true
-                                        },
-                                        {
-                                            "key": "notes",
-                                            "label": "Note",
-                                            "type": "textarea",
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 6,
-                                    "required": false
-                                }
-                            ]
-                        },
-                        {
-                            "key": "ssc",
-                            "title": "Start/Stop/Continue (×3 personnes)",
-                            "type": "journal",
-                            "timer_sec": 600,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "items",
-                                    "label": "SSC",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "person",
-                                            "label": "Personne",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "start",
-                                            "label": "Start",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "stop",
-                                            "label": "Stop",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "continue",
-                                            "label": "Continue",
-                                            "type": "text",
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 3,
-                                    "required": true,
-                                    "max_items": 3
-                                }
-                            ]
-                        },
-                        {
-                            "key": "boundary_osbd",
-                            "title": "Script limite (OSBD)",
-                            "type": "journal",
-                            "timer_sec": 900,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "observation",
-                                    "label": "Fait/Observation",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "feeling",
-                                    "label": "Ressenti",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "need",
-                                    "label": "Besoin",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "request",
-                                    "label": "Demande concrète",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "alt_non_propre",
-                                    "label": "Option Non propre",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "channel",
-                                    "label": "Canal (texte/appel/visu)",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "planned_time",
-                                    "label": "Moment précis aujourd’hui",
-                                    "type": "text",
-                                    "required": false
-                                }
+                                { "key": "observation", "label": "Observation (fait)", "type": "textarea" },
+                                { "key": "feeling", "label": "Ressenti", "type": "text" },
+                                { "key": "need", "label": "Besoin", "type": "text" },
+                                { "key": "request", "label": "Demande concrète", "type": "textarea" }
                             ]
                         }
                     ]
                 },
                 "noon": {
-                    "duration_min": "10–12",
+                    "duration_min": "3",
                     "exercises": [
                         {
-                            "key": "micro_no",
-                            "title": "Micro-pratique — Non propre (3 variantes)",
-                            "type": "practice",
-                            "timer_sec": 360,
+                            "key": "intro_video_noon_d5",
+                            "title": "Non propre : pratique guidée (45s)",
+                            "type": "message",
+                            "timer_sec": 45,
                             "required": false,
-                            "completed": false,
-                            "description": "Trois réponses d’entraînement, puis choisir ta préférée.",
-                            "fields": [
-                                {
-                                    "key": "variant1",
-                                    "label": "Variante 1",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "variant2",
-                                    "label": "Variante 2",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "variant3",
-                                    "label": "Variante 3",
-                                    "type": "textarea",
-                                    "required": false
-                                }
-                            ]
+                            "description": "Trois formulations et choix de ta préférée.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d5-noon.mp4",
+                                "poster": "/images/programs/reset-7/d5-noon.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d5-noon.vtt",
+                                "duration_sec": 45
+                            }
                         },
                         {
-                            "key": "safety_check",
-                            "title": "Check sécurité",
-                            "type": "reflection",
-                            "timer_sec": 240,
-                            "required": true,
-                            "completed": false,
-                            "description": "Si risque ≥ 7/10, choisir canal écrit, garder des preuves, message bref.",
-                            "fields": [
-                                {
-                                    "key": "risk",
-                                    "label": "Risque perçu (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                }
-                            ]
+                            "key": "non_propre",
+                            "title": "Non propre — 1 phrase",
+                            "type": "practice",
+                            "timer_sec": 150,
+                            "required": false,
+                            "fields": [{ "key": "best_variant", "label": "Formulation choisie", "type": "text" }]
                         }
                     ]
                 },
                 "evening": {
-                    "duration_min": "20–30",
+                    "duration_min": "7",
                     "exercises": [
+                        {
+                            "key": "intro_video_evening_d5",
+                            "title": "Passer à l’action (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Choisir le canal et oser une action sûre.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d5-evening.mp4",
+                                "poster": "/images/programs/reset-7/d5-evening.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d5-evening.vtt",
+                                "duration_sec": 60
+                            }
+                        },
                         {
                             "key": "relation_action",
                             "title": "Action relationnelle (dire/envoyer)",
                             "type": "message",
-                            "timer_sec": 900,
+                            "timer_sec": 300,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "sent",
-                                    "label": "Envoyé/dit ?",
-                                    "type": "select",
-                                    "options": ["oui", "non"],
-                                    "required": true
-                                },
-                                {
-                                    "key": "time",
-                                    "label": "Heure",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "facts",
-                                    "label": "Faits exacts / mots",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "response",
-                                    "label": "Réponse reçue (verbatim)",
-                                    "type": "textarea",
-                                    "required": false
-                                }
+                                { "key": "channel", "label": "Canal (texte/appel/visu)", "type": "text" },
+                                { "key": "script", "label": "Mots clés", "type": "textarea" },
+                                { "key": "sent", "label": "Fait", "type": "boolean" }
                             ]
-                        },
-                        {
-                            "key": "debrief",
-                            "title": "Journal de débrief",
-                            "type": "reflection",
-                            "timer_sec": 600,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "intensity_before",
-                                    "label": "Intensité avant (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": false
-                                },
-                                {
-                                    "key": "intensity_after",
-                                    "label": "Intensité après (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": false
-                                },
-                                {
-                                    "key": "learning",
-                                    "label": "Ce que j’ai appris",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "next",
-                                    "label": "Prochain pas relationnel (≤10 min)",
-                                    "type": "text",
-                                    "required": false
-                                }
-                            ]
-                        },
-                        {
-                            "key": "close_ritual",
-                            "title": "Rituel de fermeture",
-                            "type": "reflection",
-                            "timer_sec": 180,
-                            "required": true,
-                            "completed": false,
-                            "description": "Phrase ressource : « Je peux être claire ET bienveillante. »",
-                            "fields": []
                         }
                     ]
                 }
             },
             "daily_check": {
-                "mood": {
-                    "key": "mood",
-                    "label": "Humeur (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "energy": {
-                    "key": "energy",
-                    "label": "Énergie (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "body": {
-                    "key": "body",
-                    "label": "Corps (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "intention": {
-                    "key": "intention",
-                    "label": "Intention du jour (1 phrase)",
-                    "type": "text",
-                    "required": false
-                }
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
             }
         },
         {
             "day": 6,
-            "title": "Vision & plan réaliste",
-            "objectives": [
-                "Clarifier une vision à 12 mois.",
-                "Décliner 3 objectifs trimestriels + prioriser #1.",
-                "Construire 5 jalons datés + 3 premiers pas + créneau immovable."
-            ],
-            "outcomes": ["Vision 1 page écrite.", "3 objectifs définis + #1 priorisé.", "Roadmap #1 (5 jalons) + 3 pas planifiés dont 1 réalisé ce soir."],
+            "title": "Vision & micro-plan",
+            "objectives": ["Esquisser une vision à 12 mois (1 paragraphe).", "Planifier 1 jalon + 1 premier pas."],
+            "outcomes": ["Vision courte écrite.", "1 jalon + 1 pas datés."],
             "blocks": {
                 "morning": {
-                    "duration_min": "40–45",
+                    "duration_min": "8",
                     "exercises": [
                         {
-                            "key": "breath_46",
-                            "title": "Ancrage respiratoire 4–6",
-                            "type": "breath",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": []
+                            "key": "intro_video_morning_d6",
+                            "title": "Vision en 5 phrases (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Structure simple : présent, corps, mental, création, relation.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d6-morning.mp4",
+                                "poster": "/images/programs/reset-7/d6-morning.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d6-morning.vtt",
+                                "duration_sec": 60
+                            }
                         },
                         {
-                            "key": "vision",
-                            "title": "Vision 12 mois (récit sensoriel)",
+                            "key": "vision_snap",
+                            "title": "Vision 12 mois (snapshot)",
                             "type": "journal",
-                            "timer_sec": 900,
+                            "timer_sec": 360,
                             "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "text",
-                                    "label": "Nous sommes dans 12 mois… (matins, changements, créations, corps/mental)",
-                                    "type": "textarea",
-                                    "required": true
-                                },
-                                {
-                                    "key": "body_words",
-                                    "label": "Corps (2 mots)",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "mind_words",
-                                    "label": "Mental (2 mots)",
-                                    "type": "text",
-                                    "required": false
-                                }
-                            ]
-                        },
-                        {
-                            "key": "objectives",
-                            "title": "3 objectifs T (SMART-ish)",
-                            "type": "planning",
-                            "timer_sec": 900,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "items",
-                                    "label": "Objectifs",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "title",
-                                            "label": "Intitulé (verbe + résultat)",
-                                            "type": "text",
-                                            "required": true
-                                        },
-                                        {
-                                            "key": "why_now",
-                                            "label": "Pourquoi maintenant",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "indicators",
-                                            "label": "Indicateurs (1–2)",
-                                            "type": "repeater",
-                                            "schema": [
-                                                {
-                                                    "key": "name",
-                                                    "label": "Nom",
-                                                    "type": "text",
-                                                    "required": false
-                                                },
-                                                {
-                                                    "key": "baseline",
-                                                    "label": "Baseline",
-                                                    "type": "number",
-                                                    "required": false
-                                                },
-                                                {
-                                                    "key": "target",
-                                                    "label": "Cible",
-                                                    "type": "number",
-                                                    "required": false
-                                                },
-                                                {
-                                                    "key": "unit",
-                                                    "label": "Unité",
-                                                    "type": "text",
-                                                    "required": false
-                                                }
-                                            ],
-                                            "min_items": 1,
-                                            "required": false,
-                                            "max_items": 2
-                                        },
-                                        {
-                                            "key": "due_date",
-                                            "label": "Date cible (J+90)",
-                                            "type": "text",
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 3,
-                                    "required": true,
-                                    "max_items": 3
-                                }
-                            ]
-                        },
-                        {
-                            "key": "priority",
-                            "title": "Priorisation (impact/effort)",
-                            "type": "journal",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "impact1_5",
-                                    "label": "Impact (1–5) — choix #1",
-                                    "type": "number",
-                                    "required": false
-                                },
-                                {
-                                    "key": "effort1_5",
-                                    "label": "Effort (1–5) — choix #1",
-                                    "type": "number",
-                                    "required": false
-                                },
-                                {
-                                    "key": "priority_index",
-                                    "label": "Index objectif prioritaire (0,1,2)",
-                                    "type": "text",
-                                    "required": true
-                                }
-                            ]
+                            "fields": [{ "key": "text", "label": "Récit au présent (5–6 phrases)", "type": "textarea", "required": true }]
                         }
                     ]
                 },
                 "noon": {
-                    "duration_min": "10–12",
+                    "duration_min": "3",
                     "exercises": [
                         {
-                            "key": "milestones",
-                            "title": "Plan inverse (5 jalons datés)",
-                            "type": "planning",
-                            "timer_sec": 480,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "list",
-                                    "label": "Jalons",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "label",
-                                            "label": "Label (J+90 / J+60 / J+30 / J+14 / J+7)",
-                                            "type": "text",
-                                            "required": true
-                                        },
-                                        {
-                                            "key": "date_iso",
-                                            "label": "Date ISO",
-                                            "type": "text",
-                                            "required": false
-                                        },
-                                        {
-                                            "key": "dod",
-                                            "label": "Definition of Done",
-                                            "type": "textarea",
-                                            "required": true
-                                        }
-                                    ],
-                                    "min_items": 5,
-                                    "required": true,
-                                    "max_items": 5
-                                }
-                            ]
+                            "key": "intro_video_noon_d6",
+                            "title": "Jalon & DoD (45s)",
+                            "type": "message",
+                            "timer_sec": 45,
+                            "required": false,
+                            "description": "Choisir un jalon clair + définition de done.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d6-noon.mp4",
+                                "poster": "/images/programs/reset-7/d6-noon.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d6-noon.vtt",
+                                "duration_sec": 45
+                            }
                         },
                         {
-                            "key": "daily_slot",
-                            "title": "Créneau immovable (25 min) + IF/THEN",
+                            "key": "milestone_one",
+                            "title": "Jalon clé (DoD + date)",
                             "type": "planning",
-                            "timer_sec": 240,
+                            "timer_sec": 150,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "time_local",
-                                    "label": "Heure quotidienne (HH:MM)",
-                                    "type": "text",
-                                    "required": true
-                                },
-                                {
-                                    "key": "fallback_time",
-                                    "label": "Heure de rattrapage (HH:MM)",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "if_then",
-                                    "label": "IF/THEN : Si… alors…",
-                                    "type": "text",
-                                    "required": false
-                                }
+                                { "key": "label", "label": "Label du jalon", "type": "text", "required": true },
+                                { "key": "date_iso", "label": "Date ISO", "type": "text" },
+                                { "key": "dod", "label": "Definition of Done", "type": "textarea", "required": true }
                             ]
                         }
                     ]
                 },
                 "evening": {
-                    "duration_min": "20–30",
+                    "duration_min": "7",
                     "exercises": [
                         {
-                            "key": "environment",
-                            "title": "Préparation d’environnement (défriction)",
-                            "type": "checklist",
-                            "timer_sec": 600,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "files",
-                                    "label": "Fichiers/dossiers à créer",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "path",
-                                            "label": "Chemin",
-                                            "type": "text",
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 0,
-                                    "required": false
-                                },
-                                {
-                                    "key": "templates",
-                                    "label": "Modèles/documents à ouvrir",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "name",
-                                            "label": "Nom",
-                                            "type": "text",
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 0,
-                                    "required": false
-                                },
-                                {
-                                    "key": "materials",
-                                    "label": "Matériel à poser",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "item",
-                                            "label": "Objet",
-                                            "type": "text",
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 0,
-                                    "required": false
-                                },
-                                {
-                                    "key": "distractions",
-                                    "label": "Distractions à neutraliser",
-                                    "type": "repeater",
-                                    "schema": [
-                                        {
-                                            "key": "what",
-                                            "label": "Quoi",
-                                            "type": "text",
-                                            "required": false
-                                        }
-                                    ],
-                                    "min_items": 0,
-                                    "required": false
-                                }
-                            ]
+                            "key": "intro_video_evening_d6",
+                            "title": "Premier pas réaliste (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "≤ 15 minutes, sans friction, tout prêt.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d6-evening.mp4",
+                                "poster": "/images/programs/reset-7/d6-evening.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d6-evening.vtt",
+                                "duration_sec": 60
+                            }
                         },
                         {
                             "key": "first_step",
-                            "title": "1er pas (≤ 25 min)",
+                            "title": "1er pas (≤ 15 min)",
                             "type": "practice",
-                            "timer_sec": 900,
+                            "timer_sec": 300,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "action",
-                                    "label": "Action choisie",
-                                    "type": "text",
-                                    "required": true
-                                },
-                                {
-                                    "key": "planned_time",
-                                    "label": "Heure de démarrage",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "done",
-                                    "label": "Fait",
-                                    "type": "boolean"
-                                },
-                                {
-                                    "key": "proof",
-                                    "label": "Preuve (lien/nom de fichier/photo)",
-                                    "type": "text",
-                                    "required": false
-                                }
+                                { "key": "action", "label": "Action choisie", "type": "text", "required": true },
+                                { "key": "done", "label": "Fait", "type": "boolean" },
+                                { "key": "proof", "label": "Preuve (facultatif)", "type": "text" }
                             ]
-                        },
-                        {
-                            "key": "close_ritual",
-                            "title": "Rituel de fermeture",
-                            "type": "reflection",
-                            "timer_sec": 180,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": []
                         }
                     ]
                 }
             },
             "daily_check": {
-                "mood": {
-                    "key": "mood",
-                    "label": "Humeur (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "energy": {
-                    "key": "energy",
-                    "label": "Énergie (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "body": {
-                    "key": "body",
-                    "label": "Corps (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "intention": {
-                    "key": "intention",
-                    "label": "Intention du jour (1 phrase)",
-                    "type": "text",
-                    "required": false
-                }
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
             }
         },
         {
             "day": 7,
-            "title": "Intégration & rituel d’engagement",
-            "objectives": [
-                "Mesurer les gains, tirer les leçons et fixer ce qu’on garde.",
-                "Écrire une lettre à soi (J+30).",
-                "Construire un plan 30 jours (25 min/j + 2 rituels + check hebdo) et sceller l’engagement."
-            ],
-            "outcomes": ["Scores J7 saisis + écarts visibles.", "Lettre écrite et lue à voix haute.", "Plan 30 jours prêt, engagement signé + célébration."],
+            "title": "Intégration & engagement",
+            "objectives": ["Mesurer les gains J7.", "Sceller 1 rituel et un créneau quotidien."],
+            "outcomes": ["Écarts visibles (avant/après).", "Rituel/slot choisis pour la suite."],
             "blocks": {
                 "morning": {
-                    "duration_min": "40–45",
+                    "duration_min": "8",
                     "exercises": [
                         {
-                            "key": "breath_46",
-                            "title": "Ancrage respiratoire 4–6",
-                            "type": "breath",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": []
+                            "key": "intro_video_morning_d7",
+                            "title": "Mesurer & célébrer (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Comment comparer tes 4 scores et tirer un apprentissage.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d7-morning.mp4",
+                                "poster": "/images/programs/reset-7/d7-morning.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d7-morning.vtt",
+                                "duration_sec": 60
+                            }
                         },
                         {
                             "key": "scores_today",
-                            "title": "Re-mesure des scores",
+                            "title": "Re-mesure rapide (4 scores)",
                             "type": "journal",
-                            "timer_sec": 600,
+                            "timer_sec": 240,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "energy",
-                                    "label": "Énergie (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                },
-                                {
-                                    "key": "focus",
-                                    "label": "Focus (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                },
-                                {
-                                    "key": "peace",
-                                    "label": "Paix (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                },
-                                {
-                                    "key": "esteem",
-                                    "label": "Estime (0–10)",
-                                    "type": "slider",
-                                    "min": 0,
-                                    "max": 10,
-                                    "required": true
-                                },
-                                {
-                                    "key": "lever",
-                                    "label": "Levier qui a le plus aidé",
-                                    "type": "text",
-                                    "required": false
-                                }
+                                { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10, "required": true },
+                                { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10, "required": true },
+                                { "key": "peace", "label": "Paix (0–10)", "type": "slider", "min": 0, "max": 10, "required": true },
+                                { "key": "esteem", "label": "Estime (0–10)", "type": "slider", "min": 0, "max": 10, "required": true }
                             ]
                         },
                         {
-                            "key": "bilan",
-                            "title": "Bilan 7 jours (concis)",
-                            "type": "reflection",
-                            "timer_sec": 720,
+                            "key": "breath_46_short",
+                            "title": "Ancrage respiratoire (courte)",
+                            "type": "breath",
+                            "timer_sec": 180,
                             "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "worked",
-                                    "label": "Ce qui a mieux marché",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "keep",
-                                    "label": "Ce que je garde (2–3 éléments)",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "stop_or_adjust",
-                                    "label": "Ce que j’arrête/ajuste",
-                                    "type": "textarea",
-                                    "required": false
-                                },
-                                {
-                                    "key": "learning",
-                                    "label": "1 apprentissage clé",
-                                    "type": "text",
-                                    "required": false
-                                }
-                            ]
-                        },
-                        {
-                            "key": "letter",
-                            "title": "Lettre à moi dans 30 jours",
-                            "type": "journal",
-                            "timer_sec": 900,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "text",
-                                    "label": "Lettre (1 page, au présent)",
-                                    "type": "textarea",
-                                    "required": true
-                                },
-                                {
-                                    "key": "read_aloud",
-                                    "label": "Je l’ai lue à voix haute",
-                                    "type": "boolean"
-                                }
-                            ]
+                            "fields": []
                         }
                     ]
                 },
                 "noon": {
-                    "duration_min": "10–12",
+                    "duration_min": "3",
                     "exercises": [
                         {
-                            "key": "plan30",
-                            "title": "Plan 30 jours — cadrage",
+                            "key": "intro_video_noon_d7",
+                            "title": "Choisir ton créneau quotidien (45s)",
+                            "type": "message",
+                            "timer_sec": 45,
+                            "required": false,
+                            "description": "Astuce IF/THEN et rattrapage le même jour.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d7-noon.mp4",
+                                "poster": "/images/programs/reset-7/d7-noon.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d7-noon.vtt",
+                                "duration_sec": 45
+                            }
+                        },
+                        {
+                            "key": "plan30_slot",
+                            "title": "Créneau quotidien + IF/THEN",
                             "type": "planning",
-                            "timer_sec": 480,
+                            "timer_sec": 150,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "daily_slot",
-                                    "label": "Créneau quotidien 25 min (HH:MM)",
-                                    "type": "text",
-                                    "required": true
-                                },
-                                {
-                                    "key": "if_then",
-                                    "label": "IF/THEN (rattrapage le même jour)",
-                                    "type": "text",
-                                    "required": true
-                                },
-                                {
-                                    "key": "ritual1",
-                                    "label": "Rituel #1 (quotidien)",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "ritual2",
-                                    "label": "Rituel #2 (quotidien)",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "weekly_check",
-                                    "label": "Check hebdo (jour + heure)",
-                                    "type": "text",
-                                    "required": false
-                                }
+                                { "key": "daily_slot", "label": "Heure (HH:MM)", "type": "text", "required": true },
+                                { "key": "if_then", "label": "IF/THEN (rattrapage le même jour)", "type": "text" }
                             ]
                         }
                     ]
                 },
                 "evening": {
-                    "duration_min": "20–30",
+                    "duration_min": "8",
                     "exercises": [
                         {
+                            "key": "intro_video_evening_d7",
+                            "title": "Rituel d’engagement (1’)",
+                            "type": "message",
+                            "timer_sec": 60,
+                            "required": false,
+                            "description": "Lire, signer, célébrer simplement.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/reset-7/d7-evening.mp4",
+                                "poster": "/images/programs/reset-7/d7-evening.jpg",
+                                "captions_vtt": "/videos/programs/reset-7/d7-evening.vtt",
+                                "duration_sec": 60
+                            }
+                        },
+                        {
                             "key": "commitment",
-                            "title": "Rituel d’engagement (lecture + signature)",
+                            "title": "Rituel d’engagement",
                             "type": "reflection",
-                            "timer_sec": 600,
+                            "timer_sec": 300,
                             "required": true,
-                            "completed": false,
-                            "description": "",
                             "fields": [
-                                {
-                                    "key": "statement",
-                                    "label": "Phrase d’engagement",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "signed_name",
-                                    "label": "Nom (signature)",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "signed_date_iso",
-                                    "label": "Date ISO",
-                                    "type": "text",
-                                    "required": false
-                                }
+                                { "key": "statement", "label": "Phrase d’engagement", "type": "text", "required": true },
+                                { "key": "signed_name", "label": "Nom (signature)", "type": "text" }
                             ]
                         },
                         {
                             "key": "celebration",
                             "title": "Célébration simple",
                             "type": "reflection",
-                            "timer_sec": 300,
-                            "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": [
-                                {
-                                    "key": "type",
-                                    "label": "Type (thé / marche / musique / autre)",
-                                    "type": "text",
-                                    "required": false
-                                },
-                                {
-                                    "key": "note",
-                                    "label": "Note",
-                                    "type": "text",
-                                    "required": false
-                                }
-                            ]
-                        },
-                        {
-                            "key": "close_ritual",
-                            "title": "Rituel de fermeture",
-                            "type": "reflection",
                             "timer_sec": 180,
                             "required": true,
-                            "completed": false,
-                            "description": "",
-                            "fields": []
+                            "fields": [{ "key": "type", "label": "Type (thé / marche / musique…)", "type": "text" }]
                         }
                     ]
                 }
             },
             "daily_check": {
-                "mood": {
-                    "key": "mood",
-                    "label": "Humeur (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "energy": {
-                    "key": "energy",
-                    "label": "Énergie (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "body": {
-                    "key": "body",
-                    "label": "Corps (0–10)",
-                    "type": "slider",
-                    "min": 0,
-                    "max": 10,
-                    "required": false
-                },
-                "intention": {
-                    "key": "intention",
-                    "label": "Intention du jour (1 phrase)",
-                    "type": "text",
-                    "required": false
-                }
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
             }
         }
     ]

@@ -1,0 +1,1608 @@
+{
+    "product": "ANCRAGE-30",
+    "version": "1.0",
+    "timezone": "Europe/Paris",
+    "created_at": "2025-08-25T13:30:00+02:00",
+    "updated_at": "2025-08-25T13:30:00+02:00",
+    "days": [
+        {
+            "day": 1,
+            "title": "Point zéro & contrat d’ancrage",
+            "objectives": ["Poser un point de départ clair.", "Signer un engagement doux 30 jours."],
+            "outcomes": ["Scores de base notés.", "Contrat d’engagement signé."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        { "key": "breath_46", "title": "Respiration 4–6 (10 cycles)", "type": "breath", "timer_sec": 420, "required": true, "fields": [] },
+                        {
+                            "key": "baseline",
+                            "title": "Point zéro (4 scores)",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "peace", "label": "Paix intérieure (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "esteem", "label": "Estime (0–10)", "type": "slider", "min": 0, "max": 10 }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [{ "key": "mini_walk", "title": "Marche ancrée (3 min, sans écran)", "type": "walk", "timer_sec": 180, "fields": [] }]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "contract",
+                            "title": "Contrat d’ancrage (lecture + signature)",
+                            "type": "reflection",
+                            "timer_sec": 420,
+                            "required": true,
+                            "fields": [
+                                { "key": "statement", "label": "Ma phrase d’engagement (1 phrase)", "type": "text" },
+                                { "key": "signature", "label": "Nom", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        },
+
+        {
+            "day": 2,
+            "title": "Posture & souffle",
+            "objectives": ["Installer une posture d’ancrage.", "Renforcer l’expire long."],
+            "outcomes": ["Posture repère notée.", "Expire régulier."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "posture_check",
+                            "title": "Check posture (assise debout)",
+                            "type": "practice",
+                            "timer_sec": 240,
+                            "fields": [{ "key": "note", "label": "Repères (pieds/colonne/nuque)", "type": "textarea" }]
+                        },
+                        { "key": "breath_long", "title": "Expire long guidé (6–8s)", "type": "breath", "timer_sec": 420, "required": true, "fields": [] }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [{ "key": "sigh3", "title": "Sigh physiologique ×3", "type": "breath", "timer_sec": 120, "fields": [] }]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "micro_ritual_evening",
+                            "title": "Rituel soir (3 étapes, 10 min)",
+                            "type": "planning",
+                            "timer_sec": 480,
+                            "fields": [
+                                {
+                                    "key": "steps",
+                                    "label": "3 étapes",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "label", "label": "Étape", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 3
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 3,
+            "title": "Scan corporel & relâchement",
+            "objectives": ["Détecter les zones clés.", "Libérer sans forcer."],
+            "outcomes": ["Zones repérées.", "Tension moyenne ↓."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "body_scan",
+                            "title": "Scan corporel (tête→pieds)",
+                            "type": "practice",
+                            "timer_sec": 600,
+                            "required": true,
+                            "fields": [{ "key": "areas", "label": "Zones/tensions", "type": "textarea" }]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "4–5", "exercises": [{ "key": "eyes_neck", "title": "Nuque & yeux — détente", "type": "practice", "timer_sec": 240, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "release_note",
+                            "title": "Note de relâchement (2 phrases)",
+                            "type": "reflection",
+                            "timer_sec": 360,
+                            "fields": [{ "key": "phrase", "label": "Phrase ressource", "type": "text" }]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 4,
+            "title": "Routine matin 12’",
+            "objectives": ["Consolider un matin tenable."],
+            "outcomes": ["Routine écrite & testée."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "morning_flow",
+                            "title": "Flow matin (respire + mobilité)",
+                            "type": "movement",
+                            "timer_sec": 600,
+                            "required": true,
+                            "fields": [{ "key": "after_word", "label": "1 mot après", "type": "text" }]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "4–5", "exercises": [{ "key": "hydrate", "title": "Hydratation consciente", "type": "practice", "timer_sec": 120, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "routine_write",
+                            "title": "Routine — écriture simple",
+                            "type": "planning",
+                            "timer_sec": 420,
+                            "fields": [
+                                {
+                                    "key": "steps",
+                                    "label": "Étapes (3–4)",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "label", "label": "Étape", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 4
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 5,
+            "title": "Routine soir 10’",
+            "objectives": ["Installer un atterrissage simple.", "Favoriser le sommeil."],
+            "outcomes": ["Routine soir en place."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "gratitude_3",
+                            "title": "3 gratitudes concrètes",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "fields": [
+                                {
+                                    "key": "items",
+                                    "label": "Éléments",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "text", "label": "Texte", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 3
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [{ "key": "eyes_off", "title": "2 min sans écran + regard lointain", "type": "practice", "timer_sec": 120, "fields": [] }]
+                },
+                "evening": {
+                    "duration_min": "12–15",
+                    "exercises": [{ "key": "evening_flow", "title": "Rituel soir (respire + relâcher)", "type": "practice", "timer_sec": 600, "required": true, "fields": [] }]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 6,
+            "title": "Défriction environnement",
+            "objectives": ["Réduire la friction d’entrée.", "Préparer matériel & espace."],
+            "outcomes": ["Espace prêt.", "Distractions neutralisées."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "env_check",
+                            "title": "Checklist environnement",
+                            "type": "checklist",
+                            "timer_sec": 480,
+                            "fields": [{ "key": "items", "label": "Éléments", "type": "repeater", "schema": [{ "key": "text", "label": "Item", "type": "text" }] }]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [
+                        {
+                            "key": "apps_pause",
+                            "title": "Pause 1 app (24 h)",
+                            "type": "practice",
+                            "timer_sec": 180,
+                            "fields": [{ "key": "name", "label": "Nom de l’app", "type": "text" }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "prepare_tomorrow",
+                            "title": "Préparer demain (2 objets + créneau)",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "fields": [
+                                {
+                                    "key": "objects",
+                                    "label": "Objets à poser",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "label", "label": "Objet", "type": "text" }],
+                                    "min_items": 2,
+                                    "max_items": 4
+                                },
+                                { "key": "time", "label": "Heure (HH:MM)", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 7,
+            "title": "Semaine 1 — Bilan doux",
+            "objectives": ["Prendre la mesure sans jugement.", "Choisir 1 ajustement."],
+            "outcomes": ["1 apprentissage clé.", "1 ajustement acté."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "scores",
+                            "title": "Re-mesure (4 scores)",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "peace", "label": "Paix (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "esteem", "label": "Estime (0–10)", "type": "slider", "min": 0, "max": 10 }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [
+                        {
+                            "key": "mini_celebrate",
+                            "title": "Célébration simple (2 min)",
+                            "type": "reflection",
+                            "timer_sec": 120,
+                            "fields": [{ "key": "type", "label": "Type", "type": "text" }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "adjust",
+                            "title": "Ajustement (1 chose)",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "keep", "label": "Je garde", "type": "text" },
+                                { "key": "change", "label": "J’ajuste", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 8,
+            "title": "Activation douce (énergie stable)",
+            "objectives": ["Monter l’énergie sans s’épuiser."],
+            "outcomes": ["Routine d’activation notée."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "mobility_flow_2",
+                            "title": "Flow mobilité (debout)",
+                            "type": "movement",
+                            "timer_sec": 600,
+                            "fields": [{ "key": "after", "label": "1 mot après", "type": "text" }]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "pulse_pause", "title": "Pause pouls (2 min)", "type": "practice", "timer_sec": 120, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "fuel_note",
+                            "title": "Carburants qui me vont (liste 3)",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "fields": [
+                                {
+                                    "key": "items",
+                                    "label": "Liste",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "text", "label": "Élément", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 5
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 9,
+            "title": "Habits stacking — matin",
+            "objectives": ["Empiler 1 geste ancré à l’existant."],
+            "outcomes": ["Stack validé."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "habit_stack_am",
+                            "title": "Stack matin (1 geste + déclencheur)",
+                            "type": "planning",
+                            "timer_sec": 480,
+                            "fields": [
+                                { "key": "trigger", "label": "Déclencheur existant", "type": "text", "required": true },
+                                { "key": "action", "label": "Nouveau geste (≤ 2 min)", "type": "text", "required": true }
+                            ]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "breathe_box", "title": "Box breathing 4-4-4-4", "type": "breath", "timer_sec": 120, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "review_am",
+                            "title": "Review discret (fait/pas fait)",
+                            "type": "reflection",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "done", "label": "Fait ?", "type": "select", "options": ["oui", "non"] },
+                                { "key": "note", "label": "Note", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 10,
+            "title": "Habits stacking — soir",
+            "objectives": ["Empiler 1 geste à la routine soir."],
+            "outcomes": ["Stack soir validé."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [{ "key": "mobility_soft", "title": "Mobilité douce épaules/hanche", "type": "movement", "timer_sec": 480, "fields": [] }]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [{ "key": "hydrate_conscious", "title": "Hydratation consciente", "type": "practice", "timer_sec": 120, "fields": [] }]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "habit_stack_pm",
+                            "title": "Stack soir (1 geste + déclencheur)",
+                            "type": "planning",
+                            "timer_sec": 420,
+                            "fields": [
+                                { "key": "trigger", "label": "Déclencheur soir", "type": "text", "required": true },
+                                { "key": "action", "label": "Nouveau geste (≤ 2 min)", "type": "text", "required": true }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 11,
+            "title": "Limiter la dispersion (apps)",
+            "objectives": ["Baisser le bruit numérique."],
+            "outcomes": ["1 app neutralisée 7 jours."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "distraction_list",
+                            "title": "Top 5 distractions",
+                            "type": "journal",
+                            "timer_sec": 300,
+                            "fields": [
+                                {
+                                    "key": "items",
+                                    "label": "Apps/Trucs",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "name", "label": "Nom", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 5
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [
+                        {
+                            "key": "pause_app",
+                            "title": "Mettre en pause 1 app (7 jours)",
+                            "type": "practice",
+                            "timer_sec": 180,
+                            "fields": [{ "key": "name", "label": "Nom de l’app", "type": "text" }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "friction_reduce",
+                            "title": "Réglages (notif/sondage/écran)",
+                            "type": "checklist",
+                            "timer_sec": 360,
+                            "fields": [{ "key": "steps", "label": "Étapes", "type": "repeater", "schema": [{ "key": "text", "label": "Action", "type": "text" }] }]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 12,
+            "title": "Gestion des pics/stimuli",
+            "objectives": ["Savoir calmer vite.", "Préparer 1 protocole minute."],
+            "outcomes": ["Protocole minute prêt."],
+            "blocks": {
+                "morning": { "duration_min": "15", "exercises": [{ "key": "coherence", "title": "Cohérence (5 min)", "type": "breath", "timer_sec": 300, "fields": [] }] },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "butterfly_tap", "title": "Butterfly tap + expire", "type": "practice", "timer_sec": 150, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "minute_protocol",
+                            "title": "Protocole minute (écrire)",
+                            "type": "planning",
+                            "timer_sec": 420,
+                            "fields": [
+                                {
+                                    "key": "steps",
+                                    "label": "Étapes (3–4)",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "label", "label": "Étape", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 4
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 13,
+            "title": "Ancrage en mouvement (marche)",
+            "objectives": ["Ancrer en mouvement réel."],
+            "outcomes": ["Marche ancrée validée."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "walk_aware_long",
+                            "title": "Marche consciente (8–10 min)",
+                            "type": "walk",
+                            "timer_sec": 540,
+                            "fields": [{ "key": "3notes", "label": "3 observations", "type": "textarea" }]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [{ "key": "hydrate_mini", "title": "Hydratation + présence (1 min)", "type": "practice", "timer_sec": 60, "fields": [] }]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "body_note",
+                            "title": "Note corps/mental après marche",
+                            "type": "journal",
+                            "timer_sec": 300,
+                            "fields": [
+                                { "key": "body", "label": "Corps (2 mots)", "type": "text" },
+                                { "key": "mind", "label": "Mental (2 mots)", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 14,
+            "title": "Semaine 2 — Bilan & ajustements",
+            "objectives": ["Consolider ce qui marche.", "Ajuster ce qui bloque."],
+            "outcomes": ["1 chose à garder, 1 à changer."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "scores_w2",
+                            "title": "Re-mesure + comparaison S1",
+                            "type": "journal",
+                            "timer_sec": 420,
+                            "fields": [
+                                { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "peace", "label": "Paix (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "esteem", "label": "Estime (0–10)", "type": "slider", "min": 0, "max": 10 }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [
+                        {
+                            "key": "celebrate_mini",
+                            "title": "Célébration (2–3 min)",
+                            "type": "reflection",
+                            "timer_sec": 150,
+                            "fields": [{ "key": "act", "label": "Geste", "type": "text" }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "tweak",
+                            "title": "Ajustements (liste 2–3)",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "fields": [
+                                {
+                                    "key": "items",
+                                    "label": "Ajustements",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "text", "label": "Texte", "type": "text" }],
+                                    "min_items": 2,
+                                    "max_items": 3
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 15,
+            "title": "Slot focus protégé (25’)",
+            "objectives": ["Créer une île de concentration réelle."],
+            "outcomes": ["1 créneau focus bloqué."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "slot25",
+                            "title": "Planifier 25’ focus aujourd’hui",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "time", "label": "Heure (HH:MM)", "type": "text", "required": true },
+                                { "key": "task", "label": "Tâche claire", "type": "text", "required": true }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [
+                        {
+                            "key": "doors_closed",
+                            "title": "Fermer portes (notif/apps)",
+                            "type": "checklist",
+                            "timer_sec": 180,
+                            "fields": [{ "key": "items", "label": "Éléments", "type": "repeater", "schema": [{ "key": "text", "label": "Action", "type": "text" }] }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "focus_review",
+                            "title": "Bilan du slot (faits)",
+                            "type": "reflection",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "done", "label": "Fait ?", "type": "select", "options": ["oui", "non"] },
+                                { "key": "facts", "label": "Faits", "type": "textarea" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 16,
+            "title": "Planifier demain (3 priorités)",
+            "objectives": ["Réduire l’incertitude de départ."],
+            "outcomes": ["Liste 3 priorités prête."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        { "key": "breath_short", "title": "Coherence courte (3 min)", "type": "breath", "timer_sec": 180, "fields": [] },
+                        {
+                            "key": "priorities_pick",
+                            "title": "Choisir 3 priorités",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "fields": [
+                                {
+                                    "key": "items",
+                                    "label": "Top 3",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "title", "label": "Intitulé", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 3
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "move_break", "title": "Pause mouvement 2 min", "type": "movement", "timer_sec": 120, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "schedule_tmr",
+                            "title": "Placer 3 priorités (agenda)",
+                            "type": "planning",
+                            "timer_sec": 420,
+                            "fields": [
+                                {
+                                    "key": "slots",
+                                    "label": "Créneaux",
+                                    "type": "repeater",
+                                    "schema": [
+                                        { "key": "time", "label": "Heure", "type": "text" },
+                                        { "key": "task", "label": "Tâche", "type": "text" }
+                                    ],
+                                    "min_items": 3,
+                                    "max_items": 3
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 17,
+            "title": "OSBD avec soi (auto-limites)",
+            "objectives": ["Pratiquer une limite envers soi-même."],
+            "outcomes": ["Script auto-limite écrit."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "self_osbd",
+                            "title": "OSBD (version envers soi)",
+                            "type": "journal",
+                            "timer_sec": 480,
+                            "fields": [
+                                { "key": "observation", "label": "Observation", "type": "textarea" },
+                                { "key": "feeling", "label": "Ressenti", "type": "text" },
+                                { "key": "need", "label": "Besoin", "type": "text" },
+                                { "key": "request", "label": "Demande à moi", "type": "textarea" }
+                            ]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "mini_walk2", "title": "Marche 2 min", "type": "walk", "timer_sec": 120, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "commit_self",
+                            "title": "Engagement concret (≤ 10 min)",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "action", "label": "Action", "type": "text" },
+                                { "key": "time", "label": "Heure", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 18,
+            "title": "Non propre — micro-entraînement",
+            "objectives": ["S’entraîner à dire non avec respect."],
+            "outcomes": ["1 phrase prête."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "non_training",
+                            "title": "3 variantes de Non propre",
+                            "type": "practice",
+                            "timer_sec": 420,
+                            "fields": [
+                                { "key": "v1", "label": "Variante 1", "type": "textarea" },
+                                { "key": "v2", "label": "Variante 2", "type": "textarea" },
+                                { "key": "v3", "label": "Variante 3", "type": "textarea" }
+                            ]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "breath_reset2", "title": "Expire long (2 min)", "type": "breath", "timer_sec": 120, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "pick_one",
+                            "title": "Choisir la phrase préférée",
+                            "type": "reflection",
+                            "timer_sec": 300,
+                            "fields": [{ "key": "text", "label": "Phrase", "type": "text" }]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 19,
+            "title": "Bornes horaires & transitions",
+            "objectives": ["Encadrer le temps & les transitions."],
+            "outcomes": ["2 bornes + 2 transitions écrites."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "time_bounds",
+                            "title": "Bornes (début/fin de journée)",
+                            "type": "planning",
+                            "timer_sec": 420,
+                            "fields": [
+                                { "key": "start", "label": "Heure début", "type": "text" },
+                                { "key": "end", "label": "Heure fin", "type": "text" }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [{ "key": "transition_breath", "title": "Respire 1 min entre tâches", "type": "breath", "timer_sec": 60, "fields": [] }]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "two_transitions",
+                            "title": "2 transitions douces (écrire)",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "fields": [
+                                {
+                                    "key": "items",
+                                    "label": "Transitions",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "text", "label": "Idée", "type": "text" }],
+                                    "min_items": 2,
+                                    "max_items": 2
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 20,
+            "title": "Deep work mini — 2×15’",
+            "objectives": ["Tester un double slot focus."],
+            "outcomes": ["Double slot réalisé ou planifié."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "plan_2x15",
+                            "title": "Plan 2×15’ aujourd’hui",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "slot1", "label": "Heure slot 1", "type": "text" },
+                                { "key": "slot2", "label": "Heure slot 2", "type": "text" }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [
+                        {
+                            "key": "doors_close2",
+                            "title": "Fermer distractions (1 min)",
+                            "type": "checklist",
+                            "timer_sec": 60,
+                            "fields": [{ "key": "items", "label": "Actions", "type": "repeater", "schema": [{ "key": "text", "label": "Action", "type": "text" }] }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "double_review",
+                            "title": "Bilan 2×15’ (faits)",
+                            "type": "reflection",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "facts", "label": "Faits", "type": "textarea" },
+                                { "key": "next", "label": "Prochain pas", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 21,
+            "title": "Semaine 3 — Bilan & célébration",
+            "objectives": ["Valoriser la constance douce."],
+            "outcomes": ["1 célébration, 1 apprentissage."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "scores_w3",
+                            "title": "Re-mesure S3",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "energy", "label": "Énergie", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "focus", "label": "Focus", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "peace", "label": "Paix", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "esteem", "label": "Estime", "type": "slider", "min": 0, "max": 10 }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [
+                        {
+                            "key": "celebrate_act",
+                            "title": "Célébration (acte simple)",
+                            "type": "reflection",
+                            "timer_sec": 150,
+                            "fields": [{ "key": "act", "label": "Acte", "type": "text" }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "week3_learn",
+                            "title": "Apprentissage S3 (1 phrase)",
+                            "type": "reflection",
+                            "timer_sec": 300,
+                            "fields": [{ "key": "text", "label": "Phrase", "type": "text" }]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 22,
+            "title": "Identité d’ancrage",
+            "objectives": ["Formuler « je suis quelqu’un qui… »."],
+            "outcomes": ["Phrase identité écrite."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "identity_sentence",
+                            "title": "Je suis quelqu’un qui…",
+                            "type": "journal",
+                            "timer_sec": 420,
+                            "fields": [{ "key": "text", "label": "Phrase (présent)", "type": "text", "required": true }]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [{ "key": "breath_identity", "title": "Respire + répète (1 min)", "type": "practice", "timer_sec": 60, "fields": [] }]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "proofs",
+                            "title": "Preuves concrètes (3)",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "fields": [
+                                {
+                                    "key": "items",
+                                    "label": "Indices/Actes",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "text", "label": "Preuve", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 3
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 23,
+            "title": "Vision 90 jours (1 paragraphe)",
+            "objectives": ["Clarifier une trajectoire simple."],
+            "outcomes": ["Vision courte rédigée."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "vision90",
+                            "title": "Vision (présent, sensoriel)",
+                            "type": "journal",
+                            "timer_sec": 480,
+                            "fields": [{ "key": "text", "label": "Paragraphe", "type": "textarea", "required": true }]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "walk_reset", "title": "Marche 3 min", "type": "walk", "timer_sec": 180, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "values_align",
+                            "title": "Alignement avec mes 3 valeurs",
+                            "type": "reflection",
+                            "timer_sec": 300,
+                            "fields": [
+                                { "key": "ok", "label": "En phase (O/N)", "type": "select", "options": ["oui", "non"] },
+                                { "key": "note", "label": "Ajustement", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 24,
+            "title": "Jalons 4 semaines",
+            "objectives": ["Séquencer 4 jalons réalistes."],
+            "outcomes": ["4 jalons datés."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "milestones_4w",
+                            "title": "4 jalons (DoD + dates)",
+                            "type": "planning",
+                            "timer_sec": 480,
+                            "fields": [
+                                {
+                                    "key": "list",
+                                    "label": "Jalons",
+                                    "type": "repeater",
+                                    "schema": [
+                                        { "key": "label", "label": "Label", "type": "text" },
+                                        { "key": "date", "label": "Date ISO", "type": "text" },
+                                        { "key": "dod", "label": "Definition of Done", "type": "textarea" }
+                                    ],
+                                    "min_items": 4,
+                                    "max_items": 4
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "breathe_mini", "title": "Respire 2 min", "type": "breath", "timer_sec": 120, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "first_step_select",
+                            "title": "Choisir 1er pas (≤ 15 min)",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "action", "label": "Action", "type": "text" },
+                                { "key": "time", "label": "Heure", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 25,
+            "title": "Plan de récupération",
+            "objectives": ["Prévoir la baisse d’énergie sans culpabilité."],
+            "outcomes": ["Plan de récup prêt."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "energy_map",
+                            "title": "Carte énergie (signes + gestes)",
+                            "type": "journal",
+                            "timer_sec": 420,
+                            "fields": [
+                                { "key": "signs", "label": "Signes de baisse", "type": "textarea" },
+                                { "key": "gestes", "label": "Gestes qui aident", "type": "textarea" }
+                            ]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "rest_mini", "title": "Pause yeux fermés (2 min)", "type": "practice", "timer_sec": 120, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "recovery_kit",
+                            "title": "Kit récup (3 items)",
+                            "type": "checklist",
+                            "timer_sec": 300,
+                            "fields": [
+                                {
+                                    "key": "items",
+                                    "label": "Objets/Actions",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "text", "label": "Item", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 5
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 26,
+            "title": "Message d’alignement relation",
+            "objectives": ["Écrire un message d’alignement (bienveillant)."],
+            "outcomes": ["Message prêt (ou envoyé)."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "alignment_msg",
+                            "title": "Message d’alignement (brouillon)",
+                            "type": "journal",
+                            "timer_sec": 420,
+                            "fields": [
+                                { "key": "to", "label": "À qui", "type": "text" },
+                                { "key": "text", "label": "Texte", "type": "textarea" }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [
+                        {
+                            "key": "risk_check",
+                            "title": "Check sécurité (0–10)",
+                            "type": "reflection",
+                            "timer_sec": 150,
+                            "fields": [{ "key": "risk", "label": "Risque", "type": "slider", "min": 0, "max": 10 }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "send_or_plan",
+                            "title": "Envoyer ou planifier",
+                            "type": "planning",
+                            "timer_sec": 300,
+                            "fields": [
+                                { "key": "done", "label": "Fait ?", "type": "select", "options": ["oui", "non"] },
+                                { "key": "time", "label": "Heure", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 27,
+            "title": "Système minimal — tracker simple",
+            "objectives": ["Mettre en place un suivi léger."],
+            "outcomes": ["Tracker quotidien prêt."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "tracker_fields",
+                            "title": "Choisir 3 champs à suivre",
+                            "type": "planning",
+                            "timer_sec": 420,
+                            "fields": [
+                                {
+                                    "key": "fields",
+                                    "label": "Champs",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "name", "label": "Nom du champ", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 3
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [
+                        {
+                            "key": "first_tick",
+                            "title": "Premier tick (aujourd’hui)",
+                            "type": "practice",
+                            "timer_sec": 120,
+                            "fields": [{ "key": "ok", "label": "Fait", "type": "boolean" }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "export_option",
+                            "title": "Prévoir export (PDF/JSON)",
+                            "type": "planning",
+                            "timer_sec": 300,
+                            "fields": [{ "key": "mode", "label": "Mode d’export", "type": "select", "options": ["pdf", "json", "aucun"] }]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 28,
+            "title": "Rattrapage & flexibilité gracieuse",
+            "objectives": ["Faire de la place au réel.", "Rattraper sans jugement."],
+            "outcomes": ["Plan de rattrapage prêt."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "grace_note",
+                            "title": "Note de grâce (2 phrases)",
+                            "type": "reflection",
+                            "timer_sec": 240,
+                            "fields": [{ "key": "text", "label": "Texte", "type": "text" }]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "mini_reset", "title": "Reset sensoriel 5-4-3-2-1", "type": "practice", "timer_sec": 150, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "catchup_plan",
+                            "title": "Plan rattrapage (≤ 30 min)",
+                            "type": "planning",
+                            "timer_sec": 420,
+                            "fields": [
+                                {
+                                    "key": "steps",
+                                    "label": "Étapes simples",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "label", "label": "Étape", "type": "text" }],
+                                    "min_items": 2,
+                                    "max_items": 4
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 29,
+            "title": "Plan 30 jours suivant",
+            "objectives": ["Projeter la constance douce sur 1 mois."],
+            "outcomes": ["Plan 30 jours esquissé."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "next_30_cap",
+                            "title": "Cap 30 jours (1 phrase)",
+                            "type": "planning",
+                            "timer_sec": 300,
+                            "fields": [{ "key": "text", "label": "Cap", "type": "text", "required": true }]
+                        }
+                    ]
+                },
+                "noon": { "duration_min": "5", "exercises": [{ "key": "breath_final_week", "title": "Respire 2 min", "type": "breath", "timer_sec": 120, "fields": [] }] },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "milestones_next",
+                            "title": "3 jalons + créneau quotidien",
+                            "type": "planning",
+                            "timer_sec": 420,
+                            "fields": [
+                                {
+                                    "key": "milestones",
+                                    "label": "Jalons (3)",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "label", "label": "Jalon", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 3
+                                },
+                                { "key": "slot", "label": "Heure quotidienne", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        },
+
+        {
+            "day": 30,
+            "title": "Clôture & engagement léger",
+            "objectives": ["Mesurer, remercier, sceller léger."],
+            "outcomes": ["Avant/Après visibles.", "Engagement final noté."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "final_scores",
+                            "title": "Scores finaux (4)",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "fields": [
+                                { "key": "energy", "label": "Énergie", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "focus", "label": "Focus", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "peace", "label": "Paix", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "esteem", "label": "Estime", "type": "slider", "min": 0, "max": 10 }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "5",
+                    "exercises": [
+                        {
+                            "key": "gratitude_end",
+                            "title": "Gratitude (3)",
+                            "type": "journal",
+                            "timer_sec": 180,
+                            "fields": [
+                                {
+                                    "key": "items",
+                                    "label": "3 choses",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "text", "label": "Texte", "type": "text" }],
+                                    "min_items": 3,
+                                    "max_items": 3
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "15",
+                    "exercises": [
+                        {
+                            "key": "closing_commit",
+                            "title": "Engagement léger (lecture + signature)",
+                            "type": "reflection",
+                            "timer_sec": 420,
+                            "fields": [
+                                { "key": "statement", "label": "Phrase d’engagement", "type": "text" },
+                                { "key": "name", "label": "Nom", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "body": { "key": "body", "label": "Corps (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "focus": { "key": "focus", "label": "Focus (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour", "type": "text" }
+            }
+        }
+    ]
+}

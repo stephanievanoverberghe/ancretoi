@@ -14,9 +14,28 @@ export type MultiSelectField = ScalarFieldBase & { type: 'multi_select'; options
 export type BooleanField = ScalarFieldBase & { type: 'boolean' };
 export type RepeaterField = ScalarFieldBase & {
     type: 'repeater';
-    schema: (TextField | TextareaField | NumberField | TextField | SelectField | BooleanField)[];
+    schema: (
+        | TextField
+        | TextareaField
+        | NumberField
+        | SliderField // 👈 ajouté
+        | SelectField
+        | MultiSelectField // 👈 ajouté
+        | BooleanField
+    )[];
     min_items?: number;
     max_items?: number;
+};
+
+export type MediaAsset = {
+    video?: string; // URL HLS/MP4
+    poster?: string; // image 16:9
+    captions_vtt?: string; // sous-titres FR
+    chapters_vtt?: string; // chapitres (optionnel)
+    transcript_pdf?: string; // transcript (optionnel)
+    transcript_txt?: string; // transcript (optionnel)
+    duration_sec?: number; // durée réelle de la vidéo
+    sensitivity?: 'low' | 'med' | 'high'; // niveau de sensibilité (optionnel)
 };
 
 export type AnyField = TextField | TextareaField | NumberField | SliderField | SelectField | MultiSelectField | BooleanField | RepeaterField;
@@ -27,12 +46,14 @@ export type Exercise = {
     type: ExerciseType;
     timer_sec?: number;
     required?: boolean;
+    /** NOTE: runtime plutôt que contenu → à sortir si tu crées des types de “state” */
     completed?: boolean;
     description?: string;
     fields: AnyField[];
+    media?: MediaAsset; // 👈 nouveau
 };
 
-export type DaySection = { duration_min?: string; exercises: Exercise[] };
+export type DaySection = { duration_min?: number | string; exercises: Exercise[] };
 
 export type Day = {
     day: number;
@@ -73,8 +94,10 @@ export type ProgramDetailMeta = {
 };
 
 export type ProgramMedia = {
-    /** Image 21:9 optionnelle pour le fond du hero */
     hero21x9?: string;
+    teaser_video?: string;
+    teaser_poster?: string;
+    teaser_captions_vtt?: string;
 };
 
 export type ProgramMeta = {

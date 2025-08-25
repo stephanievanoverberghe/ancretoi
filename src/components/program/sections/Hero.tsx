@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Clock3, Gauge, Sparkles, Headphones, Play } from 'lucide-react';
@@ -166,25 +167,36 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
                 </div>
             </div>
 
-            {/* sticky bar mobile */}
-            <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/90 backdrop-blur border-t border-brand-100">
-                <div className="mx-auto max-w-3xl px-4 py-3 flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                        <div className="text-sm font-medium truncate">{program.title}</div>
-                        <div className="text-xs text-muted-foreground">
-                            {program.duration_days} j • {program.level}
+            {/* ───────────────── Sticky mobile rendu en portail ───────────────── */}
+            {typeof window !== 'undefined' &&
+                createPortal(
+                    <div className="lg:hidden fixed bottom-0 inset-x-0 z-[140] bg-white/90 backdrop-blur border-t border-brand-100 pointer-events-auto">
+                        <div
+                            className="
+          mx-auto max-w-3xl px-4
+          pt-3
+          pb-[calc(max(env(safe-area-inset-bottom),0px)+14px)]
+          flex items-center justify-between gap-3
+        "
+                        >
+                            <div className="min-w-0">
+                                <div className="text-sm font-medium truncate">{program.title}</div>
+                                <div className="text-xs text-muted-foreground">
+                                    {program.duration_days} j • {program.level}
+                                </div>
+                            </div>
+                            <div className="text-sm font-semibold">{priceLabel ?? 'Bientôt'}</div>
+                            {isAvailable ? (
+                                <BuyButton slug={program.slug} isFree={isFree} />
+                            ) : (
+                                <button onClick={() => track('program_detail_cta_click', { slug: program.slug, target: 'waitlist_mobile' })} className="btn">
+                                    Être prévenu·e
+                                </button>
+                            )}
                         </div>
-                    </div>
-                    <div className="text-sm font-semibold">{priceLabel ?? 'Bientôt'}</div>
-                    {isAvailable ? (
-                        <BuyButton slug={program.slug} isFree={isFree} />
-                    ) : (
-                        <button onClick={() => track('program_detail_cta_click', { slug: program.slug, target: 'waitlist_mobile' })} className="btn">
-                            Être prévenu·e
-                        </button>
-                    )}
-                </div>
-            </div>
+                    </div>,
+                    document.body
+                )}
 
             {/* modal audio */}
             {open && (

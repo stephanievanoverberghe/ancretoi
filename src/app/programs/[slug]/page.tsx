@@ -3,13 +3,15 @@ import { notFound } from 'next/navigation';
 import { getProgram } from '@/lib/programs-index';
 import { getChargeLabel } from '@/lib/programs-compare';
 import Hero from '@/components/program/sections/Hero';
+import Who from '@/components/program/sections/Who';
+import Experience from '@/components/program/sections/Experience';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
     const program = getProgram(slug);
     if (!program) {
         return {
-            title: 'Programme introuvable | Ancre-toi',
+            title: 'Programme introuvable',
             description: "Ce programme n'est pas (ou plus) disponible.",
             robots: { index: false, follow: false },
         };
@@ -17,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     const charge = getChargeLabel(program.slug) ?? '10–20 min/j';
     const titleBase = `${program.title} — ${program.duration_days} jours`;
-    const title = `${titleBase} | Ancre-toi`;
+    const title = `${titleBase}`;
     const description = `${program.tagline} ${charge}. Accès à vie.`.trim();
     const url = `/programs/${program.slug}`;
     const ogImage = program.cover ?? '/images/og-default.png';
@@ -82,11 +84,13 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
     };
 
     return (
-        <>
+        <div className="lg:pb-0 pb-[calc(72px+env(safe-area-inset-bottom))]">
             {/* JSON-LD Product */}
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }} />
 
             <Hero program={program} dailyLoadLabel={dailyLoad} />
-        </>
+            <Who program={program} />
+            <Experience slug={program.slug} />
+        </div>
     );
 }

@@ -1,0 +1,637 @@
+{
+    "product": "BOUSSOLE-10",
+    "version": "1.0",
+    "timezone": "Europe/Paris",
+    "created_at": "2025-08-25T11:30:00+02:00",
+    "updated_at": "2025-08-25T11:30:00+02:00",
+    "days": [
+        {
+            "day": 1,
+            "title": "Cap provisoire & état des lieux",
+            "objectives": ["Nommer ce qui est flou et ce que tu veux retrouver.", "Écrire une première version du cap à 10 jours."],
+            "outcomes": ["1 phrase de cap provisoire.", "1 micro-pas réaliste pour aujourd’hui."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "9",
+                    "exercises": [
+                        {
+                            "key": "breath_46",
+                            "title": "Respiration 4–6 (ancrage)",
+                            "type": "breath",
+                            "timer_sec": 360,
+                            "required": true,
+                            "description": "Inspire 4s • (pause) • expire 6s, 9–10 cycles.",
+                            "fields": [],
+                            "media": {
+                                "video": "/videos/programs/boussole-10/d1-morning.mp4",
+                                "poster": "/images/programs/boussole-10/d1-morning.jpg",
+                                "captions_vtt": "/videos/programs/boussole-10/d1-morning.vtt",
+                                "duration_sec": 60
+                            }
+                        },
+                        {
+                            "key": "snapshot",
+                            "title": "Photo du moment (clair & flou)",
+                            "type": "journal",
+                            "timer_sec": 180,
+                            "required": true,
+                            "fields": [
+                                { "key": "clear", "label": "Ce qui est clair", "type": "textarea" },
+                                { "key": "fog", "label": "Ce qui est flou", "type": "textarea" }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "4",
+                    "exercises": [
+                        {
+                            "key": "reset_sensory",
+                            "title": "Reset sensoriel 5-4-3-2-1",
+                            "type": "practice",
+                            "timer_sec": 150,
+                            "fields": [{ "key": "state_word", "label": "1 mot d’état après", "type": "text" }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "cap10",
+                            "title": "Cap à 10 jours (v1)",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "goal_sentence", "label": "D’ici 10 jours, j’aurai…", "type": "textarea", "required": true },
+                                { "key": "proof", "label": "Preuve observable", "type": "text" },
+                                { "key": "first_step", "label": "Micro-pas (≤ 15 min) aujourd’hui", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "clarity": { "key": "clarity", "label": "Clarté (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        },
+        {
+            "day": 2,
+            "title": "Valeurs — explorer",
+            "objectives": ["Lister sans filtre ce qui compte vraiment.", "Repérer des thèmes récurrents."],
+            "outcomes": ["Liste brute de valeurs.", "3 thèmes repérés."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "9",
+                    "exercises": [
+                        {
+                            "key": "values_dump",
+                            "title": "Brain-dump des valeurs (5–7 min)",
+                            "type": "journal",
+                            "timer_sec": 420,
+                            "required": true,
+                            "description": "Écris sans t’arrêter. Mots/expressions, pas de censure.",
+                            "fields": [
+                                {
+                                    "key": "values",
+                                    "label": "Valeurs (liste libre)",
+                                    "type": "repeater",
+                                    "schema": [{ "key": "word", "label": "Mot/Expression", "type": "text" }],
+                                    "min_items": 5,
+                                    "max_items": 30
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "3",
+                    "exercises": [
+                        {
+                            "key": "walk_aware",
+                            "title": "50 pas en conscience",
+                            "type": "walk",
+                            "timer_sec": 120,
+                            "fields": []
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "7",
+                    "exercises": [
+                        {
+                            "key": "values_cluster",
+                            "title": "Regrouper en 3 thèmes",
+                            "type": "journal",
+                            "timer_sec": 300,
+                            "required": true,
+                            "fields": [
+                                { "key": "theme1", "label": "Thème 1 (mots associés)", "type": "textarea", "required": true },
+                                { "key": "theme2", "label": "Thème 2", "type": "textarea", "required": true },
+                                { "key": "theme3", "label": "Thème 3", "type": "textarea", "required": true }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "clarity": { "key": "clarity", "label": "Clarté (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        },
+        {
+            "day": 3,
+            "title": "Valeurs — choisir tes 3 boussoles",
+            "objectives": ["Sélectionner 3 valeurs-pivots.", "Écrire 1 phrase vivante par valeur."],
+            "outcomes": ["3 valeurs-boussoles choisies.", "3 phrases d’incarnation."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "values_select",
+                            "title": "Choisir 3 valeurs-boussoles",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "value_1", "label": "Valeur #1", "type": "text", "required": true },
+                                { "key": "value_2", "label": "Valeur #2", "type": "text", "required": true },
+                                { "key": "value_3", "label": "Valeur #3", "type": "text", "required": true }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "3",
+                    "exercises": [
+                        {
+                            "key": "breath_reset",
+                            "title": "Expire long (2 min)",
+                            "type": "breath",
+                            "timer_sec": 120,
+                            "fields": []
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "incarnate_sentences",
+                            "title": "Phrases d’incarnation (présent, concret)",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "v1_sentence", "label": "Valeur #1 — phrase", "type": "textarea", "required": true },
+                                { "key": "v2_sentence", "label": "Valeur #2 — phrase", "type": "textarea", "required": true },
+                                { "key": "v3_sentence", "label": "Valeur #3 — phrase", "type": "textarea", "required": true }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "clarity": { "key": "clarity", "label": "Clarté (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        },
+        {
+            "day": 4,
+            "title": "Besoins & limites — repérer",
+            "objectives": ["Identifier 3 besoins vivants.", "Repérer 1 situation-limite concrète."],
+            "outcomes": ["3 besoins nommés.", "1 limite candidate sûre."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "9",
+                    "exercises": [
+                        {
+                            "key": "needs_map",
+                            "title": "Carte besoins (3)",
+                            "type": "journal",
+                            "timer_sec": 420,
+                            "required": true,
+                            "fields": [
+                                {
+                                    "key": "needs",
+                                    "label": "Besoins",
+                                    "type": "repeater",
+                                    "schema": [
+                                        { "key": "name", "label": "Nom du besoin", "type": "text", "required": true },
+                                        { "key": "signs", "label": "Signes quand non rejoint", "type": "textarea" }
+                                    ],
+                                    "min_items": 3,
+                                    "max_items": 3
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "3",
+                    "exercises": [
+                        {
+                            "key": "physio_sigh",
+                            "title": "Sigh physiologique ×3",
+                            "type": "breath",
+                            "timer_sec": 120,
+                            "fields": []
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "6–7",
+                    "exercises": [
+                        {
+                            "key": "limit_candidate",
+                            "title": "Limite candidate (focus 1 semaine)",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "situation", "label": "Situation concrète", "type": "textarea", "required": true },
+                                { "key": "safety", "label": "Sécurité (0–10)", "type": "number" },
+                                { "key": "channel", "label": "Canal préféré (écrit/appel/visu)", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "clarity": { "key": "clarity", "label": "Clarté (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        },
+        {
+            "day": 5,
+            "title": "Cap 10j & message d’alignement",
+            "objectives": ["Affiner le cap (avec les 3 valeurs).", "Écrire un message d’alignement pour soi."],
+            "outcomes": ["Cap validé (v2).", "Message d’alignement prêt."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "cap_refine",
+                            "title": "Cap à 10 jours (v2)",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "goal_sentence", "label": "Phrase cap (révisée)", "type": "textarea", "required": true },
+                                { "key": "values_check", "label": "En phase avec mes 3 valeurs ?", "type": "boolean" }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "3",
+                    "exercises": [
+                        {
+                            "key": "pulse_pause",
+                            "title": "Pause pouls (auto-check 2 min)",
+                            "type": "practice",
+                            "timer_sec": 120,
+                            "fields": []
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "self_message",
+                            "title": "Message d’alignement (pour soi)",
+                            "type": "reflection",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [{ "key": "text", "label": "Message court (2–4 phrases)", "type": "textarea", "required": true }]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "clarity": { "key": "clarity", "label": "Clarté (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        },
+
+        {
+            "day": 6,
+            "title": "Script OSBD (brouillon)",
+            "objectives": ["Écrire un 1er brouillon de script.", "Préparer une alternative douce (Non propre)."],
+            "outcomes": ["Script OSBD brouillon.", "1 formulation Non propre."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "9",
+                    "exercises": [
+                        {
+                            "key": "osbd_draft",
+                            "title": "OSBD — brouillon",
+                            "type": "journal",
+                            "timer_sec": 420,
+                            "required": true,
+                            "fields": [
+                                { "key": "observation", "label": "Observation (fait)", "type": "textarea", "required": true },
+                                { "key": "feeling", "label": "Ressenti", "type": "text", "required": true },
+                                { "key": "need", "label": "Besoin", "type": "text", "required": true },
+                                { "key": "request", "label": "Demande concrète", "type": "textarea", "required": true }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "3",
+                    "exercises": [
+                        {
+                            "key": "non_propre",
+                            "title": "Non propre — 1 phrase",
+                            "type": "practice",
+                            "timer_sec": 150,
+                            "fields": [{ "key": "variant", "label": "Formulation choisie", "type": "text" }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "7",
+                    "exercises": [
+                        {
+                            "key": "safety_check",
+                            "title": "Check sécurité",
+                            "type": "reflection",
+                            "timer_sec": 300,
+                            "required": true,
+                            "fields": [
+                                { "key": "risk", "label": "Risque perçu (0–10)", "type": "slider", "min": 0, "max": 10, "required": true },
+                                { "key": "channel", "label": "Canal préféré", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "clarity": { "key": "clarity", "label": "Clarté (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        },
+        {
+            "day": 7,
+            "title": "Version finale & préparation",
+            "objectives": ["Finaliser la version courte du script.", "Choisir moment & lieu sûrs."],
+            "outcomes": ["Script court prêt.", "Créneau posé."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "script_short",
+                            "title": "Script court (1–2 phrases)",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [{ "key": "sentence", "label": "Script final court", "type": "textarea", "required": true }]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "3",
+                    "exercises": [
+                        {
+                            "key": "breath_box",
+                            "title": "Box breathing 4-4-4-4",
+                            "type": "breath",
+                            "timer_sec": 120,
+                            "fields": []
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "prep_slot",
+                            "title": "Préparer le créneau",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "date_time", "label": "Date & heure", "type": "text", "required": true },
+                                { "key": "place", "label": "Lieu/canal", "type": "text" },
+                                { "key": "backup", "label": "Plan B si annulé", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "clarity": { "key": "clarity", "label": "Clarté (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        },
+        {
+            "day": 8,
+            "title": "Poser la limite (action sûre)",
+            "objectives": ["Poser la limite en sécurité.", "Observer les faits, sans interprétation."],
+            "outcomes": ["Action posée (ou envoyée).", "Faits notés pour le débrief."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "grounding",
+                            "title": "Ancrage express (respire + posture)",
+                            "type": "practice",
+                            "timer_sec": 240,
+                            "fields": [{ "key": "ready", "label": "Je me sens prêt·e (O/N)", "type": "select", "options": ["oui", "non"] }]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "4",
+                    "exercises": [
+                        {
+                            "key": "do_action",
+                            "title": "Action (dire/envoyer) — fenêtre de 3 min",
+                            "type": "message",
+                            "timer_sec": 180,
+                            "required": true,
+                            "description": "Si non, planifie ce soir.",
+                            "fields": [{ "key": "done", "label": "Fait ?", "type": "select", "options": ["oui", "non"], "required": true }]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "debrief_facts",
+                            "title": "Débrief factuel",
+                            "type": "reflection",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "facts", "label": "Faits exacts / verbatim", "type": "textarea", "required": true },
+                                { "key": "felt", "label": "Ressenti après", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "clarity": { "key": "clarity", "label": "Clarté (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        },
+        {
+            "day": 9,
+            "title": "Ajuster & cap 30 jours",
+            "objectives": ["Tirer l’apprentissage de l’action.", "Dessiner le cap 30 jours."],
+            "outcomes": ["1 apprentissage clé noté.", "Cap 30j + 3 jalons esquissés."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "learning_extract",
+                            "title": "Ce que j’ai appris",
+                            "type": "reflection",
+                            "timer_sec": 300,
+                            "required": true,
+                            "fields": [
+                                { "key": "learning", "label": "Apprentissage clé (1 phrase)", "type": "text", "required": true },
+                                { "key": "adjust", "label": "Ajustement à faire", "type": "textarea" }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "3",
+                    "exercises": [
+                        {
+                            "key": "mini_walk",
+                            "title": "Marche 2–3 min",
+                            "type": "walk",
+                            "timer_sec": 150,
+                            "fields": []
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "cap30",
+                            "title": "Cap 30 jours + jalons",
+                            "type": "planning",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "goal30", "label": "Cap 30 jours", "type": "textarea", "required": true },
+                                {
+                                    "key": "milestones",
+                                    "label": "Jalons (3)",
+                                    "type": "repeater",
+                                    "schema": [
+                                        { "key": "label", "label": "Label jalon", "type": "text", "required": true },
+                                        { "key": "date_iso", "label": "Date (optionnel)", "type": "text" }
+                                    ],
+                                    "min_items": 3,
+                                    "max_items": 3
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "clarity": { "key": "clarity", "label": "Clarté (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        },
+        {
+            "day": 10,
+            "title": "Intégration & rituel de cap",
+            "objectives": ["Synthèse du chemin BOUSSOLE-10.", "Rituel d’engagement doux."],
+            "outcomes": ["Avant/Après visibles.", "Rituel quotidien choisi (+ créneau)."],
+            "blocks": {
+                "morning": {
+                    "duration_min": "9",
+                    "exercises": [
+                        {
+                            "key": "scores_compare",
+                            "title": "Avant / Après : clarté & énergie",
+                            "type": "journal",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "clarity_before", "label": "Clarté AVANT (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "clarity_after", "label": "Clarté APRÈS (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "energy_before", "label": "Énergie AVANT (0–10)", "type": "slider", "min": 0, "max": 10 },
+                                { "key": "energy_after", "label": "Énergie APRÈS (0–10)", "type": "slider", "min": 0, "max": 10 }
+                            ]
+                        }
+                    ]
+                },
+                "noon": {
+                    "duration_min": "4",
+                    "exercises": [
+                        {
+                            "key": "slot_choose",
+                            "title": "Choisir ton créneau quotidien (10–15 min)",
+                            "type": "planning",
+                            "timer_sec": 180,
+                            "required": true,
+                            "fields": [
+                                { "key": "daily_slot", "label": "Heure (HH:MM)", "type": "text", "required": true },
+                                { "key": "if_then", "label": "IF/THEN de rattrapage", "type": "text" }
+                            ]
+                        }
+                    ]
+                },
+                "evening": {
+                    "duration_min": "8",
+                    "exercises": [
+                        {
+                            "key": "commit_ritual",
+                            "title": "Rituel d’engagement (lecture + signature)",
+                            "type": "reflection",
+                            "timer_sec": 360,
+                            "required": true,
+                            "fields": [
+                                { "key": "statement", "label": "Phrase d’engagement", "type": "text", "required": true },
+                                { "key": "signed_name", "label": "Nom (signature)", "type": "text" }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "daily_check": {
+                "mood": { "key": "mood", "label": "Humeur (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "clarity": { "key": "clarity", "label": "Clarté (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "energy": { "key": "energy", "label": "Énergie (0–10)", "type": "slider", "min": 0, "max": 10 },
+                "intention": { "key": "intention", "label": "Intention du jour (1 phrase)", "type": "text" }
+            }
+        }
+    ]
+}

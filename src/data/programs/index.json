@@ -47,7 +47,7 @@
             "status": "published",
             "cover": "/images/programs/boussole10.webp",
             "price": {
-                "amount_cents": null,
+                "amount_cents": 5900,
                 "currency": "EUR",
                 "tax_included": true,
                 "compare_at_cents": null,

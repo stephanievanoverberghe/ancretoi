@@ -82,7 +82,7 @@ export default function ProgramsHero({
             id="programs-hero"
             aria-labelledby="programs-hero-title"
             aria-describedby="programs-hero-desc"
-            className="relative isolate mx-[calc(50%-50vw)] w-screen overflow-hidden min-h-[62svh] md:min-h-[66svh] flex items-center px-4 md:px-10"
+            className="relative isolate mx-[calc(50%-50vw)] w-screen overflow-hidden min-h-[86svh] md:min-h-[88svh] flex items-center px-4 md:px-10"
         >
             {/* BACKGROUND full-bleed (image + voiles) */}
             <div className="pointer-events-none absolute inset-0 -z-20" aria-hidden="true">
