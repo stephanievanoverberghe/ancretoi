@@ -1,6 +1,10 @@
+// types/programs.ts
+
+// ====== DÉTAILLÉ (tes types existants) ======
 export type ExerciseType = 'breath' | 'journal' | 'practice' | 'movement' | 'walk' | 'planning' | 'reflection' | 'checklist' | 'message';
 
 type ScalarFieldBase = { key: string; label: string; required?: boolean };
+
 export type TextField = ScalarFieldBase & { type: 'text' };
 export type TextareaField = ScalarFieldBase & { type: 'textarea' };
 export type NumberField = ScalarFieldBase & { type: 'number'; min?: number; max?: number };
@@ -46,4 +50,55 @@ export type ProgramJSON = {
     created_at?: string;
     updated_at?: string;
     days: Day[];
+};
+
+// ====== MÉTADONNÉES (index des programmes) ======
+export type Price = {
+    amount_cents: number | null;
+    currency: string;
+    tax_included?: boolean | null;
+    compare_at_cents?: number | null;
+    stripe_price_id?: string | null;
+};
+
+export type FaqItem = { q: string; a: string };
+
+export type ProgramDetailMeta = {
+    who?: string;
+    goals?: string[];
+    includes?: string[];
+    prerequisites?: string[];
+    outcomes?: string[];
+    faq?: FaqItem[];
+};
+
+export type ProgramMedia = {
+    /** Image 21:9 optionnelle pour le fond du hero */
+    hero21x9?: string;
+};
+
+export type ProgramMeta = {
+    slug: string;
+    title: string;
+    tagline: string;
+    duration_days: number;
+    level: string;
+    status: 'published' | 'draft' | 'archived' | string;
+    cover?: string;
+    price?: Price;
+    card_highlights?: string[];
+    detail?: ProgramDetailMeta;
+    /** Optionnel : pour brancher une image 21:9 subtile dans le Hero */
+    media?: ProgramMedia;
+    /** Optionnel : pour surcharger le libellé de charge/jour */
+    meta?: { daily_load_label?: string };
+};
+
+export type InsideItem = { icon: string; label: string };
+
+export type ProgramsIndex = {
+    version: string;
+    updated_at: string;
+    inside: InsideItem[];
+    programs: ProgramMeta[];
 };

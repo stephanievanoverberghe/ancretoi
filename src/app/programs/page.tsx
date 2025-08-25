@@ -1,13 +1,13 @@
 // app/programs/page.tsx
 import type { Metadata } from 'next';
 import data from '@/data/programs/index.json';
-import ProgramsHero from '@/components/sections/programs/ProgramsHero';
-import CollectionsGrid from '@/components/sections/programs/CollectionsGrid';
-import ProgramsCompare from '@/components/sections/programs/Compare';
-import Inside from '@/components/sections/programs/Inside';
-import MethodMini from '@/components/sections/programs/MethodMini';
-import ProgramsFAQ from '@/components/sections/programs/ProgramsFAQ';
-import FinalCTA from '@/components/sections/home/FinalCTA';
+import ProgramsHero from '@/components/programs/sections/ProgramsHero';
+import CollectionsGrid from '@/components/programs/sections/CollectionsGrid';
+import ProgramsCompare from '@/components/programs/sections/Compare';
+import Inside from '@/components/programs/sections/Inside';
+import MethodMini from '@/components/programs/sections/MethodMini';
+import ProgramsFAQ from '@/components/programs/sections/ProgramsFAQ';
+import FinalCTA from '@/components/home/sections/FinalCTA';
 
 export const metadata: Metadata = {
     title: 'Programmes — Ancre-toi',

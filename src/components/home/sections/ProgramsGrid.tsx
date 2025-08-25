@@ -5,19 +5,10 @@ import Link from 'next/link';
 import { useCallback } from 'react';
 import { Clock, ArrowRight, Lock } from 'lucide-react';
 
-// Déclare proprement les globals pour éviter les @ts-expect-error
-declare global {
-    interface Window {
-        plausible?: (event: string, options?: { props?: Record<string, unknown> }) => void;
-        posthog?: { capture: (event: string, props?: Record<string, unknown>) => void };
-    }
-}
-
 type Program = {
     slug: string;
     title: string;
     duration_days: number;
-    // élargi pour accepter la valeur JSON (string)
     status?: 'draft' | 'published' | string;
     price?: { amount_cents?: number | null } | null;
 };

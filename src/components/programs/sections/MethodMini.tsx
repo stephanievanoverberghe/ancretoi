@@ -102,7 +102,7 @@ export default function MethodMini({ title = 'Pourquoi ça marche', subtitle = '
                 <ul className="grid grid-cols-1 gap-6 sm:grid-cols-3">
                     {pillars.map((p) => (
                         <li key={p.id}>
-                            <article className="group relative h-full rounded-2xl border border-brand-100/60 bg-white/80 backdrop-blur-[2px] shadow-[0_1px_8px_rgb(0_0_0/0.04)] transition-transform duration-200 ease-out hover:-translate-y-0.5 p-5">
+                            <article className="group relative h-full rounded-2xl border border-brand-100/60 bg-white/80 backdrop-blur-[2px] px-4 py-4 sm:px-5 sm:py-5 shadow-[0_1px_10px_rgb(0_0_0/0.05)] transition hover:bg-white hover:-translate-y-[1px] hover:shadow-[0_8px_24px_rgb(0_0_0/0.06)] p-5">
                                 <div className="flex items-start gap-4">
                                     <PaperCutIcon Icon={p.icon} title={p.title} />
                                     <div className="min-w-0">

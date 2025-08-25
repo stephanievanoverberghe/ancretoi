@@ -1,20 +1,20 @@
 // app/page.tsx
-import Hero from '@/components/sections/home/Hero';
-import SocialProof from '@/components/sections/home/SocialProof';
-import ProgramsGrid from '@/components/sections/home/ProgramsGrid';
-import Pillars from '@/components/sections/home/Pillars';
-import ResultsFelt from '@/components/sections/home/ResultsFelt';
-import HowItWorks from '@/components/sections/home/HowItWorks';
-import SampleDay from '@/components/sections/home/SampleDay';
+import Hero from '@/components/home/sections/Hero';
+import SocialProof from '@/components/home/sections/SocialProof';
+import ProgramsGrid from '@/components/home/sections/ProgramsGrid';
+import Pillars from '@/components/home/sections/Pillars';
+import ResultsFelt from '@/components/home/sections/ResultsFelt';
+import HowItWorks from '@/components/home/sections/HowItWorks';
+import SampleDay from '@/components/home/sections/SampleDay';
 
 import data from '@/data/programs/index.json';
 import { getUserState } from '@/lib/user-state';
-import Testimonials from '@/components/sections/home/Testimonials';
-import Founder from '@/components/sections/home/Founder';
-import LeadMagnet from '@/components/sections/home/LeadMagnet';
-import FAQ from '@/components/sections/home/FAQ';
-import FinalCTA from '@/components/sections/home/FinalCTA';
-import BlogTeasers from '@/components/sections/home/BlogTeasers';
+import Testimonials from '@/components/home/sections/Testimonials';
+import Founder from '@/components/home/sections/Founder';
+import LeadMagnet from '@/components/home/sections/LeadMagnet';
+import FAQ from '@/components/home/sections/FAQ';
+import FinalCTA from '@/components/home/sections/FinalCTA';
+import BlogTeasers from '@/components/home/sections/BlogTeasers';
 
 export default async function HomePage() {
     const { isAuthed, hasActiveProgram, activeProgramSlug } = await getUserState();
