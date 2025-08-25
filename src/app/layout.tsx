@@ -9,7 +9,6 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swa
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', display: 'swap' });
 
 export const metadata: Metadata = {
-    // ✅ important pour OG/Twitter (URLs absolues)
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
     title: { default: 'Ancre-toi', template: '%s — Ancre-toi' },
     description: 'RESET-7, BOUSSOLE-10, ANCRE-30, ALCHIMIE-90',
