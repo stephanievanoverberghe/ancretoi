@@ -64,13 +64,17 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
 
     const [open, setOpen] = useState(false);
 
+    // ✅ évite l’erreur d’hydratation : on ne rend le portail qu’après le mount
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
     return (
         <section
             ref={sectionRef}
             id="program-detail-hero"
             aria-labelledby="hero-title"
             aria-describedby="hero-desc"
-            className="relative isolate mx-[calc(50%-50vw)] w-screen overflow-hidden min-h-[56svh] md:min_h-[62svh] flex items-center"
+            className="relative isolate mx-[calc(50%-50vw)] w-screen overflow-hidden min-h-[56svh] md:min-h-[62svh] flex items-center"
         >
             {/* BG full-bleed + voiles */}
             <div className="pointer-events-none absolute inset-0 -z-20" aria-hidden="true">
@@ -167,17 +171,17 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
                 </div>
             </div>
 
-            {/* ───────────────── Sticky mobile rendu en portail ───────────────── */}
-            {typeof window !== 'undefined' &&
+            {/* ───────────────── Sticky mobile en portail (après mount) ───────────────── */}
+            {mounted &&
                 createPortal(
                     <div className="lg:hidden fixed bottom-0 inset-x-0 z-[140] bg-white/90 backdrop-blur border-t border-brand-100 pointer-events-auto">
                         <div
                             className="
-          mx-auto max-w-3xl px-4
-          pt-3
-          pb-[calc(max(env(safe-area-inset-bottom),0px)+14px)]
-          flex items-center justify-between gap-3
-        "
+                mx-auto max-w-3xl px-4
+                pt-3
+                pb-[calc(max(env(safe-area-inset-bottom),0px)+14px)]
+                flex items-center justify-between gap-3
+              "
                         >
                             <div className="min-w-0">
                                 <div className="text-sm font-medium truncate">{program.title}</div>

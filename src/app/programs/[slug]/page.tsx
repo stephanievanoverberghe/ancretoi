@@ -5,6 +5,8 @@ import { getChargeLabel } from '@/lib/programs-compare';
 import Hero from '@/components/program/sections/Hero';
 import Who from '@/components/program/sections/Who';
 import Experience from '@/components/program/sections/Experience';
+import Inside from '@/components/program/sections/Inside';
+import MethodMini from '@/components/program/sections/MethodMini';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
@@ -91,6 +93,8 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
             <Hero program={program} dailyLoadLabel={dailyLoad} />
             <Who program={program} />
             <Experience slug={program.slug} />
+            <Inside slug={program.slug} />
+            <MethodMini slug={program.slug} />
         </div>
     );
 }

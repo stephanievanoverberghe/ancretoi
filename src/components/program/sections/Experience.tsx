@@ -17,7 +17,7 @@ type Props = {
 
 function SectionShell({ children }: { children: React.ReactNode }) {
     return (
-        <section id="experience" aria-labelledby="experience-title" className="relative mx-[calc(50%-50vw)] w-screen overflow-hidden bg-brand-50/25 py-16 sm:py-20">
+        <section id="experience" aria-labelledby="experience-title" className="relative mx-[calc(50%-50vw)] z-10 w-screen overflow-hidden scroll-mt-24 py-12 sm:py-16 md:py-24">
             {/* halos + filets or */}
             <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
                 <div className="absolute left-[-10%] top-[-12%] h-40 w-40 rounded-full bg-brand-100/25 blur-3xl" />
@@ -337,7 +337,7 @@ export default function Experience({ slug, posterSrc = '/images/sample-poster.we
             <div ref={sectionRef}>
                 {/* Header */}
                 <header className="mb-8 sm:mb-10 text-center">
-                    <h2 id="experience-title" className="font-serif text-[clamp(1.35rem,3.8vw,2rem)] leading-tight">
+                    <h2 id="experience-title" className="font-serif text-[clamp(1.4rem,4.2vw,2rem)] leading-tight">
                         Ce que tu vas vivre
                     </h2>
                     <p className="mt-3 text-[15px] sm:text-base text-muted-foreground">Rythme réel calculé depuis les exercices (matin + midi + soir).</p>
