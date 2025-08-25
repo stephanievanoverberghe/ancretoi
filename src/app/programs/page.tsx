@@ -10,7 +10,7 @@ import ProgramsFAQ from '@/components/programs/sections/ProgramsFAQ';
 import FinalCTA from '@/components/home/sections/FinalCTA';
 
 export const metadata: Metadata = {
-    title: 'Programmes — Ancre-toi',
+    title: 'Programmes',
     description: 'Parcours bien-être courts, simples et tenables.',
     openGraph: {
         title: 'Programmes — Ancre-toi',
