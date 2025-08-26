@@ -1,20 +1,24 @@
-// app/admin/programs/[slug]/page/page.tsx
+// app/admin/programs/[slug]/units/page.tsx
 import 'server-only';
 import { dbConnect } from '@/db/connect';
-import ProgramPage from '@/models/ProgramPage';
+import Unit from '@/models/Unit';
 import { requireAdmin } from '@/lib/authz';
-import ProgramPageEditor from './page-editor';
+import UnitsEditor from '../units/units-editor';
 
 type Params = { slug: string };
 
-export default async function ProgramLandingEditor({ params }: { params: Promise<Params> }) {
+export default async function UnitsPage({ params }: { params: Promise<Params> }) {
     const { slug } = await params;
 
     await requireAdmin();
     await dbConnect();
 
-    const page = await ProgramPage.findOne({ programSlug: slug.toLowerCase() }).lean();
-    const initial = page ? JSON.parse(JSON.stringify(page)) : null;
+    const units = await Unit.find({
+        programSlug: slug.toLowerCase(),
+        unitType: 'day',
+    })
+        .sort({ unitIndex: 1 })
+        .lean();
 
-    return <ProgramPageEditor slug={slug.toLowerCase()} initialPage={initial} />;
+    return <UnitsEditor slug={slug.toLowerCase()} initialUnits={JSON.parse(JSON.stringify(units))} />;
 }
