@@ -18,17 +18,37 @@ const FieldSchema = new Schema(
     { _id: false }
 );
 
+const ScriptStepSchema = new Schema(
+    {
+        label: { type: String, required: true }, // ex: "Accroche", "Respiration guidée"
+        seconds: { type: Number, default: 0 }, // durée indicative (option)
+    },
+    { _id: false }
+);
+
 const UnitSchema = new Schema(
     {
-        programSlug: { type: String, required: true, index: true, lowercase: true, trim: true }, // "reset-7"
+        programSlug: { type: String, required: true, index: true, lowercase: true, trim: true },
         unitType: { type: String, enum: ['day'], default: 'day' },
-        unitIndex: { type: Number, min: 1, max: 90, required: true }, // 1..7 pour R7
-        title: { type: String, required: true, trim: true },
-        introText: { type: String, default: '' }, // texte d’accompagnement (300–500 mots)
-        mantra: { type: String, default: '' },
-        durationMin: { type: Number, default: 20 },
+        unitIndex: { type: Number, min: 1, max: 365, required: true },
+        // Affichage
+        title: { type: String, required: true, trim: true }, // ex: "J1 — Clarté & intention"
+        eyebrow: { type: String, default: '' }, // mini sur-titre optionnel
+        durationMin: { type: Number, default: 20 }, // durée cible
+
+        // Contenu
+        objectives: { type: [String], default: [] }, // puces “Objectifs”
+        introText: { type: String, default: '' }, // “Texte d’accompagnement” (markdown accepté)
+        mantra: { type: String, default: '' }, // mantra du jour
+        safetyNote: { type: String, default: '' }, // encadré sécurité
+
+        // Vidéo & script
         videoAssetId: { type: Types.ObjectId, ref: 'VideoAsset' },
+        videoScript: { type: [ScriptStepSchema], default: [] }, // étapes du script vidéo
+
+        // Journal guidé
         journalSchema: { fields: { type: [FieldSchema], default: [] } },
+
         status: { type: String, enum: ['draft', 'published'], default: 'published', index: true },
         version: { type: String, default: '1.0' },
     },
