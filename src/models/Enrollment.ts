@@ -2,6 +2,7 @@ import { Schema, model, models, Types } from 'mongoose';
 
 export type EnrollmentStatus = 'active' | 'completed' | 'paused';
 
+// src/models/Enrollment.ts (ajoute currentDay)
 const EnrollmentSchema = new Schema(
     {
         userId: { type: Types.ObjectId, ref: 'User', index: true, required: true },
@@ -9,6 +10,7 @@ const EnrollmentSchema = new Schema(
         status: { type: String, enum: ['active', 'completed', 'paused'], default: 'active', index: true },
         startedAt: { type: Date, default: null },
         completedAt: { type: Date, default: null },
+        currentDay: { type: Number, default: 1, min: 1, max: 90 }, // ✅
     },
     { timestamps: true }
 );
