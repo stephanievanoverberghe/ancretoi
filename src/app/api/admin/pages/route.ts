@@ -8,101 +8,159 @@ import { z } from 'zod';
 const zUrlOrPath = z
     .string()
     .trim()
-    .regex(/^(\/|https?:\/\/)/, 'Commence par / ou http(s)://')
-    .optional();
+    .regex(/^(\/|https?:\/\/)/, 'Doit commencer par / ou http(s)://');
 
-const zPayload = z
-    .object({
-        programSlug: z.string().min(1),
-        status: z.enum(['draft', 'preflight', 'published']).default('draft'),
-        hero: z
-            .object({
-                eyebrow: z.string().optional(),
-                title: z.string().optional(),
-                subtitle: z.string().optional(),
-                ctaLabel: z.string().optional(),
-                ctaHref: z.string().optional(),
-                heroImage: zUrlOrPath,
-            })
-            .partial(),
-        pageGarde: z
-            .object({
-                heading: z.string().optional(), // RESET-7
-                tagline: z.string().optional(), // 7 jours pour…
-                audience: z.string().optional(), // Créé pour…
-                format: z.string().optional(), // Format…
-                safetyNote: z.string().optional(), // Note sécurité…
-            })
-            .partial(),
-        intro: z
-            .object({
-                finalite: z.string().optional(),
-                pourQui: z.string().optional(),
-                pasPourQui: z.string().optional(),
-                commentUtiliser: z.string().optional(),
-                cadreSecurite: z.string().optional(),
-            })
-            .partial(),
-        conclusion: z
-            .object({
-                texte: z.string().optional(),
-                kitEntretien: z.string().optional(),
-                cap7_14_30: z.string().optional(),
-                siCaDeraille: z.string().optional(),
-                allerPlusLoin: z.string().optional(),
-            })
-            .partial(),
-    })
-    .strict();
+const zImageInput = z.union([
+    zUrlOrPath, // "/images/..." ou "https://..."
+    z.object({
+        url: zUrlOrPath,
+        alt: z.string().optional(),
+        width: z.number().int().positive().optional(),
+        height: z.number().int().positive().optional(),
+    }),
+]);
+
+const zBenefit = z.object({ icon: z.string().optional(), title: z.string().min(1), text: z.string().min(1) });
+const zCurriculum = z.object({ label: z.string().min(1), summary: z.string().optional() });
+const zTestimonial = z.object({ name: z.string().min(1), role: z.string().optional(), text: z.string().min(1), avatar: z.string().optional() });
+const zQA = z.object({ q: z.string().min(1), a: z.string().min(1) });
+
+const zPayload = z.object({
+    programSlug: z.string().min(1),
+
+    status: z.enum(['draft', 'preflight', 'published']).optional(),
+
+    hero: z
+        .object({
+            eyebrow: z.string().optional(),
+            title: z.string().optional(),
+            subtitle: z.string().optional(),
+            ctaLabel: z.string().optional(),
+            ctaHref: z.string().optional(),
+            heroImage: zImageInput.optional(),
+        })
+        .partial()
+        .optional(),
+
+    card: z
+        .object({
+            image: zImageInput.optional(),
+            tagline: z.string().optional(),
+            summary: z.string().optional(),
+            accentColor: z.string().optional(),
+        })
+        .partial()
+        .optional(),
+
+    meta: z
+        .object({
+            durationDays: z.coerce.number().int().min(1).max(365).optional(),
+            estMinutesPerDay: z.coerce.number().int().min(1).max(180).optional(),
+            level: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+            category: z.string().optional(),
+            tags: z.union([z.array(z.string()), z.string()]).optional(),
+            language: z.string().optional(),
+        })
+        .partial()
+        .optional(),
+
+    pageGarde: z
+        .object({
+            heading: z.string().optional(),
+            tagline: z.string().optional(),
+            format: z.string().optional(),
+            audience: z.string().optional(),
+            safetyNote: z.string().optional(),
+        })
+        .partial()
+        .optional(),
+
+    highlights: z.array(zBenefit).optional(),
+    curriculum: z.array(zCurriculum).optional(),
+    testimonials: z.array(zTestimonial).optional(),
+    faq: z.array(zQA).optional(),
+
+    seo: z.object({ title: z.string().optional(), description: z.string().optional(), image: zUrlOrPath.optional() }).partial().optional(),
+
+    intro: z
+        .object({
+            finalite: z.string().optional(),
+            pourQui: z.string().optional(),
+            pasPourQui: z.string().optional(),
+            commentUtiliser: z.string().optional(),
+            cadreSecurite: z.string().optional(),
+        })
+        .partial()
+        .optional(),
+
+    conclusion: z
+        .object({
+            texte: z.string().optional(),
+            kitEntretien: z.string().optional(),
+            cap7_14_30: z.string().optional(),
+            siCaDeraille: z.string().optional(),
+            allerPlusLoin: z.string().optional(),
+        })
+        .partial()
+        .optional(),
+});
+
+function coerceImage(img?: unknown) {
+    if (typeof img === 'string') return { url: img, alt: '' };
+    if (img && typeof img === 'object' && 'url' in img) {
+        const o = img as { url: string; alt?: string; width?: number; height?: number };
+        return { url: o.url, alt: o.alt ?? '', width: o.width, height: o.height };
+    }
+    return undefined;
+}
 
 export async function POST(req: Request) {
-    await requireAdmin();
-    await dbConnect();
+    try {
+        await requireAdmin();
+        await dbConnect();
 
-    const raw = await req.json().catch(() => ({}));
-    const data = zPayload.parse(raw);
+        const raw = await req.json().catch(() => ({}));
 
-    // 🔧 fusion des champs potentiellement dupliqués
-    const introPourQui = data.intro?.pourQui ?? data.pageGarde?.audience;
-    const introCadre = data.intro?.cadreSecurite ?? data.pageGarde?.safetyNote;
+        // normalisation douce des tags si CSV
+        if (raw?.meta?.tags && typeof raw.meta.tags === 'string') {
+            raw.meta.tags = raw.meta.tags
+                .split(',')
+                .map((s: string) => s.trim())
+                .filter(Boolean);
+        }
 
-    const doc = await ProgramPage.findOneAndUpdate(
-        { programSlug: data.programSlug.toLowerCase() },
-        {
-            $set: {
-                status: data.status,
+        const data = zPayload.parse(raw);
+        const { programSlug } = data;
 
-                // HERO
-                'hero.eyebrow': data.hero?.eyebrow,
-                'hero.title': data.hero?.title,
-                'hero.subtitle': data.hero?.subtitle,
-                'hero.ctaLabel': data.hero?.ctaLabel,
-                'hero.ctaHref': data.hero?.ctaHref,
-                'hero.heroImage.url': data.hero?.heroImage,
+        const set: Record<string, unknown> = {};
 
-                // Page de garde (ne pas réécrire intro.* ici)
-                'seo.title': data.pageGarde?.heading ?? undefined,
-                'card.tagline': data.pageGarde?.tagline,
-                'card.summary': data.pageGarde?.format,
+        if (data.status) set.status = data.status;
 
-                // INTRO (une seule fois, avec valeurs fusionnées)
-                'intro.finalite': data.intro?.finalite,
-                'intro.pourQui': introPourQui,
-                'intro.pasPourQui': data.intro?.pasPourQui,
-                'intro.commentUtiliser': data.intro?.commentUtiliser,
-                'intro.cadreSecurite': introCadre,
+        if (data.hero) {
+            const { heroImage, ...rest } = data.hero;
+            set.hero = { ...rest, ...(heroImage ? { heroImage: coerceImage(heroImage) } : {}) };
+        }
+        if (data.card) {
+            const { image, ...rest } = data.card;
+            set.card = { ...rest, ...(image ? { image: coerceImage(image) } : {}) };
+        }
+        if (data.meta) set.meta = data.meta;
+        if (data.pageGarde) set.pageGarde = data.pageGarde;
+        if (data.highlights) set.highlights = data.highlights;
+        if (data.curriculum) set.curriculum = data.curriculum;
+        if (data.testimonials) set.testimonials = data.testimonials;
+        if (data.faq) set.faq = data.faq;
+        if (data.seo) set.seo = data.seo;
+        if (data.intro) set.intro = data.intro;
+        if (data.conclusion) set.conclusion = data.conclusion;
 
-                // CONCLUSION
-                'conclusion.texte': data.conclusion?.texte,
-                'conclusion.kitEntretien': data.conclusion?.kitEntretien,
-                'conclusion.cap7_14_30': data.conclusion?.cap7_14_30,
-                'conclusion.siCaDeraille': data.conclusion?.siCaDeraille,
-                'conclusion.allerPlusLoin': data.conclusion?.allerPlusLoin,
-            },
-            $setOnInsert: { programSlug: data.programSlug.toLowerCase() },
-        },
-        { new: true, upsert: true }
-    ).lean();
+        const doc = await ProgramPage.findOneAndUpdate({ programSlug }, { $setOnInsert: { programSlug }, $set: set }, { new: true, upsert: true }).lean();
 
-    return NextResponse.json({ ok: true, page: doc });
+        return NextResponse.json({ ok: true, page: doc });
+    } catch (err) {
+        console.error('POST /api/admin/pages error:', err);
+        const msg = err instanceof Error ? err.message : 'Erreur inconnue';
+        // 400 pour montrer l’erreur dans le front au lieu d’un 500 opaque
+        return NextResponse.json({ ok: false, error: msg }, { status: 400 });
+    }
 }

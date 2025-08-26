@@ -1,6 +1,8 @@
 'use client';
 
 import { useForm, useFieldArray } from 'react-hook-form';
+import { useState } from 'react';
+import Link from 'next/link';
 
 /* ======================= Types ======================= */
 
@@ -46,7 +48,7 @@ type PageForm = {
     pageGarde?: {
         heading?: string; // ex: RESET-7
         tagline?: string; // “7 jours pour …”
-        format?: string; // “1 rdv/jour…” (ligne format)
+        format?: string; // “1 rdv/jour…”
         audience?: string; // “Créé pour : …”
         safetyNote?: string; // “Note sécurité : …”
     };
@@ -109,7 +111,7 @@ type PgIncoming = Partial<{
         language?: string | null;
     } | null;
 
-    pageGarde?: {
+    pageGarde: {
         heading?: string;
         tagline?: string;
         format?: string;
@@ -149,6 +151,42 @@ function csvToTags(csv: string): string[] {
         .split(',')
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
+}
+
+/* ======================= API payload guards ======================= */
+
+type ApiOk = {
+    ok: true;
+    page: {
+        programSlug: string;
+        status?: Status;
+        hero?: { title?: string };
+    };
+};
+
+function isApiOk(x: unknown): x is ApiOk {
+    return !!x && typeof x === 'object' && 'ok' in x && (x as { ok: unknown }).ok === true && 'page' in x;
+}
+
+/* ======================= UI: Modal ======================= */
+
+function Modal(props: { open: boolean; onClose: () => void; children: React.ReactNode; title?: string; footer?: React.ReactNode }) {
+    if (!props.open) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={props.onClose} aria-hidden="true" />
+            <div className="relative z-10 w-full max-w-lg rounded-2xl border bg-white p-6 shadow-xl">
+                {props.title && <h3 className="text-lg font-semibold">{props.title}</h3>}
+                <div className="mt-3">{props.children}</div>
+                <div className="mt-4 flex items-center justify-end gap-2">
+                    {props.footer}
+                    <button onClick={props.onClose} className="rounded-lg bg-purple-600 px-3 py-2 text-sm text-white">
+                        Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 /* ======================= Component ======================= */
@@ -238,86 +276,110 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
         name: 'testimonials',
     });
 
+    const [saving, setSaving] = useState(false);
+    const [successOpen, setSuccessOpen] = useState(false);
+    const [successInfo, setSuccessInfo] = useState<{ title?: string; slug?: string } | null>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
     async function onSubmit(values: PageForm) {
-        // On poste tel que l’API /api/admin/pages l’attend (héros/card : URLs string)
-        const payload = {
-            programSlug: values.programSlug.toLowerCase(),
-            status: values.status,
-            hero: {
-                eyebrow: values.hero.eyebrow?.trim() || undefined,
-                title: values.hero.title?.trim() || undefined,
-                subtitle: values.hero.subtitle?.trim() || undefined,
-                ctaLabel: values.hero.ctaLabel?.trim() || undefined,
-                ctaHref: values.hero.ctaHref?.trim() || undefined,
-                heroImage: values.hero.heroImage?.trim() || undefined,
-            },
-            card: {
-                image: values.card.image?.trim() || undefined,
-                tagline: values.card.tagline?.trim() || undefined,
-                summary: values.card.summary?.trim() || undefined,
-                accentColor: values.card.accentColor?.trim() || undefined,
-            },
-            meta: {
-                durationDays: Number(values.meta.durationDays ?? 7),
-                estMinutesPerDay: Number(values.meta.estMinutesPerDay ?? 20),
-                level: values.meta.level ?? 'beginner',
-                category: values.meta.category?.trim() || 'wellbeing',
-                tags: values.meta.tags ?? [],
-                language: values.meta.language ?? 'fr',
-            },
-            pageGarde: {
-                heading: values.pageGarde?.heading?.trim() || undefined,
-                tagline: values.pageGarde?.tagline?.trim() || undefined,
-                format: values.pageGarde?.format?.trim() || undefined,
-                audience: values.pageGarde?.audience?.trim() || undefined,
-                safetyNote: values.pageGarde?.safetyNote?.trim() || undefined,
-            },
-            intro: {
-                finalite: values.intro.finalite?.trim() || undefined,
-                pourQui: values.intro.pourQui?.trim() || undefined,
-                pasPourQui: values.intro.pasPourQui?.trim() || undefined,
-                commentUtiliser: values.intro.commentUtiliser?.trim() || undefined,
-                cadreSecurite: values.intro.cadreSecurite?.trim() || undefined,
-            },
-            conclusion: {
-                texte: values.conclusion.texte?.trim() || undefined,
-                kitEntretien: values.conclusion.kitEntretien?.trim() || undefined,
-                cap7_14_30: values.conclusion.cap7_14_30?.trim() || undefined,
-                siCaDeraille: values.conclusion.siCaDeraille?.trim() || undefined,
-                allerPlusLoin: values.conclusion.allerPlusLoin?.trim() || undefined,
-            },
-            highlights:
-                values.highlights?.map((b) => ({
-                    icon: b.icon?.trim() || undefined,
-                    title: b.title?.trim() || '',
-                    text: b.text?.trim() || '',
-                })) ?? [],
-            curriculum:
-                values.curriculum?.map((c) => ({
-                    label: c.label?.trim() || '',
-                    summary: c.summary?.trim() || undefined,
-                })) ?? [],
-            testimonials: values.testimonials ?? [],
-            faq: values.faq ?? [],
-            seo: {
-                title: values.seo.title?.trim() || undefined,
-                description: values.seo.description?.trim() || undefined,
-                image: values.seo.image?.trim() || undefined,
-            },
-        };
+        try {
+            setSaving(true);
+            setErrorMsg(null);
 
-        const res = await fetch('/api/admin/pages', {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
+            // On poste tel que l’API /api/admin/pages l’attend
+            const payload = {
+                programSlug: values.programSlug.toLowerCase(),
+                status: values.status,
+                hero: {
+                    eyebrow: values.hero.eyebrow?.trim() || undefined,
+                    title: values.hero.title?.trim() || undefined,
+                    subtitle: values.hero.subtitle?.trim() || undefined,
+                    ctaLabel: values.hero.ctaLabel?.trim() || undefined,
+                    ctaHref: values.hero.ctaHref?.trim() || undefined,
+                    heroImage: values.hero.heroImage?.trim() || undefined,
+                },
+                card: {
+                    image: values.card.image?.trim() || undefined,
+                    tagline: values.card.tagline?.trim() || undefined,
+                    summary: values.card.summary?.trim() || undefined,
+                    accentColor: values.card.accentColor?.trim() || undefined,
+                },
+                meta: {
+                    durationDays: Number(values.meta.durationDays ?? 7),
+                    estMinutesPerDay: Number(values.meta.estMinutesPerDay ?? 20),
+                    level: values.meta.level ?? 'beginner',
+                    category: values.meta.category?.trim() || 'wellbeing',
+                    tags: values.meta.tags ?? [],
+                    language: values.meta.language ?? 'fr',
+                },
+                pageGarde: {
+                    heading: values.pageGarde?.heading?.trim() || undefined,
+                    tagline: values.pageGarde?.tagline?.trim() || undefined,
+                    format: values.pageGarde?.format?.trim() || undefined,
+                    audience: values.pageGarde?.audience?.trim() || undefined,
+                    safetyNote: values.pageGarde?.safetyNote?.trim() || undefined,
+                },
+                intro: {
+                    finalite: values.intro.finalite?.trim() || undefined,
+                    pourQui: values.intro.pourQui?.trim() || undefined,
+                    pasPourQui: values.intro.pasPourQui?.trim() || undefined,
+                    commentUtiliser: values.intro.commentUtiliser?.trim() || undefined,
+                    cadreSecurite: values.intro.cadreSecurite?.trim() || undefined,
+                },
+                conclusion: {
+                    texte: values.conclusion.texte?.trim() || undefined,
+                    kitEntretien: values.conclusion.kitEntretien?.trim() || undefined,
+                    cap7_14_30: values.conclusion.cap7_14_30?.trim() || undefined,
+                    siCaDeraille: values.conclusion.siCaDeraille?.trim() || undefined,
+                    allerPlusLoin: values.conclusion.allerPlusLoin?.trim() || undefined,
+                },
+                highlights:
+                    values.highlights?.map((b) => ({
+                        icon: b.icon?.trim() || undefined,
+                        title: b.title?.trim() || '',
+                        text: b.text?.trim() || '',
+                    })) ?? [],
+                curriculum:
+                    values.curriculum?.map((c) => ({
+                        label: c.label?.trim() || '',
+                        summary: c.summary?.trim() || undefined,
+                    })) ?? [],
+                testimonials: values.testimonials ?? [],
+                faq: values.faq ?? [],
+                seo: {
+                    title: values.seo.title?.trim() || undefined,
+                    description: values.seo.description?.trim() || undefined,
+                    image: values.seo.image?.trim() || undefined,
+                },
+            };
 
-        if (!res.ok) {
-            const text = await res.text();
-            alert(`Erreur enregistrement: ${res.status} — ${text}`);
-            return;
+            const r = await fetch('/api/admin/pages', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json', accept: 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const ct = r.headers.get('content-type') || '';
+            const data: unknown = ct.includes('application/json') ? await r.json() : await r.text();
+
+            if (!r.ok) {
+                const msg =
+                    typeof data === 'object' && data && 'error' in data
+                        ? String((data as { error?: unknown }).error ?? `Erreur HTTP ${r.status}`)
+                        : typeof data === 'string'
+                        ? data
+                        : `Erreur HTTP ${r.status}`;
+                throw new Error(msg);
+            }
+
+            if (!isApiOk(data)) throw new Error('Réponse inattendue du serveur.');
+            setSuccessInfo({ title: data.page.hero?.title, slug: data.page.programSlug });
+            setSuccessOpen(true);
+        } catch (e) {
+            setErrorMsg(e instanceof Error ? e.message : String(e));
+        } finally {
+            setSaving(false);
         }
-        alert('Page enregistrée ✅');
     }
 
     // binding "tags" en input CSV (UI simple)
@@ -325,7 +387,9 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
     const onTagsChange = (v: string) => form.setValue('meta.tags', csvToTags(v));
 
     return (
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-5xl mx-auto p-6 space-y-8">
+            <h1 className="text-2xl font-semibold">Landing — {slug}</h1>
+
             {/* META & STATUS */}
             <section className="space-y-3">
                 <h2 className="font-semibold text-lg">Meta</h2>
@@ -508,12 +572,39 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
             </section>
 
             <div className="flex items-center gap-2">
-                <button type="submit" className="rounded bg-purple-600 px-4 py-2 text-white">
-                    Enregistrer
+                <button type="submit" disabled={saving} className="rounded bg-purple-600 px-4 py-2 text-white disabled:opacity-60">
+                    {saving ? 'Enregistrement…' : 'Enregistrer'}
                 </button>
             </div>
 
             <input type="hidden" {...form.register('programSlug')} />
+
+            {/* Modale succès */}
+            <Modal
+                open={successOpen}
+                onClose={() => setSuccessOpen(false)}
+                title="Landing enregistrée ✅"
+                footer={
+                    successInfo?.slug ? (
+                        <>
+                            <Link href={`/programs/${successInfo.slug}`} className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50">
+                                Voir la landing
+                            </Link>
+                            <Link href={`/admin/programs/${successInfo.slug}/units`} className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50">
+                                Gérer les unités
+                            </Link>
+                        </>
+                    ) : null
+                }
+            >
+                <p className="text-sm text-muted-foreground">{successInfo?.title ? <span className="font-medium">{successInfo.title}</span> : 'Page'} sauvegardée avec succès.</p>
+                <div className="mt-2 text-xs text-gray-500">{new Date().toLocaleString('fr-FR')}</div>
+            </Modal>
+
+            {/* Modale erreur */}
+            <Modal open={!!errorMsg} onClose={() => setErrorMsg(null)} title="Enregistrement impossible">
+                <p className="text-sm text-red-700">{errorMsg}</p>
+            </Modal>
         </form>
     );
 }
