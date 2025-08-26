@@ -1,10 +1,11 @@
+// src/app/api/admin/programs/route.ts
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/db/connect';
 import { requireAdmin } from '@/lib/authz';
-import { ProgramModel } from '@/db/schemas';
+import ProgramPage from '@/models/ProgramPage';
 import { z } from 'zod';
 
-const zProgram = z.object({
+const zPayload = z.object({
     slug: z.string().min(1),
     title: z.string().min(1),
     status: z.enum(['draft', 'published']).default('draft'),
@@ -15,22 +16,22 @@ export async function POST(req: Request) {
     await dbConnect();
 
     const ct = req.headers.get('content-type') ?? '';
-    let raw: unknown;
+    const raw = ct.includes('application/json') ? await req.json() : Object.fromEntries((await req.formData()).entries());
 
-    if (ct.includes('application/json')) {
-        raw = await req.json();
-    } else {
-        const fd = await req.formData();
-        raw = Object.fromEntries(fd.entries()); // ⬅️ sans any
-    }
+    const data = zPayload.parse(raw);
+    const programSlug = data.slug.toLowerCase();
 
-    const data = zProgram.parse(raw);
-
-    const doc = await ProgramModel.findOneAndUpdate(
-        { slug: data.slug.toLowerCase() },
-        { $setOnInsert: { slug: data.slug.toLowerCase() }, $set: { title: data.title, status: data.status } },
+    const doc = await ProgramPage.findOneAndUpdate(
+        { programSlug },
+        {
+            $setOnInsert: { programSlug },
+            $set: {
+                status: data.status,
+                'hero.title': data.title,
+            },
+        },
         { new: true, upsert: true }
     ).lean();
 
-    return NextResponse.json({ ok: true, program: doc });
+    return NextResponse.json({ ok: true, page: doc });
 }
