@@ -46,12 +46,12 @@ type PageForm = {
 
     /** Section “page de garde” (texte d’intro en haut de la page) */
     pageGarde?: {
-        heading?: string; // ex: RESET-7
-        tagline?: string; // “7 jours pour …”
-        format?: string; // “1 rdv/jour…”
-        audience?: string; // “Créé pour : …”
-        safetyNote?: string; // “Note sécurité : …”
-    };
+        heading?: string;
+        tagline?: string;
+        format?: string;
+        audience?: string;
+        safetyNote?: string;
+    } | null;
 
     /** Introduction longue (finalité, public, cadre…) */
     intro: {

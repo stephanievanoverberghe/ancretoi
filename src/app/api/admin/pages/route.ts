@@ -20,10 +20,42 @@ const zImageInput = z.union([
     }),
 ]);
 
-const zBenefit = z.object({ icon: z.string().optional(), title: z.string().min(1), text: z.string().min(1) });
+const zBenefit = z.object({
+    icon: z.string().optional(),
+    title: z.string().min(1),
+    text: z.string().min(1),
+});
 const zCurriculum = z.object({ label: z.string().min(1), summary: z.string().optional() });
-const zTestimonial = z.object({ name: z.string().min(1), role: z.string().optional(), text: z.string().min(1), avatar: z.string().optional() });
+const zTestimonial = z.object({
+    name: z.string().min(1),
+    role: z.string().optional(),
+    text: z.string().min(1),
+    avatar: z.string().optional(),
+});
 const zQA = z.object({ q: z.string().min(1), a: z.string().min(1) });
+
+// ✅ Préprocess pour accepter CSV ou array pour tags
+const zMeta = z
+    .object({
+        durationDays: z.coerce.number().int().min(1).max(365).optional(),
+        estMinutesPerDay: z.coerce.number().int().min(1).max(180).optional(),
+        level: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+        category: z.string().optional(),
+        tags: z
+            .preprocess((v) => {
+                if (typeof v === 'string') {
+                    return v
+                        .split(',')
+                        .map((s) => s.trim())
+                        .filter(Boolean);
+                }
+                return v;
+            }, z.array(z.string()).optional())
+            .optional(),
+        language: z.string().optional(),
+    })
+    .partial()
+    .optional();
 
 const zPayload = z.object({
     programSlug: z.string().min(1),
@@ -52,18 +84,7 @@ const zPayload = z.object({
         .partial()
         .optional(),
 
-    meta: z
-        .object({
-            durationDays: z.coerce.number().int().min(1).max(365).optional(),
-            estMinutesPerDay: z.coerce.number().int().min(1).max(180).optional(),
-            level: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
-            category: z.string().optional(),
-            tags: z.union([z.array(z.string()), z.string()]).optional(),
-            language: z.string().optional(),
-        })
-        .partial()
-        .optional(),
-
+    // ✅ Page de garde
     pageGarde: z
         .object({
             heading: z.string().optional(),
@@ -75,12 +96,21 @@ const zPayload = z.object({
         .partial()
         .optional(),
 
+    meta: zMeta,
+
     highlights: z.array(zBenefit).optional(),
     curriculum: z.array(zCurriculum).optional(),
     testimonials: z.array(zTestimonial).optional(),
     faq: z.array(zQA).optional(),
 
-    seo: z.object({ title: z.string().optional(), description: z.string().optional(), image: zUrlOrPath.optional() }).partial().optional(),
+    seo: z
+        .object({
+            title: z.string().optional(),
+            description: z.string().optional(),
+            image: zUrlOrPath.optional(),
+        })
+        .partial()
+        .optional(),
 
     intro: z
         .object({
@@ -110,6 +140,7 @@ function coerceImage(img?: unknown) {
     if (img && typeof img === 'object' && 'url' in img) {
         const o = img as { url: string; alt?: string; width?: number; height?: number };
         return { url: o.url, alt: o.alt ?? '', width: o.width, height: o.height };
+        // pas d'`any` ici
     }
     return undefined;
 }
@@ -119,16 +150,10 @@ export async function POST(req: Request) {
         await requireAdmin();
         await dbConnect();
 
-        const raw = await req.json().catch(() => ({}));
+        // ✅ pas d'`any` : on reste en `unknown`
+        const raw: unknown = await req.json().catch(() => ({}));
 
-        // normalisation douce des tags si CSV
-        if (raw?.meta?.tags && typeof raw.meta.tags === 'string') {
-            raw.meta.tags = raw.meta.tags
-                .split(',')
-                .map((s: string) => s.trim())
-                .filter(Boolean);
-        }
-
+        // Zod gère maintenant la conversion des tags CSV → array
         const data = zPayload.parse(raw);
         const { programSlug } = data;
 
@@ -140,12 +165,17 @@ export async function POST(req: Request) {
             const { heroImage, ...rest } = data.hero;
             set.hero = { ...rest, ...(heroImage ? { heroImage: coerceImage(heroImage) } : {}) };
         }
+
         if (data.card) {
             const { image, ...rest } = data.card;
             set.card = { ...rest, ...(image ? { image: coerceImage(image) } : {}) };
         }
+
+        if (data.pageGarde) {
+            set.pageGarde = data.pageGarde; // ✅ écrit bien la page de garde
+        }
+
         if (data.meta) set.meta = data.meta;
-        if (data.pageGarde) set.pageGarde = data.pageGarde;
         if (data.highlights) set.highlights = data.highlights;
         if (data.curriculum) set.curriculum = data.curriculum;
         if (data.testimonials) set.testimonials = data.testimonials;
@@ -160,7 +190,6 @@ export async function POST(req: Request) {
     } catch (err) {
         console.error('POST /api/admin/pages error:', err);
         const msg = err instanceof Error ? err.message : 'Erreur inconnue';
-        // 400 pour montrer l’erreur dans le front au lieu d’un 500 opaque
         return NextResponse.json({ ok: false, error: msg }, { status: 400 });
     }
 }
