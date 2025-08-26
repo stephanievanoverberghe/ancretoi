@@ -1,17 +1,35 @@
+// app/admin/page.tsx
+import 'server-only';
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
-import { ProgramModel, PostModel, InspirationModel, UserModel } from '@/db/schemas';
+import ProgramPage from '@/models/ProgramPage';
+import Unit from '@/models/Unit';
+import { PostModel, InspirationModel, UserModel } from '@/db/schemas';
 import Newsletter, { type NewsletterDoc } from '@/models/Newsletter';
 
 type NewsletterRow = Pick<NewsletterDoc, 'email' | 'status' | 'createdAt' | 'source'> & { _id: unknown };
+
+type ProgramRow = {
+    programSlug: string;
+    title?: string; // dérivé de hero.title
+    status: 'draft' | 'published';
+    unitsCount: number;
+};
+
+// Shape minimal lu depuis ProgramPage
+type PgLean = {
+    programSlug: string;
+    status: 'draft' | 'published';
+    hero?: { title?: string | null } | null;
+};
 
 export default async function AdminHome() {
     await requireAdmin();
     await dbConnect();
 
-    const [programs, posts, videos, users, nlTotal, nlConfirmed, nlPending, nlUnsub, latest] = await Promise.all([
-        ProgramModel.countDocuments(),
+    const [programsCount, posts, videos, users, nlTotal, nlConfirmed, nlPending, nlUnsub, latest, pages] = await Promise.all([
+        ProgramPage.countDocuments(),
         PostModel.countDocuments({ status: 'published' }),
         InspirationModel.countDocuments({ status: 'published' }),
         UserModel.countDocuments({ deletedAt: null }),
@@ -22,15 +40,25 @@ export default async function AdminHome() {
         Newsletter.countDocuments({ status: 'unsubscribed' as const }),
 
         Newsletter.find().sort({ createdAt: -1 }).limit(6).select({ email: 1, status: 1, createdAt: 1, source: 1 }).lean<NewsletterRow[]>().exec(),
+
+        ProgramPage.find().select({ programSlug: 1, status: 1, hero: 1 }).sort({ createdAt: -1 }).lean<PgLean[]>(), // ✅ tableau typé
     ]);
+
+    const programs: ProgramRow[] = await Promise.all(
+        pages.map(async (p: PgLean) => {
+            const unitsCount = await Unit.countDocuments({ programSlug: p.programSlug, unitType: 'day' });
+            const title = typeof p.hero?.title === 'string' && p.hero.title.length > 0 ? p.hero.title : undefined;
+            return { programSlug: p.programSlug, title, status: p.status, unitsCount };
+        })
+    );
 
     return (
         <div className="space-y-6">
             {/* KPIs contenus / users */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="card p-4">
-                    <div className="text-sm text-muted-foreground">Parcours</div>
-                    <div className="mt-1 text-2xl font-semibold">{programs}</div>
+                    <div className="text-sm text-muted-foreground">Parcours (pages)</div>
+                    <div className="mt-1 text-2xl font-semibold">{programsCount}</div>
                 </div>
                 <div className="card p-4">
                     <div className="text-sm text-muted-foreground">Articles publiés</div>
@@ -43,6 +71,57 @@ export default async function AdminHome() {
                 <div className="card p-4">
                     <div className="text-sm text-muted-foreground">Utilisateurs actifs</div>
                     <div className="mt-1 text-2xl font-semibold">{users}</div>
+                </div>
+            </div>
+
+            {/* Programmes (ProgramPage + Units) */}
+            <div className="card p-4">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Programmes</h2>
+                    <Link href="/admin/programs/new" className="text-sm text-brand-700 hover:underline">
+                        + Nouveau
+                    </Link>
+                </div>
+
+                <div className="mt-3 overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead className="bg-muted/50 text-muted-foreground">
+                            <tr>
+                                <th className="px-3 py-2 text-left">Slug</th>
+                                <th className="px-3 py-2 text-left">Titre (hero)</th>
+                                <th className="px-3 py-2 text-left">Statut</th>
+                                <th className="px-3 py-2 text-left">Unités</th>
+                                <th className="px-3 py-2 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {programs.map((p) => (
+                                <tr key={p.programSlug} className="border-t border-border/60">
+                                    <td className="px-3 py-2">{p.programSlug}</td>
+                                    <td className="px-3 py-2">{p.title ?? '—'}</td>
+                                    <td className="px-3 py-2">{p.status}</td>
+                                    <td className="px-3 py-2">{p.unitsCount}</td>
+                                    <td className="px-3 py-2">
+                                        <div className="flex gap-2">
+                                            <Link href={`/admin/programs/${p.programSlug}/units`} className="text-brand-700 hover:underline">
+                                                Jours
+                                            </Link>
+                                            <Link href={`/admin/programs/${p.programSlug}/page`} className="text-brand-700 hover:underline">
+                                                Landing
+                                            </Link>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                            {!programs.length && (
+                                <tr>
+                                    <td className="px-3 py-8 text-center text-muted-foreground" colSpan={5}>
+                                        Aucun programme
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
