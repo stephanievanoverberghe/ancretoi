@@ -1,17 +1,17 @@
-// src/app/api/admin/pages/route.ts
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/db/connect';
 import { requireAdmin } from '@/lib/authz';
 import ProgramPage from '@/models/ProgramPage';
 import { z } from 'zod';
 
+/* ---------- Zod utils ---------- */
 const zUrlOrPath = z
     .string()
     .trim()
     .regex(/^(\/|https?:\/\/)/, 'Doit commencer par / ou http(s)://');
 
 const zImageInput = z.union([
-    zUrlOrPath, // "/images/..." ou "https://..."
+    zUrlOrPath,
     z.object({
         url: zUrlOrPath,
         alt: z.string().optional(),
@@ -20,43 +20,23 @@ const zImageInput = z.union([
     }),
 ]);
 
-const zBenefit = z.object({
-    icon: z.string().optional(),
-    title: z.string().min(1),
-    text: z.string().min(1),
-});
+const zBenefit = z.object({ icon: z.string().optional(), title: z.string().min(1), text: z.string().min(1) });
 const zCurriculum = z.object({ label: z.string().min(1), summary: z.string().optional() });
-const zTestimonial = z.object({
-    name: z.string().min(1),
-    role: z.string().optional(),
-    text: z.string().min(1),
-    avatar: z.string().optional(),
-});
+const zTestimonial = z.object({ name: z.string().min(1), role: z.string().optional(), text: z.string().min(1), avatar: z.string().optional() });
 const zQA = z.object({ q: z.string().min(1), a: z.string().min(1) });
 
-// ✅ Préprocess pour accepter CSV ou array pour tags
-const zMeta = z
+/** ⬅️ NOUVEAU: schéma de la page de garde */
+const zPageGarde = z
     .object({
-        durationDays: z.coerce.number().int().min(1).max(365).optional(),
-        estMinutesPerDay: z.coerce.number().int().min(1).max(180).optional(),
-        level: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
-        category: z.string().optional(),
-        tags: z
-            .preprocess((v) => {
-                if (typeof v === 'string') {
-                    return v
-                        .split(',')
-                        .map((s) => s.trim())
-                        .filter(Boolean);
-                }
-                return v;
-            }, z.array(z.string()).optional())
-            .optional(),
-        language: z.string().optional(),
+        heading: z.string().optional(),
+        tagline: z.string().optional(),
+        format: z.string().optional(),
+        audience: z.string().optional(),
+        safetyNote: z.string().optional(),
     })
-    .partial()
-    .optional();
+    .partial();
 
+/* ---------- Payload complet ---------- */
 const zPayload = z.object({
     programSlug: z.string().min(1),
 
@@ -84,19 +64,20 @@ const zPayload = z.object({
         .partial()
         .optional(),
 
-    // ✅ Page de garde
-    pageGarde: z
+    /** ⬅️ NOUVEAU: on déclare la page de garde */
+    pageGarde: zPageGarde.optional(),
+
+    meta: z
         .object({
-            heading: z.string().optional(),
-            tagline: z.string().optional(),
-            format: z.string().optional(),
-            audience: z.string().optional(),
-            safetyNote: z.string().optional(),
+            durationDays: z.coerce.number().int().min(1).max(365).optional(),
+            estMinutesPerDay: z.coerce.number().int().min(1).max(180).optional(),
+            level: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+            category: z.string().optional(),
+            tags: z.union([z.array(z.string()), z.string()]).optional(),
+            language: z.string().optional(),
         })
         .partial()
         .optional(),
-
-    meta: zMeta,
 
     highlights: z.array(zBenefit).optional(),
     curriculum: z.array(zCurriculum).optional(),
@@ -135,26 +116,46 @@ const zPayload = z.object({
         .optional(),
 });
 
-function coerceImage(img?: unknown) {
+/* ---------- Helpers ---------- */
+function coerceImage(img: unknown): { url: string; alt?: string; width?: number; height?: number } | undefined {
     if (typeof img === 'string') return { url: img, alt: '' };
     if (img && typeof img === 'object' && 'url' in img) {
         const o = img as { url: string; alt?: string; width?: number; height?: number };
         return { url: o.url, alt: o.alt ?? '', width: o.width, height: o.height };
-        // pas d'`any` ici
     }
     return undefined;
 }
 
+function normalizeTags(input: unknown): string[] | undefined {
+    if (typeof input === 'string') {
+        return input
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+    }
+    if (Array.isArray(input) && input.every((x): x is string => typeof x === 'string')) {
+        return input;
+    }
+    return undefined;
+}
+
+/* ---------- Route ---------- */
 export async function POST(req: Request) {
     try {
         await requireAdmin();
         await dbConnect();
 
-        // ✅ pas d'`any` : on reste en `unknown`
         const raw: unknown = await req.json().catch(() => ({}));
+        const rawObj = raw && typeof raw === 'object' ? { ...(raw as Record<string, unknown>) } : {};
 
-        // Zod gère maintenant la conversion des tags CSV → array
-        const data = zPayload.parse(raw);
+        // Normalise meta.tags (CSV -> array) sans any
+        if ('meta' in rawObj && rawObj.meta && typeof rawObj.meta === 'object') {
+            const meta = rawObj.meta as Record<string, unknown>;
+            const ntags = normalizeTags(meta.tags);
+            if (ntags) meta.tags = ntags;
+        }
+
+        const data = zPayload.parse(rawObj);
         const { programSlug } = data;
 
         const set: Record<string, unknown> = {};
@@ -171,8 +172,9 @@ export async function POST(req: Request) {
             set.card = { ...rest, ...(image ? { image: coerceImage(image) } : {}) };
         }
 
+        /** ⬅️ NOUVEAU: on pousse bien la page de garde */
         if (data.pageGarde) {
-            set.pageGarde = data.pageGarde; // ✅ écrit bien la page de garde
+            set.pageGarde = data.pageGarde;
         }
 
         if (data.meta) set.meta = data.meta;
