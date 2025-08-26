@@ -1,24 +1,42 @@
-// app/admin/programs/[slug]/units/page.tsx
 import 'server-only';
-import { dbConnect } from '@/db/connect';
-import Unit from '@/models/Unit';
+import Link from 'next/link';
 import { requireAdmin } from '@/lib/authz';
-import UnitsEditor from '../units/units-editor';
+import { dbConnect } from '@/db/connect';
+import ProgramPage from '@/models/ProgramPage';
+import ProgramPageEditor from './page-editor';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 type Params = { slug: string };
 
-export default async function UnitsPage({ params }: { params: Promise<Params> }) {
+export default async function AdminProgramLandingPage({ params }: { params: Promise<Params> }) {
     const { slug } = await params;
 
     await requireAdmin();
     await dbConnect();
 
-    const units = await Unit.find({
-        programSlug: slug.toLowerCase(),
-        unitType: 'day',
-    })
-        .sort({ unitIndex: 1 })
-        .lean();
+    const pageDoc = await ProgramPage.findOne({ programSlug: slug.toLowerCase() }).lean();
 
-    return <UnitsEditor slug={slug.toLowerCase()} initialUnits={JSON.parse(JSON.stringify(units))} />;
+    // Sérialisation safe pour passer au client
+    const initialPage = pageDoc ? JSON.parse(JSON.stringify(pageDoc)) : null;
+
+    return (
+        <div className="mx-auto max-w-5xl p-6 space-y-6">
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-semibold">Landing — {slug}</h1>
+                <div className="flex gap-2">
+                    <Link href={`/admin/programs/${slug}/units`} className="rounded border px-3 py-2 text-sm hover:bg-muted">
+                        Configurer les unités (J1 → Jn)
+                    </Link>
+                    <Link href="/admin/programs" className="rounded border px-3 py-2 text-sm hover:bg-muted">
+                        ← Back
+                    </Link>
+                </div>
+            </div>
+
+            <ProgramPageEditor slug={slug.toLowerCase()} initialPage={initialPage} />
+        </div>
+    );
 }

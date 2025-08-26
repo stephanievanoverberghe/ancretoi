@@ -1,79 +1,74 @@
+// src/app/api/admin/units/[slug]/route.ts
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/db/connect';
-import Unit from '@/models/Unit';
 import { requireAdmin } from '@/lib/authz';
+import Unit from '@/models/Unit';
 import { z } from 'zod';
 
-// mêmes types que ton UnitsEditor
-const zField = z.discriminatedUnion('type', [
-    z.object({
-        type: z.enum(['text_short', 'text_long']),
-        id: z.string().min(1),
-        label: z.string().min(1),
-        required: z.boolean().optional(),
-        minLen: z.number().int().min(0).optional(),
-        maxLen: z.number().int().min(1).optional(),
-        placeholder: z.string().optional(),
-    }),
-    z.object({
-        type: z.literal('slider'),
-        id: z.string().min(1),
-        label: z.string().min(1),
-        required: z.boolean().optional(),
-        min: z.number().int().min(0).optional(),
-        max: z.number().int().min(1).optional(),
-        step: z.number().int().min(1).optional(),
-    }),
-    z.object({ type: z.literal('checkbox'), id: z.string().min(1), label: z.string().min(1), required: z.boolean().optional() }),
-    z.object({ type: z.literal('chips'), id: z.string().min(1), label: z.string().min(1), required: z.boolean().optional(), options: z.array(z.string()).optional() }),
-    // bonus: groupe de scores (J1 & J7)
-    z.object({ type: z.literal('score_group'), id: z.string().min(1), label: z.string().min(1) }),
-]);
+const zSlider = z.object({
+    key: z.string().min(1),
+    label: z.string().min(1),
+    min: z.number().int().default(0),
+    max: z.number().int().default(10),
+    step: z.number().int().default(1),
+});
+const zQuestion = z.object({ key: z.string().min(1), label: z.string().min(1), placeholder: z.string().optional().default('') });
+const zCheck = z.object({ key: z.string().min(1), label: z.string().min(1) });
 
-const zUnitForm = z.object({
-    programSlug: z.string().min(1),
-    unitIndex: z.number().int().min(1).max(7),
+const zUnit = z.object({
+    unitIndex: z.number().int().min(1),
     title: z.string().min(1),
-    introText: z.string().optional(),
-    mantra: z.string().optional(),
-    durationMin: z.number().int().min(1).optional(),
-    videoAssetId: z.string().optional(),
-    status: z.enum(['draft', 'published']).optional(),
-    fields: z.array(zField).max(24),
+    durationMin: z.number().int().min(1).max(180).default(25),
+    mantra: z.string().optional().default(''),
+    videoAssetId: z.string().optional().default(''),
+    audioAssetId: z.string().optional().default(''),
+    contentParagraphs: z.array(z.string()).default([]),
+    safetyNote: z.string().optional().default(''),
+    journal: z
+        .object({
+            sliders: z.array(zSlider).default([]),
+            questions: z.array(zQuestion).default([]),
+            checks: z.array(zCheck).default([]),
+        })
+        .default({ sliders: [], questions: [], checks: [] }),
+    status: z.enum(['draft', 'published']).default('draft'),
 });
 
-function validateUniqueIds(fields: z.infer<typeof zField>[]) {
-    const ids = fields.map((f) => f.id);
-    const dup = ids.find((id, i) => ids.indexOf(id) !== i);
-    if (dup) throw new Error(`IDs de champs dupliqués: "${dup}"`);
-}
+const zPayload = z.object({ units: z.array(zUnit) });
 
-export async function POST(req: Request) {
+export async function POST(req: Request, { params }: { params: { slug: string } }) {
     await requireAdmin();
     await dbConnect();
-    const payload = await req.json();
-    const data = zUnitForm.parse(payload);
 
-    validateUniqueIds(data.fields);
+    const programSlug = params.slug.toLowerCase();
+    const raw = await req.json().catch(() => ({}));
+    const data = zPayload.parse(raw);
 
-    const unit = await Unit.findOneAndUpdate(
-        { programSlug: data.programSlug.toLowerCase(), unitType: 'day', unitIndex: data.unitIndex },
-        {
-            $set: {
-                programSlug: data.programSlug.toLowerCase(),
-                unitType: 'day',
-                unitIndex: data.unitIndex,
-                title: data.title,
-                introText: data.introText ?? '',
-                mantra: data.mantra ?? '',
-                durationMin: data.durationMin ?? 20,
-                videoAssetId: data.videoAssetId,
-                journalSchema: { fields: data.fields },
-                status: data.status ?? 'draft',
+    // Upsert unitairement pour garder l’historique et l’index unique
+    for (const u of data.units) {
+        await Unit.findOneAndUpdate(
+            { programSlug, unitIndex: u.unitIndex, unitType: 'day' },
+            {
+                $set: {
+                    title: u.title,
+                    durationMin: u.durationMin,
+                    mantra: u.mantra,
+                    videoAssetId: u.videoAssetId,
+                    audioAssetId: u.audioAssetId,
+                    contentParagraphs: u.contentParagraphs,
+                    safetyNote: u.safetyNote,
+                    journalSchema: u.journal,
+                    status: u.status,
+                },
+                $setOnInsert: { programSlug, unitType: 'day' },
             },
-        },
-        { new: true, upsert: true }
-    ).lean();
+            { upsert: true, new: true }
+        ).lean();
+    }
 
-    return NextResponse.json({ ok: true, unit });
+    // Option: supprimer les jours au-delà de la liste envoyée (si tu veux “remplacement total”)
+    const keepIdx = new Set(data.units.map((u) => u.unitIndex));
+    await Unit.deleteMany({ programSlug, unitType: 'day', unitIndex: { $nin: Array.from(keepIdx) } });
+
+    return NextResponse.json({ ok: true });
 }
