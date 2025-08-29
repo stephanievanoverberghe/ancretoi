@@ -388,8 +388,6 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
 
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-5xl mx-auto p-6 space-y-8">
-            <h1 className="text-2xl font-semibold">Landing — {slug}</h1>
-
             {/* META & STATUS */}
             <section className="space-y-3">
                 <h2 className="font-semibold text-lg">Meta</h2>

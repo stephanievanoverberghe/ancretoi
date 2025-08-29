@@ -1,4 +1,3 @@
-// src/app/api/admin/units/route.ts
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/db/connect';
 import { requireAdmin } from '@/lib/authz';
@@ -71,63 +70,99 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, units });
 }
 
-/* ----------------------- POST: upsert des unités ----------------------- */
-export async function POST(req: Request) {
+/* ----------------------- DELETE: supprime une unité ----------------------- */
+export async function DELETE(req: Request) {
     await requireAdmin();
     await dbConnect();
 
     const url = new URL(req.url);
-    const slugFromQuery = (url.searchParams.get('slug') || '').toLowerCase();
+    const slug = (url.searchParams.get('slug') || '').toLowerCase();
+    const unitIndex = Number(url.searchParams.get('unitIndex') || '');
 
-    // Accepte JSON et FormData
-    const ct = req.headers.get('content-type') ?? '';
-    let raw: unknown;
-    if (ct.includes('application/json')) {
-        raw = await req.json().catch(() => ({}));
-    } else {
-        const fd = await req.formData();
-        const obj: Record<string, unknown> = {};
-        for (const [k, v] of fd.entries()) obj[k] = typeof v === 'string' ? v : String(v);
-        raw = obj;
+    if (!slug || !Number.isInteger(unitIndex) || unitIndex < 1) {
+        return NextResponse.json({ error: 'missing_or_invalid_params' }, { status: 400 });
     }
 
-    const base = isRecord(raw) ? raw : {};
-    const parsed = zPayload.parse(base);
+    const res = await Unit.deleteOne({ programSlug: slug, unitType: 'day', unitIndex });
+    return NextResponse.json({ ok: true, deleted: res.deletedCount ?? 0 });
+}
 
-    const programSlug = (parsed.programSlug || slugFromQuery).toLowerCase();
-    if (!programSlug) {
-        return NextResponse.json({ error: 'missing_programSlug' }, { status: 400 });
-    }
+/* ----------------------- POST: upsert des unités (option prune) ----------------------- */
+export async function POST(req: Request) {
+    await requireAdmin();
+    await dbConnect();
 
-    // Upsert unitaire pour chaque jour
-    for (const u of parsed.units) {
-        await Unit.findOneAndUpdate(
-            { programSlug, unitIndex: u.unitIndex, unitType: 'day' },
-            {
-                $set: {
-                    title: u.title,
-                    durationMin: u.durationMin,
-                    mantra: u.mantra,
-                    videoAssetId: u.videoAssetId,
-                    audioAssetId: u.audioAssetId,
-                    contentParagraphs: u.contentParagraphs,
-                    safetyNote: u.safetyNote,
-                    journalSchema: u.journal,
-                    status: u.status,
+    try {
+        const url = new URL(req.url);
+        const slugFromQuery = (url.searchParams.get('slug') || '').toLowerCase();
+        const prune = url.searchParams.get('prune') === 'true';
+
+        // Accepte JSON et FormData
+        const ct = req.headers.get('content-type') ?? '';
+        let raw: unknown;
+        if (ct.includes('application/json')) {
+            raw = await req.json().catch(() => ({}));
+        } else {
+            const fd = await req.formData();
+            const obj: Record<string, unknown> = {};
+            for (const [k, v] of fd.entries()) obj[k] = typeof v === 'string' ? v : String(v);
+            raw = obj;
+        }
+
+        const base = isRecord(raw) ? raw : {};
+        const parsed = zPayload.parse(base);
+
+        const programSlug = (parsed.programSlug || slugFromQuery).toLowerCase();
+        if (!programSlug) {
+            return NextResponse.json({ error: 'missing_programSlug' }, { status: 400 });
+        }
+
+        // Validation métier: indices dupliqués dans le payload
+        {
+            const seen = new Set<number>();
+            for (const u of parsed.units) {
+                if (seen.has(u.unitIndex)) {
+                    return NextResponse.json({ error: `duplicate_unitIndex_${u.unitIndex}` }, { status: 400 });
+                }
+                seen.add(u.unitIndex);
+            }
+        }
+
+        // Upsert unitaire pour chaque unité
+        for (const u of parsed.units) {
+            await Unit.findOneAndUpdate(
+                { programSlug, unitIndex: u.unitIndex, unitType: 'day' },
+                {
+                    $set: {
+                        title: u.title,
+                        durationMin: u.durationMin,
+                        mantra: u.mantra,
+                        videoAssetId: u.videoAssetId,
+                        audioAssetId: u.audioAssetId,
+                        contentParagraphs: u.contentParagraphs,
+                        safetyNote: u.safetyNote,
+                        journalSchema: u.journal,
+                        status: u.status,
+                    },
+                    $setOnInsert: { programSlug, unitType: 'day' },
                 },
-                $setOnInsert: { programSlug, unitType: 'day' },
-            },
-            { upsert: true, new: true }
-        ).lean();
+                { upsert: true, new: true }
+            ).lean();
+        }
+
+        // Supprime les unités non envoyées seulement si demandé
+        if (prune) {
+            const keepIdx = new Set(parsed.units.map((u) => u.unitIndex));
+            await Unit.deleteMany({
+                programSlug,
+                unitType: 'day',
+                unitIndex: { $nin: Array.from(keepIdx) },
+            });
+        }
+
+        return NextResponse.json({ ok: true });
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : 'unknown_error';
+        return NextResponse.json({ error: msg }, { status: 400 });
     }
-
-    // Optionnel : supprime les jours non envoyés
-    const keepIdx = new Set(parsed.units.map((u) => u.unitIndex));
-    await Unit.deleteMany({
-        programSlug,
-        unitType: 'day',
-        unitIndex: { $nin: Array.from(keepIdx) },
-    });
-
-    return NextResponse.json({ ok: true });
 }
