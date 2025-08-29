@@ -1,4 +1,3 @@
-// src/models/ProgramPage.ts
 import { Schema, model, models, type Model, type InferSchemaType, Types } from 'mongoose';
 
 /* ---------- Sous-schémas réutilisables ---------- */
@@ -12,70 +11,27 @@ const ImageSchema = new Schema(
     { _id: false }
 );
 
-const FaqSchema = new Schema(
-    {
-        q: { type: String, default: '' },
-        a: { type: String, default: '' },
-    },
-    { _id: false }
-);
+const FaqSchema = new Schema({ q: { type: String, default: '' }, a: { type: String, default: '' } }, { _id: false });
 
-const BenefitSchema = new Schema(
-    {
-        icon: { type: String, default: '' },
-        title: { type: String, default: '' },
-        text: { type: String, default: '' },
-    },
-    { _id: false }
-);
+const BenefitSchema = new Schema({ icon: { type: String, default: '' }, title: { type: String, default: '' }, text: { type: String, default: '' } }, { _id: false });
 
 const TestimonialSchema = new Schema(
-    {
-        name: { type: String, default: '' },
-        role: { type: String, default: '' },
-        text: { type: String, default: '' },
-        avatar: { type: String, default: '' }, // URL
-    },
+    { name: { type: String, default: '' }, role: { type: String, default: '' }, text: { type: String, default: '' }, avatar: { type: String, default: '' } },
     { _id: false }
 );
 
-const SeoSchema = new Schema(
-    {
-        title: { type: String, default: '' },
-        description: { type: String, default: '' },
-        image: { type: String, default: '' }, // URL
-    },
-    { _id: false }
-);
+const SeoSchema = new Schema({ title: { type: String, default: '' }, description: { type: String, default: '' }, image: { type: String, default: '' } }, { _id: false });
 
-const CurriculumItemSchema = new Schema(
-    {
-        label: { type: String, required: true },
-        summary: { type: String, default: '' },
-    },
-    { _id: false }
-);
-
-/* prix */
-const PriceSchema = new Schema(
-    {
-        amountCents: { type: Number, default: null },
-        currency: { type: String, default: 'EUR' },
-        taxIncluded: { type: Boolean, default: true },
-        compareAtCents: { type: Number, default: null },
-        stripePriceId: { type: String, default: null },
-    },
-    { _id: false }
-);
+const CurriculumItemSchema = new Schema({ label: { type: String, required: true }, summary: { type: String, default: '' } }, { _id: false });
 
 /* ---------- Nouveaux blocs “landing” ---------- */
 const PageGardeSchema = new Schema(
     {
-        heading: { type: String, default: '' }, // ex: RESET-7
-        tagline: { type: String, default: '' }, // “7 jours pour…”
-        format: { type: String, default: '' }, // “1 rdv/jour…”
-        audience: { type: String, default: '' }, // “Créé pour : …”
-        safetyNote: { type: String, default: '' }, // Note sécurité
+        heading: { type: String, default: '' },
+        tagline: { type: String, default: '' },
+        format: { type: String, default: '' },
+        audience: { type: String, default: '' },
+        safetyNote: { type: String, default: '' },
     },
     { _id: false }
 );
@@ -102,6 +58,18 @@ const ConclusionSchema = new Schema(
     { _id: false }
 );
 
+/* ---------- Prix ---------- */
+const PriceSchema = new Schema(
+    {
+        amountCents: { type: Number, default: null }, // null = pas en vente
+        currency: { type: String, default: 'EUR' },
+        taxIncluded: { type: Boolean, default: true },
+        compareAtCents: { type: Number, default: null },
+        stripePriceId: { type: String, default: null },
+    },
+    { _id: false }
+);
+
 /* ---------- Schéma principal ProgramPage ---------- */
 const ProgramPageSchema = new Schema(
     {
@@ -114,7 +82,6 @@ const ProgramPageSchema = new Schema(
             index: true,
         },
 
-        // Zone “hero” (bannière visuelle + CTA)
         hero: {
             eyebrow: { type: String, default: '' },
             title: { type: String, default: '' },
@@ -124,7 +91,6 @@ const ProgramPageSchema = new Schema(
             heroImage: { type: ImageSchema, default: null },
         },
 
-        // Carte catalogue (vignette)
         card: {
             image: { type: ImageSchema, default: null },
             tagline: { type: String, default: '' },
@@ -133,18 +99,12 @@ const ProgramPageSchema = new Schema(
             badges: { type: [String], default: [] },
         },
 
-        // “Page de garde” (bloc éditorial au dessus)
         pageGarde: { type: PageGardeSchema, default: {} },
 
-        // Métadonnées
         meta: {
             durationDays: { type: Number, min: 1, max: 365, default: 7 },
             estMinutesPerDay: { type: Number, min: 1, max: 180, default: 20 },
-            level: {
-                type: String,
-                enum: ['beginner', 'intermediate', 'advanced'],
-                default: 'beginner',
-            },
+            level: { type: String, enum: ['beginner', 'intermediate', 'advanced'], default: 'beginner' },
             category: { type: String, default: 'wellbeing' },
             tags: { type: [String], default: [] },
             language: { type: String, default: 'fr' },
@@ -156,21 +116,15 @@ const ProgramPageSchema = new Schema(
         testimonials: { type: [TestimonialSchema], default: [] },
         faq: { type: [FaqSchema], default: [] },
 
-        // Blocs éditoriaux longs
         intro: { type: IntroSchema, default: {} },
         conclusion: { type: ConclusionSchema, default: {} },
 
-        // SEO
         seo: { type: SeoSchema, default: {} },
 
-        price: { type: PriceSchema, default: {} },
+        /* ✅ Prix */
+        price: { type: PriceSchema, default: { currency: 'EUR', taxIncluded: true } },
 
-        status: {
-            type: String,
-            enum: ['draft', 'preflight', 'published'],
-            default: 'draft',
-            index: true,
-        },
+        status: { type: String, enum: ['draft', 'preflight', 'published'], default: 'draft', index: true },
 
         version: { type: String, default: '1.0' },
         publishedAt: { type: Date, default: null },
@@ -178,9 +132,7 @@ const ProgramPageSchema = new Schema(
     { timestamps: true }
 );
 
-export type ProgramPageDoc = InferSchemaType<typeof ProgramPageSchema> & {
-    _id: Types.ObjectId;
-};
+export type ProgramPageDoc = InferSchemaType<typeof ProgramPageSchema> & { _id: Types.ObjectId };
 
 const ProgramPageModel = (models.ProgramPage as Model<ProgramPageDoc>) || model<ProgramPageDoc>('ProgramPage', ProgramPageSchema);
 

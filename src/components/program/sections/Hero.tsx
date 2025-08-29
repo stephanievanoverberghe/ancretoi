@@ -10,7 +10,7 @@ import { Clock3, Gauge, Sparkles, Headphones, Play } from 'lucide-react';
 import BuyButton from '@/components/BuyButton';
 import type { Program } from '@/lib/programs-index';
 import { formatPrice } from '@/lib/programs-index';
-import { track } from '@/lib/analytics';
+import { track } from '@/lib/analytics.client';
 import { getChargeLabel } from '@/lib/programs-compare';
 
 type Props = {

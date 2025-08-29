@@ -7,7 +7,7 @@ import { Target, Gauge, Timer } from 'lucide-react';
 import Image from 'next/image';
 
 import type { Program } from '@/lib/programs-index';
-import { track } from '@/lib/analytics';
+import { track } from '@/lib/analytics.client';
 
 type Props = { program: Program };
 

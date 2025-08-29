@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { Sunrise, Sun, Moon, PlayCircle, X, Gauge, Calendar } from 'lucide-react';
 import { getProgramLoader } from '@/lib/programs';
-import { track } from '@/lib/analytics';
+import { track } from '@/lib/analytics.client';
 import type { ProgramJSON, Day, DaySection, Exercise } from '@/types/program';
 
 type Props = {

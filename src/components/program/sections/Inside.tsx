@@ -7,7 +7,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Headphones, FileText, Timer, NotebookPen, Infinity, RefreshCcw } from 'lucide-react';
 
 import { getProgramLoader } from '@/lib/programs';
-import { track } from '@/lib/analytics';
+import { track } from '@/lib/analytics.client';
 import type { ProgramJSON, DaySection, Exercise } from '@/types/program';
 import type { Program } from '@/lib/programs-index';
 

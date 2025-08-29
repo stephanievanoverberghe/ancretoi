@@ -13,6 +13,7 @@ type Row = {
     status: 'draft' | 'preflight' | 'published';
     hero?: { title?: string | null } | null;
     card?: { image?: { url?: string | null; alt?: string | null } | null } | null;
+    price?: { amountCents?: number | null; currency?: string | null } | null;
     unitsCount: number;
 };
 
@@ -22,13 +23,23 @@ type PgLean = {
     status: 'draft' | 'preflight' | 'published';
     hero?: { title?: string | null } | null;
     card?: { image?: { url?: string | null; alt?: string | null } | null } | null;
+    price?: { amountCents?: number | null; currency?: string | null } | null;
 };
+
+function formatPrice(p?: Row['price']) {
+    if (!p || p.amountCents == null) return 'Bientôt';
+    try {
+        return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: (p.currency ?? 'EUR').toUpperCase() }).format(p.amountCents / 100);
+    } catch {
+        return `${(p.amountCents / 100).toFixed(2)} ${(p.currency ?? 'EUR').toUpperCase()}`;
+    }
+}
 
 export default async function ProgramsListPage() {
     await requireAdmin();
     await dbConnect();
 
-    const pages = await ProgramPage.find().select({ programSlug: 1, status: 1, hero: 1, card: 1 }).sort({ createdAt: -1 }).lean<PgLean[]>();
+    const pages = await ProgramPage.find().select({ programSlug: 1, status: 1, hero: 1, card: 1, price: 1 }).sort({ createdAt: -1 }).lean<PgLean[]>();
 
     const rows: Row[] = await Promise.all(
         pages.map(async (p) => {
@@ -38,6 +49,7 @@ export default async function ProgramsListPage() {
                 status: p.status,
                 hero: p.hero ?? undefined,
                 card: p.card ?? undefined,
+                price: p.price ?? undefined,
                 unitsCount,
             };
         })
@@ -52,7 +64,6 @@ export default async function ProgramsListPage() {
                 </Link>
             </div>
 
-            {/* grille cartes admin */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {rows.map((r) => (
                     <div key={r.programSlug} className="rounded-xl border p-4 bg-white">
@@ -72,15 +83,19 @@ export default async function ProgramsListPage() {
                             <div className="text-xs text-muted-foreground">{r.programSlug}</div>
                             <div className="text-lg font-semibold">{r.hero?.title ?? 'Sans titre'}</div>
                             <div className="mt-1 text-sm text-muted-foreground">
-                                {r.status} • {r.unitsCount} unité{r.unitsCount > 1 ? 's' : ''}
+                                {r.status} • {r.unitsCount} unité{r.unitsCount > 1 ? 's' : ''} • {formatPrice(r.price)}
                             </div>
 
-                            <div className="mt-3 flex gap-2">
+                            <div className="mt-3 flex gap-3 flex-wrap">
                                 <Link href={`/admin/programs/${r.programSlug}/units`} className="text-brand-700 hover:underline">
                                     Jours
                                 </Link>
                                 <Link href={`/admin/programs/${r.programSlug}/page`} className="text-brand-700 hover:underline">
                                     Landing
+                                </Link>
+                                {/* ✅ Lien édition des métadonnées */}
+                                <Link href={`/admin/programs/${r.programSlug}/edit`} className="text-brand-700 hover:underline">
+                                    Éditer
                                 </Link>
                                 <DeleteProgramButton slug={r.programSlug} />
                             </div>

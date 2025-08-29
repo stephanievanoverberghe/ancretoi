@@ -1,29 +1,25 @@
+import 'server-only';
+import { ReactNode } from 'react';
 import { requireAdmin } from '@/lib/authz';
-import Link from 'next/link';
+import AdminShell from '@/components/admin/AdminShell';
+import { Home, BookOpen, Newspaper, Users, Mail, Boxes } from 'lucide-react';
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+    // 🔐 garde globale : seul l’admin accède à tout ce sous-arbre
     await requireAdmin();
-    return (
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
-            <h1 className="mb-4 font-serif text-3xl">Admin</h1>
-            <nav className="mb-6 flex flex-wrap gap-2 text-sm">
-                <Link className="navlink" href="/admin">
-                    Tableau de bord
-                </Link>
-                <Link className="navlink" href="/admin/programs">
-                    Parcours
-                </Link>
-                <Link className="navlink" href="/admin/blog">
-                    Articles
-                </Link>
-                <Link className="navlink" href="/admin/inspirations">
-                    Inspirations
-                </Link>
-                <Link className="navlink" href="/admin/users">
-                    Utilisateurs
-                </Link>
-            </nav>
-            {children}
-        </div>
-    );
+
+    const nav = [
+        { href: '/admin', label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
+        { href: '/admin/programs', label: 'Programmes', icon: <Boxes className="h-4 w-4" /> },
+        { href: '/admin/newsletter', label: 'Newsletter', icon: <Mail className="h-4 w-4" /> },
+        { href: '/admin/blog', label: 'Articles', icon: <Newspaper className="h-4 w-4" /> },
+        { href: '/admin/inspirations', label: 'Inspirations', icon: <BookOpen className="h-4 w-4" /> },
+        { href: '/admin/users', label: 'Utilisateurs', icon: <Users className="h-4 w-4" /> },
+    ];
+
+    return <AdminShell nav={nav}>{children}</AdminShell>;
 }

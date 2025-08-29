@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Clock3, Gauge, CalendarDays, RotateCcw } from 'lucide-react';
 
 import { getProgramLoader } from '@/lib/programs';
-import { track } from '@/lib/analytics';
+import { track } from '@/lib/analytics.client';
 import { getChargeLabel } from '@/lib/programs-compare';
 import type { Program } from '@/lib/programs-index';
 import type { ProgramJSON, DaySection } from '@/types/program';

@@ -7,7 +7,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Frown, CheckCircle2, ArrowRight, Compass, Zap, HeartPulse, ShieldCheck, Timer, MoonStar, Target } from 'lucide-react';
 
 import type { Program } from '@/lib/programs-index';
-import { track } from '@/lib/analytics';
+import { track } from '@/lib/analytics.client';
 
 /* ---------------- UI atoms ---------------- */
 

@@ -1,4 +1,3 @@
-// src/app/api/admin/programs/route.ts
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { dbConnect } from '@/db/connect';
@@ -10,12 +9,24 @@ import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
-// Accepte "/.../image.jpg" OU "https://..."
+// "/path" ou "https://..."
 const zUrlOrPath = z
     .string()
     .trim()
     .min(1)
-    .regex(/^(\/|https?:\/\/)/, 'Doit commencer par / (chemin public) ou http(s)://');
+    .regex(/^(\/|https?:\/\/)/, 'Doit commencer par / (public) ou http(s)://');
+
+// Helpers Zod pour les champs "vides"
+const zNullableCents = z.preprocess((v) => (v === '' || v == null ? null : Number(v)), z.number().int().min(0).nullable());
+
+const zBooleanLike = z.preprocess((v) => {
+    if (typeof v === 'string') {
+        const s = v.toLowerCase();
+        if (['true', '1', 'on', 'yes'].includes(s)) return true;
+        if (['false', '0', 'off', 'no'].includes(s)) return false;
+    }
+    return v;
+}, z.boolean().default(true));
 
 const zPayload = z.object({
     slug: z.string().min(1),
@@ -26,6 +37,7 @@ const zPayload = z.object({
     level: z.enum(['beginner', 'intermediate', 'advanced']).default('beginner'),
     category: z.string().default('wellbeing'),
     tags: z.array(z.string()).optional().default([]),
+
     heroImageUrl: zUrlOrPath.optional(),
     heroImageAlt: z.string().optional(),
     cardImageUrl: zUrlOrPath.optional(),
@@ -33,12 +45,13 @@ const zPayload = z.object({
     cardTagline: z.string().optional(),
     cardSummary: z.string().optional(),
     accentColor: z.string().optional(),
-    /* ✅ Prix */
-    amountCents: z.coerce.number().int().min(0).nullable().optional(), // null = pas en vente
-    currency: z.string().min(3).max(3).default('EUR'),
-    taxIncluded: z.coerce.boolean().optional().default(true),
-    compareAtCents: z.coerce.number().int().min(0).nullable().optional(),
-    stripePriceId: z.string().optional().nullable(),
+
+    // ✅ Prix (avec '' -> null)
+    amountCents: zNullableCents.optional(),
+    currency: z.string().length(3).default('EUR'),
+    taxIncluded: zBooleanLike.optional().default(true),
+    compareAtCents: zNullableCents.optional(),
+    stripePriceId: z.preprocess((v) => (v === '' ? null : v), z.string().nullable()).optional(),
 });
 
 function slugify(input: string) {
@@ -50,17 +63,12 @@ function slugify(input: string) {
         .replace(/^-+|-+$/g, '');
 }
 
-// Type guard util
 function isObject(v: unknown): v is Record<string, unknown> {
     return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
-
-// Récupère une prop d’un objet inconnu
 function getProp(obj: unknown, key: string): unknown {
     return isObject(obj) ? obj[key] : undefined;
 }
-
-// Convertit tags (string CSV, string[], FormData string) -> string[]
 function coerceTags(value: unknown): string[] | undefined {
     if (Array.isArray(value)) return value.map((s) => String(s));
     if (typeof value === 'string') {
@@ -84,28 +92,35 @@ export async function POST(req: Request) {
     const ct = req.headers.get('content-type') ?? '';
     const accept = req.headers.get('accept') ?? '';
 
-    // Lecture brute (JSON ou FormData) sans any
     let raw: unknown;
     if (ct.includes('application/json')) {
-        raw = await req.json(); // unknown
+        raw = await req.json();
     } else {
         const fd = await req.formData();
-        // On force en { [k: string]: string } pour zod
         const obj: Record<string, string> = {};
         for (const [k, v] of fd.entries()) obj[k] = typeof v === 'string' ? v : String(v);
         raw = obj;
     }
 
-    // Base object safe
     const base: Record<string, unknown> = isObject(raw) ? raw : {};
-    // Tags normalisés
     const tags = coerceTags(getProp(raw, 'tags'));
 
-    for (const k of ['heroImageUrl', 'cardImageUrl', 'heroImageAlt', 'cardImageAlt', 'cardTagline', 'cardSummary', 'accentColor']) {
+    // Nettoyage des champs vides côté FormData
+    for (const k of [
+        'heroImageUrl',
+        'cardImageUrl',
+        'heroImageAlt',
+        'cardImageAlt',
+        'cardTagline',
+        'cardSummary',
+        'accentColor',
+        // ✅ prix
+        'amountCents',
+        'compareAtCents',
+        'stripePriceId',
+    ]) {
         const v = base[k];
-        if (typeof v === 'string' && v.trim() === '') {
-            delete base[k]; // les champs vides ne passent pas au schéma
-        }
+        if (typeof v === 'string' && v.trim() === '') delete base[k];
     }
 
     const data = zPayload.parse({
@@ -138,10 +153,10 @@ export async function POST(req: Request) {
                     tags: data.tags ?? [],
                     language: 'fr',
                 },
-                /* ✅ Prix */
+                // ✅ prix correctement normalisé
                 price: {
                     amountCents: data.amountCents ?? null,
-                    currency: data.currency ?? 'EUR',
+                    currency: (data.currency ?? 'EUR').toUpperCase(),
                     taxIncluded: data.taxIncluded ?? true,
                     compareAtCents: data.compareAtCents ?? null,
                     stripePriceId: data.stripePriceId ?? null,
@@ -165,16 +180,13 @@ export async function DELETE(req: Request) {
     const slug = (url.searchParams.get('slug') || '').toLowerCase();
     const dryRun = url.searchParams.get('dryRun') === 'true';
 
-    if (!slug) {
-        return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
-    }
+    if (!slug) return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
 
     const session = await mongoose.startSession();
     let counts = { programPage: 0, units: 0, states: 0 };
 
     try {
         await session.withTransaction(async () => {
-            // Récupère les unités -> pour cibler les State
             const units = await Unit.find({ programSlug: slug }, { _id: 1 }).session(session);
             const unitIds = units.map((u) => u._id);
 
@@ -187,12 +199,11 @@ export async function DELETE(req: Request) {
                 counts.units = unitsDel.deletedCount ?? 0;
                 counts.programPage = pageDel.deletedCount ?? 0;
             } else {
-                // Juste un aperçu des volumes qui seraient supprimés
-                const statesCount = await State.countDocuments({ unitId: { $in: unitIds } }).session(session);
-                const unitsCount = await Unit.countDocuments({ programSlug: slug }).session(session);
-                const pageCount = await ProgramPage.countDocuments({ programSlug: slug }).session(session);
-
-                counts = { programPage: pageCount, units: unitsCount, states: statesCount };
+                counts = {
+                    programPage: await ProgramPage.countDocuments({ programSlug: slug }).session(session),
+                    units: await Unit.countDocuments({ programSlug: slug }).session(session),
+                    states: await State.countDocuments({ unitId: { $in: unitIds } }).session(session),
+                };
             }
         });
 
