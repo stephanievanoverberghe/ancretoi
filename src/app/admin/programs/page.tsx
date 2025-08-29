@@ -6,6 +6,7 @@ import { dbConnect } from '@/db/connect';
 import { requireAdmin } from '@/lib/authz';
 import ProgramPage from '@/models/ProgramPage';
 import Unit from '@/models/Unit';
+import DeleteProgramButton from '@/components/admin/DeleteProgramButton';
 
 type Row = {
     programSlug: string;
@@ -81,6 +82,7 @@ export default async function ProgramsListPage() {
                                 <Link href={`/admin/programs/${r.programSlug}/page`} className="text-brand-700 hover:underline">
                                     Landing
                                 </Link>
+                                <DeleteProgramButton slug={r.programSlug} />
                             </div>
                         </div>
                     </div>

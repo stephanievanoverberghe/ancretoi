@@ -1,3 +1,5 @@
+// app/admin/programs/[slug]/page/page-editor.tsx
+
 'use client';
 
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -280,6 +282,27 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
     const [successOpen, setSuccessOpen] = useState(false);
     const [successInfo, setSuccessInfo] = useState<{ title?: string; slug?: string } | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteBusy, setDeleteBusy] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+
+    async function deleteLanding() {
+        try {
+            setDeleteBusy(true);
+            setDeleteError(null);
+            const r = await fetch(`/api/admin/pages?slug=${encodeURIComponent(slug)}`, { method: 'DELETE' });
+            const data = await r.json();
+            if (!r.ok) throw new Error(data?.error || `HTTP ${r.status}`);
+            setDeleteOpen(false);
+            // Option: redirect vers la liste
+            window.location.href = '/admin/programs';
+        } catch (e) {
+            setDeleteError(e instanceof Error ? e.message : String(e));
+        } finally {
+            setDeleteBusy(false);
+        }
+    }
 
     async function onSubmit(values: PageForm) {
         try {
@@ -573,6 +596,25 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
                 <button type="submit" disabled={saving} className="rounded bg-purple-600 px-4 py-2 text-white disabled:opacity-60">
                     {saving ? 'Enregistrement…' : 'Enregistrer'}
                 </button>
+                <button type="button" onClick={() => setDeleteOpen(true)} className="rounded border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50">
+                    Supprimer la landing
+                </button>
+
+                <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Supprimer la landing">
+                    <p className="text-sm text-muted-foreground">
+                        Cela supprime uniquement la landing <span className="font-medium">{slug}</span>. Les unités et états NE sont pas supprimés. Pour tout supprimer, passe par
+                        “Supprimer le programme”.
+                    </p>
+                    {deleteError && <div className="mt-2 text-sm text-red-700">{deleteError}</div>}
+                    <div className="mt-4 flex items-center justify-end gap-2">
+                        <button onClick={() => setDeleteOpen(false)} className="rounded border px-3 py-2 text-sm">
+                            Annuler
+                        </button>
+                        <button onClick={deleteLanding} disabled={deleteBusy} className="rounded bg-red-600 px-3 py-2 text-sm text-white disabled:opacity-60">
+                            {deleteBusy ? 'Suppression…' : 'Supprimer'}
+                        </button>
+                    </div>
+                </Modal>
             </div>
 
             <input type="hidden" {...form.register('programSlug')} />

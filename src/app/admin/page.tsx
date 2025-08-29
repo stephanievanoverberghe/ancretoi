@@ -7,6 +7,7 @@ import ProgramPage from '@/models/ProgramPage';
 import Unit from '@/models/Unit';
 import { PostModel, InspirationModel, UserModel } from '@/db/schemas';
 import Newsletter, { type NewsletterDoc } from '@/models/Newsletter';
+import DeleteProgramButton from '@/components/admin/DeleteProgramButton';
 
 type NewsletterRow = Pick<NewsletterDoc, 'email' | 'status' | 'createdAt' | 'source'> & { _id: unknown };
 
@@ -109,6 +110,7 @@ export default async function AdminHome() {
                                             <Link href={`/admin/programs/${p.programSlug}/page`} className="text-brand-700 hover:underline">
                                                 Landing
                                             </Link>
+                                            <DeleteProgramButton slug={p.programSlug} />
                                         </div>
                                     </td>
                                 </tr>

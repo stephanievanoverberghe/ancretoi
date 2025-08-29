@@ -30,70 +30,108 @@ export default async function NewProgramPage() {
         await requireAdmin();
         await dbConnect();
 
+        // ----- helpers de lecture -----
         const getStr = (k: string) => String(formData.get(k) ?? '').trim();
-        const getNum = (k: string, fallback: number) => {
-            const v = Number(formData.get(k));
-            return Number.isFinite(v) ? v : fallback;
+        const getNumInt = (k: string, fallback: number) => {
+            const raw = String(formData.get(k) ?? '').trim();
+            const n = Number(raw);
+            return Number.isFinite(n) ? Math.round(n) : fallback;
         };
+        const getNumNullable = (k: string) => {
+            const raw = String(formData.get(k) ?? '').trim();
+            if (raw === '') return null;
+            const n = Number(raw);
+            return Number.isFinite(n) ? Math.round(n) : null;
+        };
+        const getBool = (k: string, def = true) => {
+            const v = String(formData.get(k) ?? '')
+                .trim()
+                .toLowerCase();
+            if (v === 'true' || v === '1' || v === 'on') return true;
+            if (v === 'false' || v === '0' || v === 'off') return false;
+            return def;
+        };
+        const cleanOpt = (s: string) => (s.length ? s : undefined);
 
-        // Lecture brute
+        // ----- lecture brute -----
         const raw = {
             slug: slugify(getStr('slug')),
-            title: getStr('title'),
             status: getStr('status') || 'draft',
-            durationDays: getNum('durationDays', 7),
-            estMinutesPerDay: getNum('estMinutesPerDay', 20),
+            title: getStr('title'),
+
+            durationDays: getNumInt('durationDays', 7),
+            estMinutesPerDay: getNumInt('estMinutesPerDay', 20),
             level: getStr('level') || 'beginner',
             category: getStr('category') || 'wellbeing',
-            tags: getStr('tags'), // CSV -> normalisé plus bas
-            heroImageUrl: getStr('heroImageUrl'),
+            tagsCsv: getStr('tags'),
+
+            heroImageUrl: cleanOpt(getStr('heroImageUrl')),
             heroImageAlt: getStr('heroImageAlt'),
-            cardImageUrl: getStr('cardImageUrl'),
+            cardImageUrl: cleanOpt(getStr('cardImageUrl')),
             cardImageAlt: getStr('cardImageAlt'),
             cardTagline: getStr('cardTagline'),
             cardSummary: getStr('cardSummary'),
             accentColor: getStr('accentColor'),
+
+            // ✅ Prix
+            amountCents: getNumNullable('amountCents'), // null -> pas en vente (Bientôt)
+            currency: (getStr('currency') || 'EUR').toUpperCase(),
+            taxIncluded: getBool('taxIncluded', true),
+            compareAtCents: getNumNullable('compareAtCents'),
+            stripePriceId: cleanOpt(getStr('stripePriceId')),
         };
 
-        // Normalisation tags
+        // normalisation tags -> array
         const tags =
-            raw.tags.length > 0
-                ? raw.tags
+            raw.tagsCsv.length > 0
+                ? raw.tagsCsv
                       .split(',')
                       .map((s) => s.trim())
                       .filter(Boolean)
                 : [];
 
-        // Validation
+        // ----- Validation Zod -----
         const zUrlOrPath = z
             .string()
             .trim()
-            .regex(/^(\/|https?:\/\/)/, 'Doit commencer par / ou http(s)://')
-            .optional();
+            .regex(/^(\/|https?:\/\/)/, 'Doit commencer par / ou http(s)://');
+
+        const zNullableCents = z.union([z.number().int().min(0), z.null()]).optional();
 
         const Schema = z.object({
             slug: z.string().min(1, 'Slug requis'),
-            title: z.string().min(1, 'Titre requis'),
             status: z.enum(['draft', 'preflight', 'published']).default('draft'),
+            title: z.string().min(1, 'Titre requis'),
             durationDays: z.number().int().min(1).max(365),
             estMinutesPerDay: z.number().int().min(1).max(180),
             level: z.enum(['beginner', 'intermediate', 'advanced']).default('beginner'),
             category: z.string().min(1),
-            tags: z.array(z.string()).optional().default([]),
-            heroImageUrl: zUrlOrPath,
+            tags: z.array(z.string()).default([]),
+
+            heroImageUrl: zUrlOrPath.optional(),
             heroImageAlt: z.string().optional(),
-            cardImageUrl: zUrlOrPath,
+            cardImageUrl: zUrlOrPath.optional(),
             cardImageAlt: z.string().optional(),
             cardTagline: z.string().optional(),
             cardSummary: z.string().optional(),
             accentColor: z.string().optional(),
+
+            // ✅ Prix
+            amountCents: zNullableCents, // null = pas de vente
+            currency: z.string().length(3).optional().default('EUR'),
+            taxIncluded: z.boolean().optional().default(true),
+            compareAtCents: zNullableCents,
+            stripePriceId: z.string().optional(),
         });
 
-        const data = Schema.parse({ ...raw, tags });
+        const data = Schema.parse({
+            ...raw,
+            tags,
+        });
 
         const programSlug = data.slug;
 
-        // Upsert en base
+        // ----- Upsert en base -----
         await ProgramPage.findOneAndUpdate(
             { programSlug },
             {
@@ -102,6 +140,7 @@ export default async function NewProgramPage() {
                     status: data.status,
                     'hero.title': data.title,
                     ...(data.heroImageUrl ? { 'hero.heroImage': { url: data.heroImageUrl, alt: data.heroImageAlt ?? '' } } : {}),
+
                     card: {
                         image: data.cardImageUrl ? { url: data.cardImageUrl, alt: data.cardImageAlt ?? '' } : undefined,
                         tagline: data.cardTagline || undefined,
@@ -109,6 +148,7 @@ export default async function NewProgramPage() {
                         accentColor: data.accentColor || undefined,
                         badges: [`${data.durationDays} jours`, data.level === 'beginner' ? 'Débutant' : data.level === 'intermediate' ? 'Intermédiaire' : 'Avancé'].filter(Boolean),
                     },
+
                     meta: {
                         durationDays: data.durationDays,
                         estMinutesPerDay: data.estMinutesPerDay,
@@ -117,12 +157,21 @@ export default async function NewProgramPage() {
                         tags: data.tags ?? [],
                         language: 'fr',
                     },
+
+                    // ✅ Prix
+                    price: {
+                        amountCents: data.amountCents ?? null,
+                        currency: (data.currency ?? 'EUR').toUpperCase(),
+                        taxIncluded: data.taxIncluded ?? true,
+                        compareAtCents: data.compareAtCents ?? null,
+                        stripePriceId: data.stripePriceId ?? null,
+                    },
                 },
             },
             { new: true, upsert: true }
         ).lean();
 
-        // Redirection directe vers l’éditeur de la landing (pas d’API, pas de JSON)
+        // Redirection vers l’éditeur de la landing
         redirect(`/admin/programs/${programSlug}/page?created=1`);
     }
 
@@ -210,6 +259,39 @@ export default async function NewProgramPage() {
                     <div className="text-sm text-muted-foreground mb-1">Couleur d’accent (card)</div>
                     <input name="accentColor" placeholder="#6D28D9" className="border rounded p-2 w-full" />
                 </label>
+
+                {/* ✅ Bloc Prix */}
+                <fieldset className="mt-4 grid gap-3 border rounded-lg p-3">
+                    <legend className="text-sm font-medium">Prix</legend>
+
+                    <div className="grid md:grid-cols-2 gap-3">
+                        <label className="block">
+                            <div className="text-sm text-muted-foreground mb-1">Montant (centimes)</div>
+                            <input name="amountCents" type="number" min={0} placeholder="12900" className="border rounded p-2 w-full" />
+                            <p className="text-xs text-muted-foreground mt-1">Laisse vide pour “Bientôt” (pas en vente).</p>
+                        </label>
+                        <label className="block">
+                            <div className="text-sm text-muted-foreground mb-1">Devise (3 lettres)</div>
+                            <input name="currency" defaultValue="EUR" className="border rounded p-2 w-full" />
+                        </label>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-3">
+                        <label className="inline-flex items-center gap-2">
+                            <input type="checkbox" name="taxIncluded" defaultChecked />
+                            <span className="text-sm">TTC (taxIncluded)</span>
+                        </label>
+                        <label className="block">
+                            <div className="text-sm text-muted-foreground mb-1">Prix barré (centimes)</div>
+                            <input name="compareAtCents" type="number" min={0} placeholder="15900" className="border rounded p-2 w-full" />
+                        </label>
+                    </div>
+
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Stripe Price ID</div>
+                        <input name="stripePriceId" placeholder="price_123..." className="border rounded p-2 w-full" />
+                    </label>
+                </fieldset>
 
                 <div className="pt-2">
                     <button className="px-4 py-2 rounded bg-purple-600 text-white">Créer</button>

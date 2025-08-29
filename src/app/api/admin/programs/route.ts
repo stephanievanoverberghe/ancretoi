@@ -1,9 +1,14 @@
 // src/app/api/admin/programs/route.ts
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import { dbConnect } from '@/db/connect';
 import { requireAdmin } from '@/lib/authz';
 import ProgramPage from '@/models/ProgramPage';
+import Unit from '@/models/Unit';
+import State from '@/models/State';
 import { z } from 'zod';
+
+export const dynamic = 'force-dynamic';
 
 // Accepte "/.../image.jpg" OU "https://..."
 const zUrlOrPath = z
@@ -28,6 +33,12 @@ const zPayload = z.object({
     cardTagline: z.string().optional(),
     cardSummary: z.string().optional(),
     accentColor: z.string().optional(),
+    /* ✅ Prix */
+    amountCents: z.coerce.number().int().min(0).nullable().optional(), // null = pas en vente
+    currency: z.string().min(3).max(3).default('EUR'),
+    taxIncluded: z.coerce.boolean().optional().default(true),
+    compareAtCents: z.coerce.number().int().min(0).nullable().optional(),
+    stripePriceId: z.string().optional().nullable(),
 });
 
 function slugify(input: string) {
@@ -127,6 +138,14 @@ export async function POST(req: Request) {
                     tags: data.tags ?? [],
                     language: 'fr',
                 },
+                /* ✅ Prix */
+                price: {
+                    amountCents: data.amountCents ?? null,
+                    currency: data.currency ?? 'EUR',
+                    taxIncluded: data.taxIncluded ?? true,
+                    compareAtCents: data.compareAtCents ?? null,
+                    stripePriceId: data.stripePriceId ?? null,
+                },
             },
         },
         { new: true, upsert: true }
@@ -136,4 +155,51 @@ export async function POST(req: Request) {
         return NextResponse.redirect(new URL(`/admin/programs/${programSlug}/page`, req.url), 303);
     }
     return NextResponse.json({ ok: true, page: doc });
+}
+
+export async function DELETE(req: Request) {
+    await requireAdmin();
+    await dbConnect();
+
+    const url = new URL(req.url);
+    const slug = (url.searchParams.get('slug') || '').toLowerCase();
+    const dryRun = url.searchParams.get('dryRun') === 'true';
+
+    if (!slug) {
+        return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+    }
+
+    const session = await mongoose.startSession();
+    let counts = { programPage: 0, units: 0, states: 0 };
+
+    try {
+        await session.withTransaction(async () => {
+            // Récupère les unités -> pour cibler les State
+            const units = await Unit.find({ programSlug: slug }, { _id: 1 }).session(session);
+            const unitIds = units.map((u) => u._id);
+
+            if (!dryRun) {
+                const statesDel = await State.deleteMany({ unitId: { $in: unitIds } }).session(session);
+                const unitsDel = await Unit.deleteMany({ programSlug: slug }).session(session);
+                const pageDel = await ProgramPage.deleteOne({ programSlug: slug }).session(session);
+
+                counts.states = statesDel.deletedCount ?? 0;
+                counts.units = unitsDel.deletedCount ?? 0;
+                counts.programPage = pageDel.deletedCount ?? 0;
+            } else {
+                // Juste un aperçu des volumes qui seraient supprimés
+                const statesCount = await State.countDocuments({ unitId: { $in: unitIds } }).session(session);
+                const unitsCount = await Unit.countDocuments({ programSlug: slug }).session(session);
+                const pageCount = await ProgramPage.countDocuments({ programSlug: slug }).session(session);
+
+                counts = { programPage: pageCount, units: unitsCount, states: statesCount };
+            }
+        });
+
+        return NextResponse.json({ ok: true, dryRun, deleted: counts });
+    } catch (e) {
+        return NextResponse.json({ error: e instanceof Error ? e.message : 'delete_failed' }, { status: 500 });
+    } finally {
+        session.endSession();
+    }
 }

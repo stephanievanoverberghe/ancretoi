@@ -56,6 +56,18 @@ const CurriculumItemSchema = new Schema(
     { _id: false }
 );
 
+/* prix */
+const PriceSchema = new Schema(
+    {
+        amountCents: { type: Number, default: null },
+        currency: { type: String, default: 'EUR' },
+        taxIncluded: { type: Boolean, default: true },
+        compareAtCents: { type: Number, default: null },
+        stripePriceId: { type: String, default: null },
+    },
+    { _id: false }
+);
+
 /* ---------- Nouveaux blocs “landing” ---------- */
 const PageGardeSchema = new Schema(
     {
@@ -121,7 +133,7 @@ const ProgramPageSchema = new Schema(
             badges: { type: [String], default: [] },
         },
 
-        // ⚠️ Nouveau : “Page de garde” (bloc éditorial au dessus)
+        // “Page de garde” (bloc éditorial au dessus)
         pageGarde: { type: PageGardeSchema, default: {} },
 
         // Métadonnées
@@ -150,6 +162,8 @@ const ProgramPageSchema = new Schema(
 
         // SEO
         seo: { type: SeoSchema, default: {} },
+
+        price: { type: PriceSchema, default: {} },
 
         status: {
             type: String,

@@ -195,3 +195,21 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: false, error: msg }, { status: 400 });
     }
 }
+
+export async function DELETE(req: Request) {
+    await requireAdmin();
+    await dbConnect();
+
+    const url = new URL(req.url);
+    const slug = (url.searchParams.get('slug') || '').toLowerCase();
+
+    if (!slug) {
+        return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+    }
+
+    const res = await ProgramPage.deleteOne({ programSlug: slug });
+    return NextResponse.json({
+        ok: true,
+        deleted: { programPage: res.deletedCount ?? 0 },
+    });
+}
