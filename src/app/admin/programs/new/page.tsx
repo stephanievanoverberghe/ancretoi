@@ -1,3 +1,5 @@
+// src/app/admin/programs/new/page.tsx
+
 import 'server-only';
 import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
@@ -8,8 +10,6 @@ import { z } from 'zod';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
-
-const BUILD_LABEL = 'NewProgramPage v2 (server action)';
 
 function slugify(input: string) {
     return input
@@ -165,11 +165,123 @@ export default async function NewProgramPage() {
     return (
         <div className="max-w-2xl p-6 space-y-4">
             <h1 className="text-2xl font-semibold">Nouveau programme</h1>
-            <div className="text-xs text-muted-foreground">{BUILD_LABEL}</div>
 
             <form action={createProgram} className="grid gap-3">
-                {/* ... (ton UI inchangé) ... */}
-                {/* Je laisse volontairement tout ton UI en place */}
+                <div className="grid md:grid-cols-2 gap-3">
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Slug</div>
+                        <input name="slug" placeholder="reset-7" className="border rounded p-2 w-full" />
+                    </label>
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Statut</div>
+                        <select name="status" className="border rounded p-2 w-full" defaultValue="draft">
+                            <option value="draft">draft</option>
+                            <option value="preflight">preflight</option>
+                            <option value="published">published</option>
+                        </select>
+                    </label>
+                </div>
+
+                <label className="block">
+                    <div className="text-sm text-muted-foreground mb-1">Titre (hero.title)</div>
+                    <input name="title" placeholder="RESET-7" className="border rounded p-2 w-full" />
+                </label>
+
+                <div className="grid md:grid-cols-2 gap-3">
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Jours (durationDays)</div>
+                        <input name="durationDays" type="number" defaultValue={7} min={1} max={365} className="border rounded p-2 w-full" />
+                    </label>
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Minutes / jour</div>
+                        <input name="estMinutesPerDay" type="number" defaultValue={20} min={1} max={180} className="border rounded p-2 w-full" />
+                    </label>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-3">
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Niveau</div>
+                        <select name="level" className="border rounded p-2 w-full" defaultValue="beginner">
+                            <option value="beginner">Débutant</option>
+                            <option value="intermediate">Intermédiaire</option>
+                            <option value="advanced">Avancé</option>
+                        </select>
+                    </label>
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Catégorie</div>
+                        <input name="category" placeholder="wellbeing" className="border rounded p-2 w-full" />
+                    </label>
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Tags (séparés par des virgules)</div>
+                        <input name="tags" placeholder="respiration, routine, 7j" className="border rounded p-2 w-full" />
+                    </label>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-3">
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Hero image PATH</div>
+                        <input name="heroImageUrl" placeholder="/images/programs/reset-7/hero.jpg" className="border rounded p-2 w-full" />
+                        <input name="heroImageAlt" placeholder="Texte alternatif" className="border rounded p-2 w-full mt-2" />
+                    </label>
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Card image PATH</div>
+                        <input name="cardImageUrl" placeholder="/images/programs/reset-7/card.jpg" className="border rounded p-2 w-full" />
+                        <input name="cardImageAlt" placeholder="Texte alternatif" className="border rounded p-2 w-full mt-2" />
+                    </label>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-3">
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Card tagline</div>
+                        <input name="cardTagline" placeholder="7 jours pour..." className="border rounded p-2 w-full" />
+                    </label>
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Card summary</div>
+                        <input name="cardSummary" placeholder="Un mini-parcours pour..." className="border rounded p-2 w-full" />
+                    </label>
+                </div>
+
+                <label className="block">
+                    <div className="text-sm text-muted-foreground mb-1">Couleur d’accent (card)</div>
+                    <input name="accentColor" placeholder="#6D28D9" className="border rounded p-2 w-full" />
+                </label>
+
+                {/* Bloc Prix */}
+                <fieldset className="mt-4 grid gap-3 border rounded-lg p-3">
+                    <legend className="text-sm font-medium">Prix</legend>
+
+                    <div className="grid md:grid-cols-2 gap-3">
+                        <label className="block">
+                            <div className="text-sm text-muted-foreground mb-1">Montant (centimes)</div>
+                            <input name="amountCents" type="number" min={0} placeholder="12900" className="border rounded p-2 w-full" />
+                            <p className="text-xs text-muted-foreground mt-1">Laisse vide pour “Bientôt”.</p>
+                        </label>
+                        <label className="block">
+                            <div className="text-sm text-muted-foreground mb-1">Devise (3 lettres)</div>
+                            <input name="currency" defaultValue="EUR" className="border rounded p-2 w-full" />
+                        </label>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-3">
+                        <label className="inline-flex items-center gap-2">
+                            <input type="checkbox" name="taxIncluded" defaultChecked />
+                            <span className="text-sm">TTC (taxIncluded)</span>
+                        </label>
+                        <label className="block">
+                            <div className="text-sm text-muted-foreground mb-1">Prix barré (centimes)</div>
+                            <input name="compareAtCents" type="number" min={0} placeholder="15900" className="border rounded p-2 w-full" />
+                        </label>
+                    </div>
+
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Stripe Price ID</div>
+                        <input name="stripePriceId" placeholder="price_123..." className="border rounded p-2 w-full" />
+                    </label>
+                </fieldset>
+
+                <div className="pt-2">
+                    <button className="px-4 py-2 rounded bg-purple-600 text-white">Créer</button>
+                </div>
             </form>
         </div>
     );
