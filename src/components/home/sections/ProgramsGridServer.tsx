@@ -1,6 +1,6 @@
-// SERVER COMPONENT — pas de "use client"
+// components/home/sections/ProgramsGrid.tsx  (SERVER COMPONENT)
 import 'server-only';
-import ProgramsGridClient, { type Program } from './ProgramsGridClient';
+import ProgramsGridClient from './ProgramsGridClient';
 import { dbConnect } from '@/db/connect';
 import ProgramPage from '@/models/ProgramPage';
 
@@ -22,13 +22,13 @@ export default async function ProgramsGrid() {
 
     const pages = await ProgramPage.find({}).select({ programSlug: 1, status: 1, hero: 1, meta: 1, price: 1 }).sort({ createdAt: 1 }).lean<PgLean[]>();
 
-    const programs: Program[] = pages.map((p) => ({
+    // ✅ IMPORTANT : on fournit `cover` à la card
+    const programs = pages.map((p) => ({
         slug: p.programSlug,
         title: p.hero?.title ?? 'Sans titre',
         duration_days: p.meta?.durationDays ?? 7,
         status: p.status,
-        image: p.hero?.heroImage?.url ? { src: p.hero.heroImage.url, alt: p.hero.heroImage.alt ?? '' } : null,
-        // ✅ on passe bien le prix au client
+        cover: p.hero?.heroImage?.url ?? null, // <— ici
         price: {
             amount_cents: p.price?.amountCents ?? null,
             currency: (p.price?.currency ?? 'EUR') as string,

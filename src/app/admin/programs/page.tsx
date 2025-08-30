@@ -58,7 +58,7 @@ export default async function ProgramsListPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Parcours (pages)</h2>
+                <h2 className="text-xl font-semibold">Programmes</h2>
                 <Link href="/admin/programs/new" className="rounded-lg border px-3 py-2 text-sm hover:bg-brand-50">
                     + Nouveau
                 </Link>

@@ -1,8 +1,9 @@
-// app/programs/page.tsx
 import type { Metadata } from 'next';
-import data from '@/data/programs/index.json';
+import 'server-only';
+
+import CollectionsGridServer from '@/components/programs/sections/CollectionsGridServer';
+
 import ProgramsHero from '@/components/programs/sections/ProgramsHero';
-import CollectionsGrid from '@/components/programs/sections/CollectionsGrid';
 import ProgramsCompare from '@/components/programs/sections/Compare';
 import Inside from '@/components/programs/sections/Inside';
 import MethodMini from '@/components/programs/sections/MethodMini';
@@ -18,11 +19,15 @@ export const metadata: Metadata = {
     },
 };
 
-export default function ProgramsPage() {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
+export default async function ProgramsPage() {
     return (
         <>
             <ProgramsHero />
-            <CollectionsGrid programs={data.programs} />
+            <CollectionsGridServer />
             <ProgramsCompare />
             <Inside />
             <MethodMini />

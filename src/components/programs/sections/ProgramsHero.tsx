@@ -31,10 +31,10 @@ type Props = {
 
 export default function ProgramsHero({
     title = 'Des parcours courts pour revenir au corps, au souffle et à l’essentiel.',
-    subtitle = 'Des rituels tenables (10–12 min/j) pensés pour apaiser, clarifier et ancrer sans forcer.',
+    subtitle = 'Des rituels tenables (10–30 min/j) pensés pour apaiser, clarifier et ancrer sans forcer.',
     chips = [
         { icon: 'time', label: '7 / 10 / 30 / 90 jours' },
-        { icon: 'charge', label: '10–35 min / jour' },
+        { icon: 'charge', label: '20-60 min / jour' },
         { icon: 'level', label: 'Basique • Cible • Premium' },
     ],
     heroSrc = '/images/programs/hero-programs.webp',

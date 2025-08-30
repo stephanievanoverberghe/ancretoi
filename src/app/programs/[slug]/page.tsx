@@ -1,6 +1,7 @@
+// src/app/programs/[slug]/page.tsx
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getProgram } from '@/lib/programs-index';
+import { getProgramBySlug } from '@/lib/programs-index.server'; // ✅ DB
 import { getChargeLabel } from '@/lib/programs-compare';
 import Hero from '@/components/program/sections/Hero';
 import Who from '@/components/program/sections/Who';
@@ -13,7 +14,8 @@ import Planning from '@/components/program/sections/Planning';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
-    const program = getProgram(slug);
+
+    const program = await getProgramBySlug(slug); // ✅ DB
     if (!program) {
         return {
             title: 'Programme introuvable',
@@ -27,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const title = `${titleBase}`;
     const description = `${program.tagline} ${charge}. Accès à vie.`.trim();
     const url = `/programs/${program.slug}`;
-    const ogImage = program.cover ?? '/images/og-default.png';
+    const ogImage = program.cover || '/images/og-default.png';
 
     return {
         title,
@@ -61,7 +63,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProgramPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
-    const program = getProgram(slug);
+
+    const program = await getProgramBySlug(slug); // ✅ DB
     if (!program) return notFound();
 
     const dailyLoad = getChargeLabel(program.slug) ?? undefined;
