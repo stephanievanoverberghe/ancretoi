@@ -4,6 +4,9 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { useState } from 'react';
 import Link from 'next/link';
 
+import CreationSuccessModal from '../../components/CreationSuccessModal';
+import UpdateSuccessModal from '../../components/UpdateSuccessModal';
+
 /* ======================= Types ======================= */
 
 type Level = 'Basique' | 'Cible' | 'Premium';
@@ -175,7 +178,7 @@ function isApiOk(x: unknown): x is ApiOk {
     return !!x && typeof x === 'object' && 'ok' in x && (x as { ok: unknown }).ok === true && 'page' in x;
 }
 
-/* ======================= UI: Modal ======================= */
+/* ======================= UI: Modal (local) ======================= */
 
 function Modal(props: { open: boolean; onClose: () => void; children: React.ReactNode; title?: string; footer?: React.ReactNode }) {
     if (!props.open) return null;
@@ -283,62 +286,45 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
     const [successInfo, setSuccessInfo] = useState<{ title?: string; slug?: string } | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    /* ===== Submit ===== */
+    /* ===== Submit (payload FLAT pour /api/admin/pages) ===== */
     async function onSubmit(values: PageForm) {
         try {
             setSaving(true);
             setErrorMsg(null);
 
-            const payload = {
-                programSlug: values.programSlug.toLowerCase(),
-                status: values.status,
-                hero: {
-                    eyebrow: values.hero.eyebrow?.trim() || undefined,
-                    title: values.hero.title?.trim() || undefined,
-                    subtitle: values.hero.subtitle?.trim() || undefined,
-                    ctaLabel: values.hero.ctaLabel?.trim() || undefined,
-                    ctaHref: values.hero.ctaHref?.trim() || undefined,
-                    heroImage: values.hero.heroImage?.trim() || undefined,
-                },
-                card: {
-                    image: values.card.image?.trim() || undefined,
-                    tagline: values.card.tagline?.trim() || undefined,
-                    summary: values.card.summary?.trim() || undefined,
-                    accentColor: values.card.accentColor?.trim() || undefined,
-                },
-                meta: {
-                    durationDays: Number(values.meta.durationDays ?? 7),
-                    estMinutesPerDay: Number(values.meta.estMinutesPerDay ?? 20),
-                    level: (values.meta.level ?? 'Basique') as Level,
-                    category: values.meta.category?.trim() || 'wellbeing',
-                    tags: values.meta.tags ?? [],
-                    language: values.meta.language ?? 'fr',
-                },
+            if (!values.hero.title || values.hero.title.trim().length === 0) {
+                throw new Error('Le titre (Hero) est requis.');
+            }
 
-                // 🔥 comparateur -> payload /api/admin/pages
+            const payload = {
+                // ── champs attendus par zPayload côté API ─────────────────────────────
+                slug: values.programSlug.toLowerCase(),
+                title: values.hero.title.trim(),
+                status: values.status,
+
+                durationDays: Number(values.meta.durationDays ?? 7),
+                estMinutesPerDay: Number(values.meta.estMinutesPerDay ?? 20),
+                level: (values.meta.level ?? 'Basique') as Level,
+                category: values.meta.category?.trim() || 'wellbeing',
+                tags: values.meta.tags ?? [],
+
+                // assets & card
+                heroImageUrl: values.hero.heroImage?.trim() || undefined,
+                // heroImageAlt: — (pas d’input dédié ici)
+                cardImageUrl: values.card.image?.trim() || undefined,
+                // cardImageAlt: — (pas d’input dédié ici)
+                cardTagline: values.card.tagline?.trim() || undefined,
+                cardSummary: values.card.summary?.trim() || undefined,
+                accentColor: values.card.accentColor?.trim() || undefined,
+
+                // comparateur
                 objectif: values.compare.objectif?.trim() || undefined,
                 charge: values.compare.charge?.trim() || undefined,
                 ideal_si: values.compare.idealSi?.trim() || undefined,
                 cta: values.compare.cta?.trim() || undefined,
 
-                highlights:
-                    values.highlights?.map((b) => ({
-                        icon: b.icon?.trim() || undefined,
-                        title: b.title?.trim() || '',
-                        text: b.text?.trim() || '',
-                    })) ?? [],
-                curriculum:
-                    values.curriculum?.map((c) => ({
-                        label: c.label?.trim() || '',
-                        summary: c.summary?.trim() || undefined,
-                    })) ?? [],
-                testimonials: values.testimonials ?? [],
-                faq: values.faq ?? [],
-                seo: {
-                    title: values.seo.title?.trim() || undefined,
-                    description: values.seo.description?.trim() || undefined,
-                    image: values.seo.image?.trim() || undefined,
-                },
+                // (prix omis ici — optionnels côté API)
+                // amountCents, currency, taxIncluded, compareAtCents, stripePriceId
             };
 
             const r = await fetch('/api/admin/pages', {
@@ -376,6 +362,10 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
 
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-5xl mx-auto p-6 space-y-8">
+            {/* Modales globales de feedback (création / update) */}
+            <CreationSuccessModal />
+            <UpdateSuccessModal />
+
             {/* META & STATUS */}
             <section className="space-y-3">
                 <h2 className="font-semibold text-lg">Meta</h2>
@@ -574,9 +564,10 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
                 </button>
             </div>
 
-            <input type="hidden" value={slug} />
+            {/* utile seulement si tu veux la récupérer côté formData ailleurs */}
+            <input type="hidden" name="programSlug" value={slug} />
 
-            {/* Modale succès */}
+            {/* Modale succès (enregistrement) */}
             <Modal
                 open={successOpen}
                 onClose={() => setSuccessOpen(false)}

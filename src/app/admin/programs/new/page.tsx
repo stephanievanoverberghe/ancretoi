@@ -175,7 +175,7 @@ export default async function NewProgramPage() {
             { new: true, upsert: true }
         ).lean();
 
-        redirect(`/admin/programs/${programSlug}/page?created=1`);
+        redirect(`/admin/programs/${programSlug}/page?created=1&slug=${programSlug}`);
     }
 
     return (

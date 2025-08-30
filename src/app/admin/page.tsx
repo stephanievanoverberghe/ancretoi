@@ -60,7 +60,7 @@ export default async function AdminHome() {
 
             {/* KPI cliquables */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCardLink href="/admin/programs" icon={<Boxes className="h-5 w-5" />} label="Parcours (pages)" value={programsCount} />
+                <StatCardLink href="/admin/programs" icon={<Boxes className="h-5 w-5" />} label="Programmes publiés" value={programsCount} />
                 <StatCardLink href="/admin/blog" icon={<Newspaper className="h-5 w-5" />} label="Articles publiés" value={posts} />
                 <StatCardLink href="/admin/inspirations" icon={<Video className="h-5 w-5" />} label="Inspirations publiées" value={videos} />
                 <StatCardLink href="/admin/users" icon={<Users className="h-5 w-5" />} label="Utilisateurs actifs" value={users} />
@@ -212,7 +212,7 @@ function StatCardLink({ href, icon, label, value }: { href: string; icon: React.
             className={[
                 'group relative block overflow-hidden rounded-2xl border border-brand-200 bg-white/85 p-4',
                 'ring-1 ring-white/40 shadow-sm transition',
-                'hover:-translate-y-[1px] hover:shadow-[0_8px_24px_rgb(0_0_0/0.06)]',
+                'hover:-translate-y-[1px] hover:shadow-[0_8px_24px_rgb(0_0_0/0.06)] hover:bg-brand-50',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60',
             ].join(' ')}
         >

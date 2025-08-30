@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
+import { Trash2, Loader2, AlertTriangle, FileText, Layers, Database } from 'lucide-react';
 
 type Props = {
     slug: string;
@@ -10,15 +12,34 @@ type Props = {
     redirectTo?: string;
 };
 
+type PreviewCounts = { programPage: number; units: number; states: number };
+
 export default function DeleteProgramButton({ slug, className, afterDelete = 'refresh', redirectTo = '/admin/programs' }: Props) {
     const [open, setOpen] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [preview, setPreview] = useState<{ programPage: number; units: number; states: number } | null>(null);
+    const [preview, setPreview] = useState<PreviewCounts | null>(null);
+    const [confirm, setConfirm] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const router = useRouter();
+    const titleId = useId();
+    const descId = useId();
+
+    useEffect(() => setMounted(true), []);
+
+    // lock scroll while modal is open
+    useEffect(() => {
+        if (!open) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, [open]);
 
     async function loadPreview() {
         setError(null);
+        setPreview(null);
         try {
             const r = await fetch(`/api/admin/programs?slug=${encodeURIComponent(slug)}&dryRun=true`, { method: 'DELETE' });
             const data = await r.json();
@@ -47,49 +68,123 @@ export default function DeleteProgramButton({ slug, className, afterDelete = 're
         }
     }
 
+    function onOpen() {
+        setConfirm(false);
+        setOpen(true);
+        void loadPreview();
+    }
+
+    // Close on ESC
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (ev: KeyboardEvent) => {
+            if (ev.key === 'Escape' && !busy) setOpen(false);
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [open, busy]);
+
+    // ==== centrage du bouton déclencheur (sans wrapper) ====
+    const triggerClasses = [
+        'group mx-auto inline-flex items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium cursor-pointer',
+        'border-red-200 bg-red-50/70 text-red-700 hover:bg-red-50 hover:border-red-300',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40',
+        className ?? '',
+    ]
+        .filter(Boolean)
+        .join(' ');
+
     return (
         <>
-            <button
-                type="button"
-                onClick={() => {
-                    setOpen(true);
-                    void loadPreview();
-                }}
-                className={className ?? 'rounded border px-3 py-2 text-sm text-red-600 hover:bg-red-50'}
-            >
-                Supprimer le programme
+            <button type="button" onClick={onOpen} className={triggerClasses}>
+                <Trash2 className="h-4 w-4 transition-transform group-hover:-rotate-6" />
+                Supprimer
             </button>
 
-            {!open ? null : (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} aria-hidden />
-                    <div className="relative z-10 w-full max-w-lg rounded-2xl border bg-white p-6 shadow-xl">
-                        <h3 className="text-lg font-semibold">Supprimer “{slug}”</h3>
-                        <p className="mt-2 text-sm text-muted-foreground">Cela va supprimer la landing, toutes les unités et les états liés à ces unités.</p>
-                        <div className="mt-3 rounded-lg border bg-muted/30 p-3 text-sm">
-                            <div className="font-medium mb-1">Aperçu (dry run)</div>
-                            {preview ? (
-                                <ul className="list-disc ml-5">
-                                    <li>Landing : {preview.programPage}</li>
-                                    <li>Unités : {preview.units}</li>
-                                    <li>États : {preview.states}</li>
-                                </ul>
-                            ) : (
-                                <div>Chargement…</div>
-                            )}
+            {mounted &&
+                open &&
+                createPortal(
+                    <div
+                        className="fixed inset-0 z-[1200] flex items-center justify-center p-4"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby={titleId}
+                        aria-describedby={descId}
+                    >
+                        <div className="absolute inset-0 bg-black/55" onClick={() => !busy && setOpen(false)} aria-hidden />
+                        <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-red-100">
+                            {/* Header */}
+                            <div className="flex items-start gap-3 border-b px-5 py-4">
+                                <div className="rounded-full bg-red-50 p-2 text-red-600 ring-1 ring-red-100">
+                                    <AlertTriangle className="h-5 w-5" />
+                                </div>
+                                <div className="min-w-0">
+                                    <h3 id={titleId} className="truncate text-lg font-semibold">
+                                        Supprimer « {slug} »
+                                    </h3>
+                                    <p id={descId} className="mt-0.5 text-sm text-muted-foreground">
+                                        Cette action est définitive. Elle supprimera la landing, les unités et les états associés.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Body */}
+                            <div className="space-y-3 px-5 py-4">
+                                <div className="rounded-lg border bg-red-50/40 p-3">
+                                    <div className="mb-2 text-sm font-medium text-red-800">Aperçu (dry run)</div>
+                                    {preview ? (
+                                        <ul className="grid grid-cols-3 gap-2 text-sm">
+                                            <li className="flex items-center gap-1.5 rounded-md bg-white/70 px-2 py-1 ring-1 ring-red-100">
+                                                <FileText className="h-4 w-4 text-red-600" /> Landing: <span className="font-semibold">{preview.programPage}</span>
+                                            </li>
+                                            <li className="flex items-center gap-1.5 rounded-md bg-white/70 px-2 py-1 ring-1 ring-red-100">
+                                                <Layers className="h-4 w-4 text-red-600" /> Unités: <span className="font-semibold">{preview.units}</span>
+                                            </li>
+                                            <li className="flex items-center gap-1.5 rounded-md bg-white/70 px-2 py-1 ring-1 ring-red-100">
+                                                <Database className="h-4 w-4 text-red-600" /> États: <span className="font-semibold">{preview.states}</span>
+                                            </li>
+                                        </ul>
+                                    ) : (
+                                        <div className="flex items-center gap-2 text-sm text-red-700">
+                                            <Loader2 className="h-4 w-4 animate-spin" /> Chargement…
+                                        </div>
+                                    )}
+                                </div>
+
+                                {error && <div className="rounded-md bg-red-100 px-3 py-2 text-sm text-red-800">{error}</div>}
+
+                                <label className="mt-1 flex items-start gap-2 text-sm">
+                                    <input type="checkbox" className="mt-0.5" checked={confirm} disabled={busy} onChange={(e) => setConfirm(e.target.checked)} />
+                                    <span>Je comprends que cette opération est irréversible.</span>
+                                </label>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="flex items-center justify-end gap-2 border-t px-5 py-3">
+                                <button
+                                    onClick={() => !busy && setOpen(false)}
+                                    className="rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50 disabled:opacity-60"
+                                    disabled={busy}
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    disabled={!confirm || busy}
+                                    className={[
+                                        'inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-white',
+                                        'bg-red-600 hover:bg-red-700 disabled:opacity-60',
+                                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40',
+                                    ].join(' ')}
+                                >
+                                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                    {busy ? 'Suppression…' : 'Supprimer définitivement'}
+                                </button>
+                            </div>
                         </div>
-                        {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
-                        <div className="mt-4 flex items-center justify-end gap-2">
-                            <button onClick={() => setOpen(false)} className="rounded-lg border px-3 py-2 text-sm">
-                                Annuler
-                            </button>
-                            <button onClick={confirmDelete} disabled={busy} className="rounded-lg bg-red-600 px-3 py-2 text-sm text-white disabled:opacity-60">
-                                {busy ? 'Suppression…' : 'Supprimer définitivement'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                    </div>,
+                    document.body
+                )}
         </>
     );
 }

@@ -219,14 +219,15 @@ body {
   gap: .5rem;
   padding: .625rem 1rem;
   border-radius: .75rem;
-  color: var(--secondary-700);
-  border: 1px solid var(--secondary-300);
-  background: #fff;
+  color: var(--brand-800);
+  border: 1px solid var(--brand-200);
+  background: var(--brand-50);
   transition: background-color .2s, transform .06s;
 }
 
 .btn-secondary:hover {
-  background: var(--secondary-50);
+  background: var(--brand-100);
+  border: 1px solid var(--brand-500)
 }
 
 .btn-secondary:active {

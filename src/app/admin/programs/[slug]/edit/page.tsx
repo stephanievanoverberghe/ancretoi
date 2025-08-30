@@ -3,7 +3,7 @@ import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
 import ProgramPage from '@/models/ProgramPage';
 import { redirect, notFound } from 'next/navigation';
-import UpdateSuccessModal from './UpdateSuccessModal';
+import UpdateSuccessModal from '../../components/UpdateSuccessModal';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
