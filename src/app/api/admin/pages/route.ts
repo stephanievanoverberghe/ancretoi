@@ -1,199 +1,177 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import { dbConnect } from '@/db/connect';
 import { requireAdmin } from '@/lib/authz';
 import ProgramPage from '@/models/ProgramPage';
+import Unit from '@/models/Unit';
+import State from '@/models/State';
 import { z } from 'zod';
 
-/* ---------- Zod utils ---------- */
+export const dynamic = 'force-dynamic';
+
 const zUrlOrPath = z
     .string()
     .trim()
-    .regex(/^(\/|https?:\/\/)/, 'Doit commencer par / ou http(s)://');
+    .min(1)
+    .regex(/^(\/|https?:\/\/)/, 'Doit commencer par / (public) ou http(s)://');
+const zNullableCents = z.preprocess((v) => (v === '' || v == null ? null : Number(v)), z.number().int().min(0).nullable());
+const zBooleanLike = z.preprocess((v) => {
+    if (typeof v === 'string') {
+        const s = v.toLowerCase();
+        if (['true', '1', 'on', 'yes'].includes(s)) return true;
+        if (['false', '0', 'off', 'no'].includes(s)) return false;
+    }
+    return v;
+}, z.boolean().default(true));
 
-const zImageInput = z.union([
-    zUrlOrPath,
-    z.object({
-        url: zUrlOrPath,
-        alt: z.string().optional(),
-        width: z.number().int().positive().optional(),
-        height: z.number().int().positive().optional(),
-    }),
-]);
-
-const zBenefit = z.object({ icon: z.string().optional(), title: z.string().min(1), text: z.string().min(1) });
-const zCurriculum = z.object({ label: z.string().min(1), summary: z.string().optional() });
-const zTestimonial = z.object({ name: z.string().min(1), role: z.string().optional(), text: z.string().min(1), avatar: z.string().optional() });
-const zQA = z.object({ q: z.string().min(1), a: z.string().min(1) });
-
-/** ⬅️ NOUVEAU: schéma de la page de garde */
-const zPageGarde = z
-    .object({
-        heading: z.string().optional(),
-        tagline: z.string().optional(),
-        format: z.string().optional(),
-        audience: z.string().optional(),
-        safetyNote: z.string().optional(),
-    })
-    .partial();
-
-/* ---------- Payload complet ---------- */
+/* ✅ payload admin */
 const zPayload = z.object({
-    programSlug: z.string().min(1),
+    slug: z.string().min(1),
+    title: z.string().min(1),
+    status: z.enum(['draft', 'preflight', 'published']).default('draft'),
+    durationDays: z.coerce.number().int().min(1).max(365).default(7),
+    estMinutesPerDay: z.coerce.number().int().min(1).max(180).default(20),
+    level: z.enum(['Basique', 'Cible', 'Premium']).default('Basique'),
+    category: z.string().default('wellbeing'),
+    tags: z.array(z.string()).optional().default([]),
 
-    status: z.enum(['draft', 'preflight', 'published']).optional(),
+    heroImageUrl: zUrlOrPath.optional(),
+    heroImageAlt: z.string().optional(),
+    cardImageUrl: zUrlOrPath.optional(),
+    cardImageAlt: z.string().optional(),
+    cardTagline: z.string().optional(),
+    cardSummary: z.string().optional(),
+    accentColor: z.string().optional(),
 
-    hero: z
-        .object({
-            eyebrow: z.string().optional(),
-            title: z.string().optional(),
-            subtitle: z.string().optional(),
-            ctaLabel: z.string().optional(),
-            ctaHref: z.string().optional(),
-            heroImage: zImageInput.optional(),
-        })
-        .partial()
-        .optional(),
+    // ✅ champs comparateur (facultatifs)
+    objectif: z.string().optional(),
+    charge: z.string().optional(),
+    ideal_si: z.string().optional(),
+    cta: z.string().optional(),
 
-    card: z
-        .object({
-            image: zImageInput.optional(),
-            tagline: z.string().optional(),
-            summary: z.string().optional(),
-            accentColor: z.string().optional(),
-        })
-        .partial()
-        .optional(),
-
-    /** ⬅️ NOUVEAU: on déclare la page de garde */
-    pageGarde: zPageGarde.optional(),
-
-    meta: z
-        .object({
-            durationDays: z.coerce.number().int().min(1).max(365).optional(),
-            estMinutesPerDay: z.coerce.number().int().min(1).max(180).optional(),
-            level: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
-            category: z.string().optional(),
-            tags: z.union([z.array(z.string()), z.string()]).optional(),
-            language: z.string().optional(),
-        })
-        .partial()
-        .optional(),
-
-    highlights: z.array(zBenefit).optional(),
-    curriculum: z.array(zCurriculum).optional(),
-    testimonials: z.array(zTestimonial).optional(),
-    faq: z.array(zQA).optional(),
-
-    seo: z
-        .object({
-            title: z.string().optional(),
-            description: z.string().optional(),
-            image: zUrlOrPath.optional(),
-        })
-        .partial()
-        .optional(),
-
-    intro: z
-        .object({
-            finalite: z.string().optional(),
-            pourQui: z.string().optional(),
-            pasPourQui: z.string().optional(),
-            commentUtiliser: z.string().optional(),
-            cadreSecurite: z.string().optional(),
-        })
-        .partial()
-        .optional(),
-
-    conclusion: z
-        .object({
-            texte: z.string().optional(),
-            kitEntretien: z.string().optional(),
-            cap7_14_30: z.string().optional(),
-            siCaDeraille: z.string().optional(),
-            allerPlusLoin: z.string().optional(),
-        })
-        .partial()
-        .optional(),
+    amountCents: zNullableCents.optional(),
+    currency: z.string().length(3).default('EUR'),
+    taxIncluded: zBooleanLike.optional().default(true),
+    compareAtCents: zNullableCents.optional(),
+    stripePriceId: z.preprocess((v) => (v === '' ? null : v), z.string().nullable()).optional(),
 });
 
-/* ---------- Helpers ---------- */
-function coerceImage(img: unknown): { url: string; alt?: string; width?: number; height?: number } | undefined {
-    if (typeof img === 'string') return { url: img, alt: '' };
-    if (img && typeof img === 'object' && 'url' in img) {
-        const o = img as { url: string; alt?: string; width?: number; height?: number };
-        return { url: o.url, alt: o.alt ?? '', width: o.width, height: o.height };
-    }
-    return undefined;
+function slugify(input: string) {
+    return input
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
 }
-
-function normalizeTags(input: unknown): string[] | undefined {
-    if (typeof input === 'string') {
-        return input
+function isObject(v: unknown): v is Record<string, unknown> {
+    return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+function getProp(obj: unknown, key: string): unknown {
+    return isObject(obj) ? obj[key] : undefined;
+}
+function coerceTags(value: unknown): string[] | undefined {
+    if (Array.isArray(value)) return value.map(String);
+    if (typeof value === 'string')
+        return value
             .split(',')
             .map((s) => s.trim())
             .filter(Boolean);
-    }
-    if (Array.isArray(input) && input.every((x): x is string => typeof x === 'string')) {
-        return input;
-    }
     return undefined;
 }
 
-/* ---------- Route ---------- */
+export async function GET(req: Request) {
+    await requireAdmin();
+    return NextResponse.redirect(new URL('/admin/programs/new', req.url), 302);
+}
+
 export async function POST(req: Request) {
-    try {
-        await requireAdmin();
-        await dbConnect();
+    await requireAdmin();
+    await dbConnect();
 
-        const raw: unknown = await req.json().catch(() => ({}));
-        const rawObj = raw && typeof raw === 'object' ? { ...(raw as Record<string, unknown>) } : {};
+    const ct = req.headers.get('content-type') ?? '';
+    const accept = req.headers.get('accept') ?? '';
 
-        // Normalise meta.tags (CSV -> array) sans any
-        if ('meta' in rawObj && rawObj.meta && typeof rawObj.meta === 'object') {
-            const meta = rawObj.meta as Record<string, unknown>;
-            const ntags = normalizeTags(meta.tags);
-            if (ntags) meta.tags = ntags;
-        }
-
-        const data = zPayload.parse(rawObj);
-        const { programSlug } = data;
-
-        const set: Record<string, unknown> = {};
-
-        if (data.status) set.status = data.status;
-
-        if (data.hero) {
-            const { heroImage, ...rest } = data.hero;
-            set.hero = { ...rest, ...(heroImage ? { heroImage: coerceImage(heroImage) } : {}) };
-        }
-
-        if (data.card) {
-            const { image, ...rest } = data.card;
-            set.card = { ...rest, ...(image ? { image: coerceImage(image) } : {}) };
-        }
-
-        /** ⬅️ NOUVEAU: on pousse bien la page de garde */
-        if (data.pageGarde) {
-            set.pageGarde = data.pageGarde;
-        }
-
-        if (data.meta) set.meta = data.meta;
-        if (data.highlights) set.highlights = data.highlights;
-        if (data.curriculum) set.curriculum = data.curriculum;
-        if (data.testimonials) set.testimonials = data.testimonials;
-        if (data.faq) set.faq = data.faq;
-        if (data.seo) set.seo = data.seo;
-        if (data.intro) set.intro = data.intro;
-        if (data.conclusion) set.conclusion = data.conclusion;
-
-        const doc = await ProgramPage.findOneAndUpdate({ programSlug }, { $setOnInsert: { programSlug }, $set: set }, { new: true, upsert: true }).lean();
-
-        return NextResponse.json({ ok: true, page: doc });
-    } catch (err) {
-        console.error('POST /api/admin/pages error:', err);
-        const msg = err instanceof Error ? err.message : 'Erreur inconnue';
-        return NextResponse.json({ ok: false, error: msg }, { status: 400 });
+    let raw: unknown;
+    if (ct.includes('application/json')) raw = await req.json();
+    else {
+        const fd = await req.formData();
+        const obj: Record<string, string> = {};
+        for (const [k, v] of fd.entries()) obj[k] = typeof v === 'string' ? v : String(v);
+        raw = obj;
     }
+
+    const base: Record<string, unknown> = isObject(raw) ? raw : {};
+    const tags = coerceTags(getProp(raw, 'tags'));
+
+    // clean champs vides
+    for (const k of [
+        'heroImageUrl',
+        'cardImageUrl',
+        'heroImageAlt',
+        'cardImageAlt',
+        'cardTagline',
+        'cardSummary',
+        'accentColor',
+        'amountCents',
+        'compareAtCents',
+        'stripePriceId',
+        'objectif',
+        'charge',
+        'ideal_si',
+        'cta',
+    ]) {
+        const v = base[k];
+        if (typeof v === 'string' && v.trim() === '') delete base[k];
+    }
+
+    const data = zPayload.parse({ ...base, ...(tags ? { tags } : {}) });
+    const programSlug = slugify(data.slug);
+
+    const doc = await ProgramPage.findOneAndUpdate(
+        { programSlug },
+        {
+            $setOnInsert: { programSlug },
+            $set: {
+                status: data.status,
+                'hero.title': data.title,
+                'hero.heroImage': data.heroImageUrl ? { url: data.heroImageUrl, alt: data.heroImageAlt ?? '' } : undefined,
+                card: {
+                    image: data.cardImageUrl ? { url: data.cardImageUrl, alt: data.cardImageAlt ?? '' } : undefined,
+                    tagline: data.cardTagline,
+                    summary: data.cardSummary,
+                    accentColor: data.accentColor,
+                    badges: [`${data.durationDays} jours`, data.level].filter(Boolean),
+                },
+                meta: {
+                    durationDays: data.durationDays,
+                    estMinutesPerDay: data.estMinutesPerDay,
+                    level: data.level, // Basique | Cible | Premium
+                    category: data.category,
+                    tags: data.tags ?? [],
+                    language: 'fr',
+                },
+                // ✅ sous-document compare
+                compare: {
+                    objectif: data.objectif ?? '',
+                    charge: data.charge ?? '',
+                    idealSi: data.ideal_si ?? '',
+                    ctaLabel: data.cta ?? '',
+                },
+                price: {
+                    amountCents: data.amountCents ?? null,
+                    currency: (data.currency ?? 'EUR').toUpperCase(),
+                    taxIncluded: data.taxIncluded ?? true,
+                    compareAtCents: data.compareAtCents ?? null,
+                    stripePriceId: data.stripePriceId ?? null,
+                },
+            },
+        },
+        { new: true, upsert: true }
+    ).lean();
+
+    if (accept.includes('text/html')) return NextResponse.redirect(new URL(`/admin/programs/${programSlug}/page`, req.url), 303);
+    return NextResponse.json({ ok: true, page: doc });
 }
 
 export async function DELETE(req: Request) {
@@ -202,14 +180,38 @@ export async function DELETE(req: Request) {
 
     const url = new URL(req.url);
     const slug = (url.searchParams.get('slug') || '').toLowerCase();
+    const dryRun = url.searchParams.get('dryRun') === 'true';
+    if (!slug) return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
 
-    if (!slug) {
-        return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+    const session = await mongoose.startSession();
+    let counts = { programPage: 0, units: 0, states: 0 };
+
+    try {
+        await session.withTransaction(async () => {
+            const units = await Unit.find({ programSlug: slug }, { _id: 1 }).session(session);
+            const unitIds = units.map((u) => u._id);
+
+            if (!dryRun) {
+                const statesDel = await State.deleteMany({ unitId: { $in: unitIds } }).session(session);
+                const unitsDel = await Unit.deleteMany({ programSlug: slug }).session(session);
+                const pageDel = await ProgramPage.deleteOne({ programSlug: slug }).session(session);
+
+                counts.states = statesDel.deletedCount ?? 0;
+                counts.units = unitsDel.deletedCount ?? 0;
+                counts.programPage = pageDel.deletedCount ?? 0;
+            } else {
+                counts = {
+                    programPage: await ProgramPage.countDocuments({ programSlug: slug }).session(session),
+                    units: await Unit.countDocuments({ programSlug: slug }).session(session),
+                    states: await State.countDocuments({ unitId: { $in: unitIds } }).session(session),
+                };
+            }
+        });
+
+        return NextResponse.json({ ok: true, dryRun, deleted: counts });
+    } catch (e) {
+        return NextResponse.json({ error: e instanceof Error ? e.message : 'delete_failed' }, { status: 500 });
+    } finally {
+        session.endSession();
     }
-
-    const res = await ProgramPage.deleteOne({ programSlug: slug });
-    return NextResponse.json({
-        ok: true,
-        deleted: { programPage: res.deletedCount ?? 0 },
-    });
 }

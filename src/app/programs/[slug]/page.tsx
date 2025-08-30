@@ -1,8 +1,8 @@
 // src/app/programs/[slug]/page.tsx
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getProgramBySlug } from '@/lib/programs-index.server'; // ✅ DB
-import { getChargeLabel } from '@/lib/programs-compare';
+import { getProgramBySlug } from '@/lib/programs-index.server'; // ✅ BDD
+import { getChargeLabel } from '@/lib/programs-compare.server'; // ✅ version serveur
 import Hero from '@/components/program/sections/Hero';
 import Who from '@/components/program/sections/Who';
 import Experience from '@/components/program/sections/Experience';
@@ -15,7 +15,7 @@ import Planning from '@/components/program/sections/Planning';
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
 
-    const program = await getProgramBySlug(slug); // ✅ DB
+    const program = await getProgramBySlug(slug);
     if (!program) {
         return {
             title: 'Programme introuvable',
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         };
     }
 
-    const charge = getChargeLabel(program.slug) ?? '10–20 min/j';
+    const charge = (await getChargeLabel(program.slug)) ?? '10–20 min/j';
     const titleBase = `${program.title} — ${program.duration_days} jours`;
     const title = `${titleBase}`;
     const description = `${program.tagline} ${charge}. Accès à vie.`.trim();
@@ -43,31 +43,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
             siteName: 'Ancre-toi',
             type: 'website',
             locale: 'fr_FR',
-            images: [
-                {
-                    url: ogImage,
-                    width: 1200,
-                    height: 630,
-                    alt: `${program.title} — ${program.duration_days} jours`,
-                },
-            ],
+            images: [{ url: ogImage, width: 1200, height: 630, alt: `${program.title} — ${program.duration_days} jours` }],
         },
-        twitter: {
-            card: 'summary_large_image',
-            title,
-            description,
-            images: [ogImage],
-        },
+        twitter: { card: 'summary_large_image', title, description, images: [ogImage] },
     };
 }
 
 export default async function ProgramPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
 
-    const program = await getProgramBySlug(slug); // ✅ DB
+    const program = await getProgramBySlug(slug); // ✅ BDD
     if (!program) return notFound();
 
-    const dailyLoad = getChargeLabel(program.slug) ?? undefined;
+    const dailyLoad = (await getChargeLabel(program.slug)) ?? undefined;
 
     const schemaOrg: Record<string, unknown> = {
         '@context': 'https://schema.org',
@@ -85,10 +73,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
                       price: (program.price.amount_cents / 100).toFixed(2),
                       availability: 'https://schema.org/InStock',
                   }
-                : {
-                      '@type': 'Offer',
-                      availability: 'https://schema.org/PreOrder',
-                  },
+                : { '@type': 'Offer', availability: 'https://schema.org/PreOrder' },
     };
 
     return (

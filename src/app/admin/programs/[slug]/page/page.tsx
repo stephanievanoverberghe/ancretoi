@@ -1,5 +1,3 @@
-// app/admin/programs/[slug]/page/page.tsx
-
 import 'server-only';
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/authz';
@@ -21,7 +19,6 @@ export default async function AdminProgramLandingPage({ params }: { params: Prom
 
     const pageDoc = await ProgramPage.findOne({ programSlug: slug.toLowerCase() }).lean();
 
-    // Sérialisation safe pour passer au client
     const initialPage = pageDoc ? JSON.parse(JSON.stringify(pageDoc)) : null;
 
     return (

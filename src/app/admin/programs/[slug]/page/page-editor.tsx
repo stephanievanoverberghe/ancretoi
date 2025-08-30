@@ -1,5 +1,3 @@
-// app/admin/programs/[slug]/page/page-editor.tsx
-
 'use client';
 
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -8,7 +6,7 @@ import Link from 'next/link';
 
 /* ======================= Types ======================= */
 
-type Level = 'beginner' | 'intermediate' | 'advanced';
+type Level = 'Basique' | 'Cible' | 'Premium';
 type Status = 'draft' | 'preflight' | 'published';
 
 type Benefit = { icon?: string; title: string; text: string };
@@ -26,8 +24,7 @@ type PageForm = {
         subtitle?: string;
         ctaLabel?: string;
         ctaHref?: string;
-        /** Dans le formulaire on manipule juste l’URL */
-        heroImage?: string;
+        heroImage?: string; // URL
     };
 
     card: {
@@ -46,7 +43,6 @@ type PageForm = {
         language?: string;
     };
 
-    /** Section “page de garde” (texte d’intro en haut de la page) */
     pageGarde?: {
         heading?: string;
         tagline?: string;
@@ -55,7 +51,6 @@ type PageForm = {
         safetyNote?: string;
     } | null;
 
-    /** Introduction longue (finalité, public, cadre…) */
     intro: {
         finalite?: string;
         pourQui?: string;
@@ -64,13 +59,20 @@ type PageForm = {
         cadreSecurite?: string;
     };
 
-    /** Conclusion longue (kit entretien, cap 7-14-30, etc.) */
     conclusion: {
         texte?: string;
         kitEntretien?: string;
         cap7_14_30?: string;
         siCaDeraille?: string;
         allerPlusLoin?: string;
+    };
+
+    /* ✅ Comparateur */
+    compare: {
+        objectif?: string;
+        charge?: string;
+        idealSi?: string;
+        cta?: string;
     };
 
     highlights: Benefit[];
@@ -124,6 +126,14 @@ type PgIncoming = Partial<{
     intro?: PageForm['intro'] | null;
     conclusion?: PageForm['conclusion'] | null;
 
+    /* ✅ compare venant de la DB */
+    compare?: {
+        objectif?: string | null;
+        charge?: string | null;
+        idealSi?: string | null;
+        ctaLabel?: string | null;
+    } | null;
+
     highlights?: Benefit[] | null;
     curriculum?: (CurriculumItem | string)[] | null;
     testimonials?: Testimonial[] | null;
@@ -138,16 +148,13 @@ function imageToUrl(img: ImageLike): string {
     if (!img) return '';
     return typeof img === 'string' ? img : img.url ?? '';
 }
-
 function toCurriculum(list: (CurriculumItem | string)[] | null | undefined): CurriculumItem[] {
     if (!Array.isArray(list)) return [];
     return list.map((it) => (typeof it === 'string' ? { label: it } : { label: it.label, summary: it.summary }));
 }
-
 function toTagsCsv(arr: string[] | undefined): string {
     return (arr ?? []).join(', ');
 }
-
 function csvToTags(csv: string): string[] {
     return csv
         .split(',')
@@ -156,7 +163,6 @@ function csvToTags(csv: string): string[] {
 }
 
 /* ======================= API payload guards ======================= */
-
 type ApiOk = {
     ok: true;
     page: {
@@ -165,7 +171,6 @@ type ApiOk = {
         hero?: { title?: string };
     };
 };
-
 function isApiOk(x: unknown): x is ApiOk {
     return !!x && typeof x === 'object' && 'ok' in x && (x as { ok: unknown }).ok === true && 'page' in x;
 }
@@ -192,7 +197,6 @@ function Modal(props: { open: boolean; onClose: () => void; children: React.Reac
 }
 
 /* ======================= Component ======================= */
-
 export default function ProgramPageEditor({ slug, initialPage }: { slug: string; initialPage: PgIncoming | null }) {
     const defaults: PageForm = {
         programSlug: slug,
@@ -217,7 +221,7 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
         meta: {
             durationDays: initialPage?.meta?.durationDays ?? 7,
             estMinutesPerDay: initialPage?.meta?.estMinutesPerDay ?? 20,
-            level: (initialPage?.meta?.level as Level) ?? 'beginner',
+            level: (initialPage?.meta?.level as Level) ?? 'Basique',
             category: initialPage?.meta?.category ?? 'wellbeing',
             tags: Array.isArray(initialPage?.meta?.tags) ? initialPage?.meta?.tags : [],
             language: initialPage?.meta?.language ?? 'fr',
@@ -247,6 +251,14 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
             allerPlusLoin: initialPage?.conclusion?.allerPlusLoin ?? '',
         },
 
+        /* ✅ comparateur (defaults) */
+        compare: {
+            objectif: initialPage?.compare?.objectif ?? initialPage?.card?.tagline ?? '',
+            charge: initialPage?.compare?.charge ?? '',
+            idealSi: initialPage?.compare?.idealSi ?? initialPage?.card?.summary ?? '',
+            cta: initialPage?.compare?.ctaLabel ?? '',
+        },
+
         highlights: initialPage?.highlights ?? [],
         curriculum: toCurriculum(initialPage?.curriculum),
         testimonials: initialPage?.testimonials ?? [],
@@ -261,55 +273,22 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
 
     const form = useForm<PageForm>({ defaultValues: defaults });
 
-    const highlights = useFieldArray<PageForm, 'highlights'>({
-        control: form.control,
-        name: 'highlights',
-    });
-    const curriculum = useFieldArray<PageForm, 'curriculum'>({
-        control: form.control,
-        name: 'curriculum',
-    });
-    const faq = useFieldArray<PageForm, 'faq'>({
-        control: form.control,
-        name: 'faq',
-    });
-    const testimonials = useFieldArray<PageForm, 'testimonials'>({
-        control: form.control,
-        name: 'testimonials',
-    });
+    const highlights = useFieldArray<PageForm, 'highlights'>({ control: form.control, name: 'highlights' });
+    const curriculum = useFieldArray<PageForm, 'curriculum'>({ control: form.control, name: 'curriculum' });
+    const faq = useFieldArray<PageForm, 'faq'>({ control: form.control, name: 'faq' });
+    const testimonials = useFieldArray<PageForm, 'testimonials'>({ control: form.control, name: 'testimonials' });
 
     const [saving, setSaving] = useState(false);
     const [successOpen, setSuccessOpen] = useState(false);
     const [successInfo, setSuccessInfo] = useState<{ title?: string; slug?: string } | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const [deleteOpen, setDeleteOpen] = useState(false);
-    const [deleteBusy, setDeleteBusy] = useState(false);
-    const [deleteError, setDeleteError] = useState<string | null>(null);
-
-    async function deleteLanding() {
-        try {
-            setDeleteBusy(true);
-            setDeleteError(null);
-            const r = await fetch(`/api/admin/pages?slug=${encodeURIComponent(slug)}`, { method: 'DELETE' });
-            const data = await r.json();
-            if (!r.ok) throw new Error(data?.error || `HTTP ${r.status}`);
-            setDeleteOpen(false);
-            // Option: redirect vers la liste
-            window.location.href = '/admin/programs';
-        } catch (e) {
-            setDeleteError(e instanceof Error ? e.message : String(e));
-        } finally {
-            setDeleteBusy(false);
-        }
-    }
-
+    /* ===== Submit ===== */
     async function onSubmit(values: PageForm) {
         try {
             setSaving(true);
             setErrorMsg(null);
 
-            // On poste tel que l’API /api/admin/pages l’attend
             const payload = {
                 programSlug: values.programSlug.toLowerCase(),
                 status: values.status,
@@ -330,32 +309,18 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
                 meta: {
                     durationDays: Number(values.meta.durationDays ?? 7),
                     estMinutesPerDay: Number(values.meta.estMinutesPerDay ?? 20),
-                    level: values.meta.level ?? 'beginner',
+                    level: (values.meta.level ?? 'Basique') as Level,
                     category: values.meta.category?.trim() || 'wellbeing',
                     tags: values.meta.tags ?? [],
                     language: values.meta.language ?? 'fr',
                 },
-                pageGarde: {
-                    heading: values.pageGarde?.heading?.trim() || undefined,
-                    tagline: values.pageGarde?.tagline?.trim() || undefined,
-                    format: values.pageGarde?.format?.trim() || undefined,
-                    audience: values.pageGarde?.audience?.trim() || undefined,
-                    safetyNote: values.pageGarde?.safetyNote?.trim() || undefined,
-                },
-                intro: {
-                    finalite: values.intro.finalite?.trim() || undefined,
-                    pourQui: values.intro.pourQui?.trim() || undefined,
-                    pasPourQui: values.intro.pasPourQui?.trim() || undefined,
-                    commentUtiliser: values.intro.commentUtiliser?.trim() || undefined,
-                    cadreSecurite: values.intro.cadreSecurite?.trim() || undefined,
-                },
-                conclusion: {
-                    texte: values.conclusion.texte?.trim() || undefined,
-                    kitEntretien: values.conclusion.kitEntretien?.trim() || undefined,
-                    cap7_14_30: values.conclusion.cap7_14_30?.trim() || undefined,
-                    siCaDeraille: values.conclusion.siCaDeraille?.trim() || undefined,
-                    allerPlusLoin: values.conclusion.allerPlusLoin?.trim() || undefined,
-                },
+
+                // 🔥 comparateur -> payload /api/admin/pages
+                objectif: values.compare.objectif?.trim() || undefined,
+                charge: values.compare.charge?.trim() || undefined,
+                ideal_si: values.compare.idealSi?.trim() || undefined,
+                cta: values.compare.cta?.trim() || undefined,
+
                 highlights:
                     values.highlights?.map((b) => ({
                         icon: b.icon?.trim() || undefined,
@@ -424,10 +389,10 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
                         placeholder="Minutes/jour"
                         className="border rounded p-2"
                     />
-                    <select {...form.register('meta.level')} className="border rounded p-2">
-                        <option value="beginner">Débutant</option>
-                        <option value="intermediate">Intermédiaire</option>
-                        <option value="advanced">Avancé</option>
+                    <select {...form.register('meta.level')} className="border rounded p-2" defaultValue="Basique">
+                        <option value="Basique">Basique</option>
+                        <option value="Cible">Cible</option>
+                        <option value="Premium">Premium</option>
                     </select>
                 </div>
                 <div className="grid gap-3 md:grid-cols-3">
@@ -475,6 +440,17 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
                 </div>
                 <input {...form.register('card.tagline')} placeholder="Tagline courte" className="border rounded p-2 w-full" />
                 <input {...form.register('card.summary')} placeholder="Résumé court" className="border rounded p-2 w-full" />
+            </section>
+
+            {/* ✅ COMPARATEUR */}
+            <section className="space-y-3">
+                <h2 className="font-semibold text-lg">Comparateur</h2>
+                <div className="grid gap-3 md:grid-cols-2">
+                    <input {...form.register('compare.objectif')} placeholder="Objectif (ex. Réinitialiser ton rythme)" className="border rounded p-2" />
+                    <input {...form.register('compare.charge')} placeholder="Charge/jour (ex. 10–15 min/j)" className="border rounded p-2" />
+                </div>
+                <input {...form.register('compare.idealSi')} placeholder="Idéal si (phrase courte)" className="border rounded p-2 w-full" />
+                <input {...form.register('compare.cta')} placeholder="CTA (facultatif, ex. Voir RESET-7)" className="border rounded p-2 w-full" />
             </section>
 
             {/* BÉNÉFICES */}
@@ -596,28 +572,9 @@ export default function ProgramPageEditor({ slug, initialPage }: { slug: string;
                 <button type="submit" disabled={saving} className="rounded bg-purple-600 px-4 py-2 text-white disabled:opacity-60">
                     {saving ? 'Enregistrement…' : 'Enregistrer'}
                 </button>
-                <button type="button" onClick={() => setDeleteOpen(true)} className="rounded border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50">
-                    Supprimer la landing
-                </button>
-
-                <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Supprimer la landing">
-                    <p className="text-sm text-muted-foreground">
-                        Cela supprime uniquement la landing <span className="font-medium">{slug}</span>. Les unités et états NE sont pas supprimés. Pour tout supprimer, passe par
-                        “Supprimer le programme”.
-                    </p>
-                    {deleteError && <div className="mt-2 text-sm text-red-700">{deleteError}</div>}
-                    <div className="mt-4 flex items-center justify-end gap-2">
-                        <button onClick={() => setDeleteOpen(false)} className="rounded border px-3 py-2 text-sm">
-                            Annuler
-                        </button>
-                        <button onClick={deleteLanding} disabled={deleteBusy} className="rounded bg-red-600 px-3 py-2 text-sm text-white disabled:opacity-60">
-                            {deleteBusy ? 'Suppression…' : 'Supprimer'}
-                        </button>
-                    </div>
-                </Modal>
             </div>
 
-            <input type="hidden" {...form.register('programSlug')} />
+            <input type="hidden" value={slug} />
 
             {/* Modale succès */}
             <Modal

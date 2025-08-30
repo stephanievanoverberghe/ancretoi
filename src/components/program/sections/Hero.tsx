@@ -11,10 +11,10 @@ import BuyButton from '@/components/BuyButton';
 import type { Program } from '@/lib/programs-index';
 import { formatPrice } from '@/lib/programs-index';
 import { track } from '@/lib/analytics.client';
-import { getChargeLabel } from '@/lib/programs-compare';
 
 type Props = {
     program: Program;
+    /** étiquette "charge/jour" injectée depuis la BDD (ex. "20–40 min/j") */
     dailyLoadLabel?: string;
     sampleAudioSrc?: string;
     heroSrcOverride?: string;
@@ -27,10 +27,8 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
     const isFree = (program.price?.amount_cents ?? NaN) === 0;
     const priceLabel = formatPrice(program.price) ?? null;
 
-    const charge = useMemo(() => {
-        const fromCompare = getChargeLabel(program.slug);
-        return dailyLoadLabel ?? fromCompare ?? '10–20 min/j';
-    }, [dailyLoadLabel, program.slug]);
+    // ✅ plus aucun appel lib externe : on utilise uniquement la donnée injectée
+    const charge = useMemo(() => dailyLoadLabel ?? '10–20 min/j', [dailyLoadLabel]);
 
     const chips: Array<{ icon: ChipKind; label: string }> = [
         { icon: 'time', label: `${program.duration_days} jours` },
@@ -64,7 +62,7 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
 
     const [open, setOpen] = useState(false);
 
-    // ✅ évite l’erreur d’hydratation : on ne rend le portail qu’après le mount
+    // ✅ rend le portail seulement après mount (évite mismatch hydratation)
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -171,18 +169,11 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
                 </div>
             </div>
 
-            {/* ───────────────── Sticky mobile en portail (après mount) ───────────────── */}
+            {/* ───────────────── Sticky mobile en portail ───────────────── */}
             {mounted &&
                 createPortal(
                     <div className="lg:hidden fixed bottom-0 inset-x-0 z-[140] bg-white/90 backdrop-blur border-t border-brand-100 pointer-events-auto">
-                        <div
-                            className="
-                mx-auto max-w-3xl px-4
-                pt-3
-                pb-[calc(max(env(safe-area-inset-bottom),0px)+14px)]
-                flex items-center justify-between gap-3
-              "
-                        >
+                        <div className="mx-auto max-w-3xl px-4 pt-3 pb-[calc(max(env(safe-area-inset-bottom),0px)+14px)] flex items-center justify-between gap-3">
                             <div className="min-w-0">
                                 <div className="text-sm font-medium truncate">{program.title}</div>
                                 <div className="text-xs text-muted-foreground">

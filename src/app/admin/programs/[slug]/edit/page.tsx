@@ -27,7 +27,7 @@ type PgEdit = {
     meta?: {
         durationDays?: number | null;
         estMinutesPerDay?: number | null;
-        level?: 'beginner' | 'intermediate' | 'advanced' | null;
+        level?: 'Basique' | 'Cible' | 'Premium' | null;
         category?: string | null;
         tags?: string[] | null;
     } | null;
@@ -38,18 +38,19 @@ type PgEdit = {
         compareAtCents?: number | null;
         stripePriceId?: string | null;
     } | null;
+    compare?: {
+        objectif?: string | null;
+        charge?: string | null;
+        idealSi?: string | null;
+        ctaLabel?: string | null;
+    } | null;
 };
 
-export default async function EditProgramPage({
-    params,
-}: {
-    // ⬅️ Next 15: params est asynchrone
-    params: Promise<{ slug: string }>;
-}) {
+export default async function EditProgramPage({ params }: { params: Promise<{ slug: string }> }) {
     await requireAdmin();
     await dbConnect();
 
-    const { slug } = await params; // ⬅️ OBLIGATOIRE
+    const { slug } = await params;
     const doc = await ProgramPage.findOne({ programSlug: slug }).lean<PgEdit | null>();
     if (!doc) notFound();
     const page = doc as PgEdit;
@@ -87,7 +88,7 @@ export default async function EditProgramPage({
 
             durationDays: getNumInt('durationDays', page.meta?.durationDays ?? 7),
             estMinutesPerDay: getNumInt('estMinutesPerDay', page.meta?.estMinutesPerDay ?? 20),
-            level: (getStr('level') as 'beginner' | 'intermediate' | 'advanced') || (page.meta?.level as 'beginner' | 'intermediate' | 'advanced' | undefined) || 'beginner',
+            level: (getStr('level') as 'Basique' | 'Cible' | 'Premium') || (page.meta?.level as 'Basique' | 'Cible' | 'Premium' | undefined) || 'Basique',
             category: getStr('category') || page.meta?.category || 'wellbeing',
             tagsCsv: getStr('tags'),
 
@@ -99,7 +100,12 @@ export default async function EditProgramPage({
             cardSummary: getStr('cardSummary'),
             accentColor: getStr('accentColor'),
 
-            // prix
+            // 🔥 comparateur (form fields)
+            objectif: getStr('objectif'),
+            charge: getStr('charge'),
+            ideal_si: getStr('ideal_si'),
+            cta: getStr('cta'),
+
             amountCents: getNumNullable('amountCents'),
             currency: (getStr('currency') || page.price?.currency || 'EUR').toUpperCase(),
             taxIncluded: getBool('taxIncluded', page.price?.taxIncluded ?? true),
@@ -110,7 +116,8 @@ export default async function EditProgramPage({
         const zUrlOrPath = z
             .string()
             .trim()
-            .regex(/^(\/|https?:\/\/)/, 'Doit commencer par / ou http(s)://');
+            .regex(/^(\/|https?:\/\/)/, 'Doit commencer par / ou http(s)://')
+            .optional();
         const zNullableCents = z.union([z.number().int().min(0), z.null()]).optional();
 
         const Schema = z.object({
@@ -118,17 +125,23 @@ export default async function EditProgramPage({
             title: z.string().min(1, 'Titre requis'),
             durationDays: z.number().int().min(1).max(365),
             estMinutesPerDay: z.number().int().min(1).max(180),
-            level: z.enum(['beginner', 'intermediate', 'advanced']).default('beginner'),
+            level: z.enum(['Basique', 'Cible', 'Premium']).default('Basique'),
             category: z.string().min(1),
             tags: z.array(z.string()).default([]),
 
-            heroImageUrl: zUrlOrPath.optional(),
+            heroImageUrl: zUrlOrPath,
             heroImageAlt: z.string().optional(),
-            cardImageUrl: zUrlOrPath.optional(),
+            cardImageUrl: zUrlOrPath,
             cardImageAlt: z.string().optional(),
             cardTagline: z.string().optional(),
             cardSummary: z.string().optional(),
             accentColor: z.string().optional(),
+
+            // ✅ comparateur
+            objectif: z.string().optional(),
+            charge: z.string().optional(),
+            ideal_si: z.string().optional(),
+            cta: z.string().optional(),
 
             amountCents: zNullableCents,
             currency: z.string().length(3).optional().default('EUR'),
@@ -159,7 +172,7 @@ export default async function EditProgramPage({
                         tagline: data.cardTagline || page.card?.tagline || undefined,
                         summary: data.cardSummary || page.card?.summary || undefined,
                         accentColor: data.accentColor || page.card?.accentColor || undefined,
-                        badges: [`${data.durationDays} jours`, data.level === 'beginner' ? 'Débutant' : data.level === 'intermediate' ? 'Intermédiaire' : 'Avancé'].filter(Boolean),
+                        badges: [`${data.durationDays} jours`, data.level].filter(Boolean),
                     },
                     meta: {
                         durationDays: data.durationDays,
@@ -168,6 +181,13 @@ export default async function EditProgramPage({
                         category: data.category,
                         tags: data.tags ?? [],
                         language: 'fr',
+                    },
+                    // ✅ comparateur
+                    compare: {
+                        objectif: data.objectif || page.compare?.objectif || undefined,
+                        charge: data.charge || page.compare?.charge || undefined,
+                        idealSi: data.ideal_si || page.compare?.idealSi || undefined,
+                        ctaLabel: data.cta || page.compare?.ctaLabel || undefined,
                     },
                     price: {
                         amountCents: data.amountCents ?? null,
@@ -181,15 +201,12 @@ export default async function EditProgramPage({
             { new: true }
         ).lean();
 
-        // 303 normal : on redirige vers la même page avec ?updated=1
         redirect(`/admin/programs/${slug}/edit?updated=1`);
     }
 
     return (
         <div className="max-w-2xl p-6 space-y-4">
             <h1 className="text-2xl font-semibold">Éditer : {page.programSlug}</h1>
-
-            {/* Modale client (affichée si ?updated=1) */}
             <UpdateSuccessModal />
 
             <form action={updateProgram} className="grid gap-3">
@@ -227,10 +244,10 @@ export default async function EditProgramPage({
                 <div className="grid md:grid-cols-3 gap-3">
                     <label className="block">
                         <div className="text-sm text-muted-foreground mb-1">Niveau</div>
-                        <select name="level" className="border rounded p-2 w-full" defaultValue={page.meta?.level ?? 'beginner'}>
-                            <option value="beginner">Débutant</option>
-                            <option value="intermediate">Intermédiaire</option>
-                            <option value="advanced">Avancé</option>
+                        <select name="level" className="border rounded p-2 w-full" defaultValue={page.meta?.level ?? 'Basique'}>
+                            <option value="Basique">Basique</option>
+                            <option value="Cible">Cible</option>
+                            <option value="Premium">Premium</option>
                         </select>
                     </label>
                     <label className="block">
@@ -272,6 +289,30 @@ export default async function EditProgramPage({
                     <input name="accentColor" defaultValue={page.card?.accentColor ?? ''} className="border rounded p-2 w-full" />
                 </label>
 
+                {/* ✅ Comparateur */}
+                <fieldset className="mt-2 grid gap-3 border rounded-lg p-3">
+                    <legend className="text-sm font-medium">Comparateur</legend>
+                    <div className="grid md:grid-cols-2 gap-3">
+                        <label className="block">
+                            <div className="text-sm text-muted-foreground mb-1">Objectif</div>
+                            <input name="objectif" defaultValue={page.compare?.objectif ?? ''} className="border rounded p-2 w-full" />
+                        </label>
+                        <label className="block">
+                            <div className="text-sm text-muted-foreground mb-1">Charge/j</div>
+                            <input name="charge" defaultValue={page.compare?.charge ?? ''} className="border rounded p-2 w-full" />
+                        </label>
+                    </div>
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Idéal si…</div>
+                        <input name="ideal_si" defaultValue={page.compare?.idealSi ?? ''} className="border rounded p-2 w-full" />
+                    </label>
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">CTA (facultatif)</div>
+                        <input name="cta" defaultValue={page.compare?.ctaLabel ?? ''} className="border rounded p-2 w-full" />
+                    </label>
+                </fieldset>
+
+                {/* Prix */}
                 <fieldset className="mt-4 grid gap-3 border rounded-lg p-3">
                     <legend className="text-sm font-medium">Prix</legend>
                     <div className="grid md:grid-cols-2 gap-3">
@@ -286,7 +327,6 @@ export default async function EditProgramPage({
                     </div>
                     <div className="grid md:grid-cols-2 gap-3">
                         <label className="inline-flex items-center gap-2">
-                            {/* ⬅️ Pour pouvoir enregistrer FALSE quand décoché */}
                             <input type="checkbox" name="taxIncluded" defaultChecked={page.price?.taxIncluded ?? true} />
                             <input type="hidden" name="taxIncluded" value="false" />
                             <span className="text-sm">TTC</span>

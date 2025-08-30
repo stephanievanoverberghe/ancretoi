@@ -1,16 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import compare from '@/data/programs/compare.json';
-import { Info, Target, Clock3, Gauge, Sparkles, ArrowRight, ChevronDown } from 'lucide-react';
+import { Info, Target, Clock3, Gauge, Sparkles, ArrowRight, ChevronDown, Lock } from 'lucide-react';
+import type { CompareRow } from '@/lib/programs-compare.server';
 
-/* ---------- Analytics (typage strict) ---------- */
+/* Analytics */
 type CompareEvent = 'programs_compare_expand' | 'programs_compare_cta';
 type AnalyticsProps = Record<string, unknown>;
 type PlausibleFn = (event: string, options?: { props?: AnalyticsProps }) => void;
 type Posthog = { capture: (name: string, props?: AnalyticsProps) => void };
-
 declare global {
     interface Window {
         plausible?: PlausibleFn;
@@ -25,18 +24,6 @@ function track(event: CompareEvent, props?: AnalyticsProps) {
     window.posthog?.capture(event, props);
 }
 
-/* ---------- Types JSON ---------- */
-type CompareRow = {
-    slug: 'reset-7' | 'boussole-10' | 'ancrage-30' | 'alchimie-90' | (string & {});
-    objectif: string;
-    duree: string; // "7 jours"
-    charge: string; // "10–15 min/j"
-    niveau: 'Basique' | 'Cible' | 'Premium' | (string & {});
-    ideal_si: string;
-    cta: string; // "Voir RESET-7"
-};
-type CompareFile = { rows: CompareRow[] };
-
 const TITLE_BY_SLUG: Record<string, string> = {
     'reset-7': 'RESET-7',
     'boussole-10': 'BOUSSOLE-10',
@@ -44,7 +31,9 @@ const TITLE_BY_SLUG: Record<string, string> = {
     'alchimie-90': 'ALCHIMIE-90',
 };
 
-export default function ProgramsCompare() {
+type Props = { rows: CompareRow[] };
+
+export default function ProgramsCompareClient({ rows }: Props) {
     const sectionRef = useRef<HTMLElement | null>(null);
     const sent = useRef(false);
 
@@ -67,23 +56,19 @@ export default function ProgramsCompare() {
         return () => io.disconnect();
     }, []);
 
-    const items = useMemo<CompareRow[]>(() => (compare as CompareFile).rows, []);
-
     return (
         <section ref={sectionRef} id="compare" aria-labelledby="compare-title" className="relative mx-[calc(50%-50vw)] w-screen overflow-hidden bg-brand-50/25 py-14 sm:py-18">
-            {/* filets or très subtils */}
+            {/* filets or */}
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-200/70 to-transparent" />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold-200/70 to-transparent" />
-
-            {/* halo doux */}
+            {/* halo */}
             <div
                 aria-hidden
                 className="pointer-events-none absolute -left-24 top-1/2 -translate-y-1/2 h-[80vmin] w-[80vmin] rounded-full blur-[28px] opacity-30"
                 style={{ background: 'radial-gradient(closest-side, rgba(199,178,225,0.35), rgba(199,178,225,0.18) 45%, rgba(0,0,0,0) 70%)' }}
             />
-
             <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
-                {/* Header éditorial premium */}
+                {/* Header */}
                 <header className="mb-6 sm:mb-8 flex items-start gap-3">
                     <div className="mt-0.5 rounded-xl bg-white/70 ring-1 ring-gold-200 p-2 text-ormat shadow-sm">
                         <Info className="h-5 w-5" aria-hidden />
@@ -99,7 +84,7 @@ export default function ProgramsCompare() {
                     </div>
                 </header>
 
-                {/* Légende des niveaux (repliable) */}
+                {/* Légende niveaux */}
                 <details className="group mt-2 mb-5 rounded-xl border border-brand-100 bg-white/70 backdrop-blur p-3 shadow-[0_1px_0_rgba(0,0,0,0.03)]">
                     <summary className="flex cursor-pointer list-none items-center justify-between">
                         <span className="inline-flex items-center gap-2 text-sm font-semibold">
@@ -108,9 +93,7 @@ export default function ProgramsCompare() {
                         </span>
                         <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
                     </summary>
-
                     <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                        {/* Basique */}
                         <div className="rounded-lg border border-brand-100 bg-brand-50/40 p-3">
                             <div className="mb-1 inline-flex items-center gap-2">
                                 <span className="inline-flex items-center rounded-full border border-gold-200 bg-gold-50 px-2 py-0.5 text-[11px] font-medium">Basique</span>
@@ -120,8 +103,6 @@ export default function ProgramsCompare() {
                                 Pour <span className="font-medium">démarrer en douceur</span> : bases, prise en main, rituels très courts.
                             </p>
                         </div>
-
-                        {/* Cible */}
                         <div className="rounded-lg border border-brand-100 bg-brand-50/40 p-3">
                             <div className="mb-1 inline-flex items-center gap-2">
                                 <span className="inline-flex items-center rounded-full border border-gold-200 bg-gold-50 px-2 py-0.5 text-[11px] font-medium">Cible</span>
@@ -131,8 +112,6 @@ export default function ProgramsCompare() {
                                 Pour <span className="font-medium">stabiliser & ancrer</span> : focus sur le rythme et l’axe, progression guidée.
                             </p>
                         </div>
-
-                        {/* Premium */}
                         <div className="rounded-lg border border-brand-100 bg-brand-50/40 p-3">
                             <div className="mb-1 inline-flex items-center gap-2">
                                 <span className="inline-flex items-center rounded-full border border-gold-200 bg-gold-50 px-2 py-0.5 text-[11px] font-medium">Premium</span>
@@ -145,13 +124,13 @@ export default function ProgramsCompare() {
                     </div>
                 </details>
 
-                {/* Mobile : cartes empilées “glass” (même design) */}
+                {/* Mobile: cartes */}
                 <ul className="grid gap-4 md:hidden" aria-label="Comparateur (version cartes)">
-                    {items.map((r) => {
+                    {rows.map((r) => {
                         const title = TITLE_BY_SLUG[r.slug] ?? r.slug.toUpperCase();
+                        const published = r.status === 'published';
                         return (
                             <li key={r.slug} className="relative rounded-2xl border border-brand-100/70 bg-white/70 backdrop-blur-[2px] shadow-[0_1px_0_rgba(0,0,0,0.03)]">
-                                {/* micro filet or */}
                                 <div className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-gold-300/70 to-transparent" />
                                 <div className="p-4">
                                     <div className="flex items-start justify-between gap-3">
@@ -164,13 +143,11 @@ export default function ProgramsCompare() {
                                         </span>
                                     </div>
 
-                                    {/* Objectif */}
                                     <div className="mt-3 flex items-start gap-2 text-sm">
                                         <Target className="mt-0.5 h-4 w-4 text-muted-foreground" aria-hidden />
                                         <p className="text-muted-foreground">{r.objectif}</p>
                                     </div>
 
-                                    {/* Méta : durée / charge */}
                                     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-muted-foreground">
                                         <span className="inline-flex items-center gap-1">
                                             <Clock3 className="h-3.5 w-3.5" aria-hidden />
@@ -182,22 +159,27 @@ export default function ProgramsCompare() {
                                         </span>
                                     </div>
 
-                                    {/* Idéal si… */}
                                     <div className="mt-3 rounded-lg border border-brand-100 bg-brand-50/40 p-3 text-sm">
                                         <span className="font-medium">Idéal si&nbsp;:</span> <span className="text-muted-foreground">{r.ideal_si}</span>
                                     </div>
 
-                                    {/* CTA */}
                                     <div className="mt-4">
-                                        <Link
-                                            href={`/programs/${r.slug}`}
-                                            onClick={() => track('programs_compare_cta', { slug: r.slug, source: 'mobile' })}
-                                            className="btn w-full sm:w-auto justify-center"
-                                            aria-label={r.cta}
-                                        >
-                                            {r.cta}
-                                            <ArrowRight className="h-4 w-4" aria-hidden />
-                                        </Link>
+                                        {published ? (
+                                            <Link
+                                                href={`/programs/${r.slug}`}
+                                                onClick={() => track('programs_compare_cta', { slug: r.slug, source: 'mobile' })}
+                                                className="btn w-full sm:w-auto justify-center"
+                                                aria-label={r.cta}
+                                            >
+                                                {r.cta}
+                                                <ArrowRight className="h-4 w-4" aria-hidden />
+                                            </Link>
+                                        ) : (
+                                            <span className="btn w-full sm:w-auto justify-center pointer-events-none opacity-60" aria-disabled>
+                                                <Lock className="h-4 w-4 mr-1" />
+                                                Bientôt
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </li>
@@ -205,7 +187,7 @@ export default function ProgramsCompare() {
                     })}
                 </ul>
 
-                {/* Desktop : tableau élégant (même design) */}
+                {/* Desktop: tableau */}
                 <div className="hidden md:block">
                     <div className="overflow-x-auto rounded-2xl border border-brand-100 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/70 shadow-[0_1px_0_rgba(0,0,0,0.03)]">
                         <table className="min-w-[820px] w-full text-sm">
@@ -232,8 +214,9 @@ export default function ProgramsCompare() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-brand-100">
-                                {items.map((r, i) => {
+                                {rows.map((r, i) => {
                                     const title = TITLE_BY_SLUG[r.slug] ?? r.slug.toUpperCase();
+                                    const published = r.status === 'published';
                                     return (
                                         <tr key={r.slug} className={`transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-brand-50/20'} hover:bg-gold-50/40`}>
                                             <th scope="row" className="px-4 py-3 text-left font-semibold text-foreground">
@@ -250,15 +233,21 @@ export default function ProgramsCompare() {
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">{r.ideal_si}</td>
                                             <td className="px-4 py-3 text-right">
-                                                <Link
-                                                    href={`/programs/${r.slug}`}
-                                                    onClick={() => track('programs_compare_cta', { slug: r.slug, source: 'desktop' })}
-                                                    className="btn"
-                                                    aria-label={r.cta}
-                                                >
-                                                    Voir
-                                                    <ArrowRight className="h-4 w-4" aria-hidden />
-                                                </Link>
+                                                {published ? (
+                                                    <Link
+                                                        href={`/programs/${r.slug}`}
+                                                        onClick={() => track('programs_compare_cta', { slug: r.slug, source: 'desktop' })}
+                                                        className="btn"
+                                                        aria-label={r.cta}
+                                                    >
+                                                        Voir
+                                                        <ArrowRight className="h-4 w-4" aria-hidden />
+                                                    </Link>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 rounded-lg border px-3 py-1 text-xs opacity-60">
+                                                        <Lock className="h-4 w-4" /> Bientôt
+                                                    </span>
+                                                )}
                                             </td>
                                         </tr>
                                     );
@@ -266,8 +255,6 @@ export default function ProgramsCompare() {
                             </tbody>
                         </table>
                     </div>
-
-                    {/* Légende / réassurance courte */}
                     <p className="mt-3 text-xs text-muted-foreground">Les charges/jour sont indicatives pour t’aider à estimer l’engagement quotidien.</p>
                 </div>
             </div>

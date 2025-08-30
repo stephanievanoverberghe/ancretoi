@@ -1,5 +1,3 @@
-// src/app/admin/programs/new/page.tsx
-
 import 'server-only';
 import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
@@ -59,7 +57,7 @@ export default async function NewProgramPage() {
 
             durationDays: getNumInt('durationDays', 7),
             estMinutesPerDay: getNumInt('estMinutesPerDay', 20),
-            level: getStr('level') || 'beginner',
+            level: getStr('level') || 'Basique',
             category: getStr('category') || 'wellbeing',
             tagsCsv: getStr('tags'),
 
@@ -71,7 +69,12 @@ export default async function NewProgramPage() {
             cardSummary: getStr('cardSummary'),
             accentColor: getStr('accentColor'),
 
-            // ✅ Prix ('' -> null)
+            // ✅ comparateur
+            objectif: getStr('objectif'),
+            charge: getStr('charge'),
+            ideal_si: getStr('ideal_si'),
+            cta: getStr('cta'),
+
             amountCents: getNumNullable('amountCents'),
             currency: (getStr('currency') || 'EUR').toUpperCase(),
             taxIncluded: getBool('taxIncluded', true),
@@ -87,7 +90,7 @@ export default async function NewProgramPage() {
                       .filter(Boolean)
                 : [];
 
-        // Validation (rapide)
+        // Validation
         const zUrlOrPath = z
             .string()
             .trim()
@@ -101,7 +104,7 @@ export default async function NewProgramPage() {
             title: z.string().min(1, 'Titre requis'),
             durationDays: z.number().int().min(1).max(365),
             estMinutesPerDay: z.number().int().min(1).max(180),
-            level: z.enum(['beginner', 'intermediate', 'advanced']).default('beginner'),
+            level: z.enum(['Basique', 'Cible', 'Premium']).default('Basique'),
             category: z.string().min(1),
             tags: z.array(z.string()).default([]),
 
@@ -112,6 +115,12 @@ export default async function NewProgramPage() {
             cardTagline: z.string().optional(),
             cardSummary: z.string().optional(),
             accentColor: z.string().optional(),
+
+            // ✅ comparateur
+            objectif: z.string().optional(),
+            charge: z.string().optional(),
+            ideal_si: z.string().optional(),
+            cta: z.string().optional(),
 
             amountCents: zNullableCents,
             currency: z.string().length(3).optional().default('EUR'),
@@ -136,7 +145,7 @@ export default async function NewProgramPage() {
                         tagline: data.cardTagline || undefined,
                         summary: data.cardSummary || undefined,
                         accentColor: data.accentColor || undefined,
-                        badges: [`${data.durationDays} jours`, data.level === 'beginner' ? 'Débutant' : data.level === 'intermediate' ? 'Intermédiaire' : 'Avancé'].filter(Boolean),
+                        badges: [`${data.durationDays} jours`, data.level].filter(Boolean),
                     },
                     meta: {
                         durationDays: data.durationDays,
@@ -146,7 +155,14 @@ export default async function NewProgramPage() {
                         tags: data.tags ?? [],
                         language: 'fr',
                     },
-                    // ✅ prix
+                    // ✅ comparateur
+                    compare: {
+                        objectif: data.objectif,
+                        charge: data.charge,
+                        idealSi: data.ideal_si,
+                        ctaLabel: data.cta,
+                    },
+                    // Prix
                     price: {
                         amountCents: data.amountCents ?? null,
                         currency: (data.currency ?? 'EUR').toUpperCase(),
@@ -201,10 +217,10 @@ export default async function NewProgramPage() {
                 <div className="grid md:grid-cols-3 gap-3">
                     <label className="block">
                         <div className="text-sm text-muted-foreground mb-1">Niveau</div>
-                        <select name="level" className="border rounded p-2 w-full" defaultValue="beginner">
-                            <option value="beginner">Débutant</option>
-                            <option value="intermediate">Intermédiaire</option>
-                            <option value="advanced">Avancé</option>
+                        <select name="level" className="border rounded p-2 w-full" defaultValue="Basique">
+                            <option value="Basique">Basique</option>
+                            <option value="Cible">Cible</option>
+                            <option value="Premium">Premium</option>
                         </select>
                     </label>
                     <label className="block">
@@ -246,7 +262,30 @@ export default async function NewProgramPage() {
                     <input name="accentColor" placeholder="#6D28D9" className="border rounded p-2 w-full" />
                 </label>
 
-                {/* Bloc Prix */}
+                {/* ✅ Comparateur */}
+                <fieldset className="mt-2 grid gap-3 border rounded-lg p-3">
+                    <legend className="text-sm font-medium">Comparateur</legend>
+                    <div className="grid md:grid-cols-2 gap-3">
+                        <label className="block">
+                            <div className="text-sm text-muted-foreground mb-1">Objectif</div>
+                            <input name="objectif" placeholder="Réinitialiser ton rythme" className="border rounded p-2 w-full" />
+                        </label>
+                        <label className="block">
+                            <div className="text-sm text-muted-foreground mb-1">Charge/j</div>
+                            <input name="charge" placeholder="10–15 min/j" className="border rounded p-2 w-full" />
+                        </label>
+                    </div>
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">Idéal si…</div>
+                        <input name="ideal_si" placeholder="Tu veux poser 3 micro-rituels tenables" className="border rounded p-2 w-full" />
+                    </label>
+                    <label className="block">
+                        <div className="text-sm text-muted-foreground mb-1">CTA (facultatif)</div>
+                        <input name="cta" placeholder="Voir RESET-7" className="border rounded p-2 w-full" />
+                    </label>
+                </fieldset>
+
+                {/* Prix */}
                 <fieldset className="mt-4 grid gap-3 border rounded-lg p-3">
                     <legend className="text-sm font-medium">Prix</legend>
 

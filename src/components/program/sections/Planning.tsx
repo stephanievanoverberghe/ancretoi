@@ -1,15 +1,12 @@
 // components/program/sections/Planning.tsx
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Clock3, Gauge, CalendarDays, RotateCcw } from 'lucide-react';
 
-import { getProgramLoader } from '@/lib/programs';
 import { track } from '@/lib/analytics.client';
-import { getChargeLabel } from '@/lib/programs-compare';
 import type { Program } from '@/lib/programs-index';
-import type { ProgramJSON, DaySection } from '@/types/program';
 
 /* ---------------- UI atoms ---------------- */
 
@@ -61,75 +58,38 @@ function KPI({ icon, label, value }: { icon: React.ReactNode; label: string; val
     );
 }
 
-/* ---------------- maths / helpers ---------------- */
+/* ---------------- helpers (DB-only) ---------------- */
 
-function sec(n?: number) {
-    return typeof n === 'number' && n > 0 ? n : 0;
+// Fallback charge à partir du niveau si pas d’étiquette fournie
+function levelToCharge(level?: string | null): string {
+    if (level === 'Cible') return '20–40 min/j';
+    if (level === 'Premium') return '40–60 min/j';
+    // Basique ou inconnu
+    return '10–20 min/j';
 }
 
-/** "8" | 8 | "6–7" | "10-12" -> secondes (moyenne si plage) */
-function minToSec(minIn?: string | number): number {
-    if (minIn == null) return 0;
-    if (typeof minIn === 'number') return minIn > 0 ? Math.round(minIn * 60) : 0;
-    const s = String(minIn).replace(',', '.');
-    const nums = s.match(/[\d.]+/g);
-    if (!nums?.length) return 0;
-    const a = Number(nums[0]);
-    const b = nums[1] !== undefined ? Number(nums[1]) : undefined;
-    const mean = Number.isFinite(b) ? (a + (b as number)) / 2 : a;
-    return Math.round(Math.max(0, mean) * 60);
-}
-
-/** Seconds for a DaySection: priorité à duration_min, sinon somme des timers */
-function sectionSeconds(section?: DaySection): number {
-    if (!section) return 0;
-    const declared = minToSec(section.duration_min);
-    if (declared > 0) return declared;
-    const list = section.exercises ?? [];
-    return list.reduce((total, ex) => total + sec(ex.timer_sec), 0);
-}
-
-function fmtMinFromSec(s: number): string {
-    const m = Math.round(s / 60);
-    return m > 0 ? `${m} min` : '—';
+// Extrait la borne haute (ex. "10–20 min/j" -> 20)
+function maxMinutesFromLabel(label: string): number | null {
+    const nums = label.match(/\d+(?:[.,]\d+)?/g);
+    if (!nums || nums.length === 0) return null;
+    const last = Number((nums.at(-1) ?? '').replace(',', '.'));
+    return Number.isFinite(last) ? Math.round(last) : null;
 }
 
 /* ---------------- Component ---------------- */
 
 type Props = {
     program: Program;
-    /** pour surcharger l’affichage de charge/j */
+    /** étiquette “charge/jour” injectée depuis la BDD (ex. "20–40 min/j") */
     dailyLoadLabel?: string;
     /** texture optionnelle derrière la carte */
     bgImageSrc?: string;
 };
 
 export default function Planning({ program, dailyLoadLabel, bgImageSrc = '/images/texture-soft.webp' }: Props) {
-    const [avgDaySec, setAvgDaySec] = useState<number | null>(null);
     const sectionRef = useRef<HTMLElement | null>(null);
 
-    // Load JSON du programme pour calculer la moyenne/jour (si dispo)
-    useEffect(() => {
-        let cancel = false;
-        (async () => {
-            try {
-                const loader = getProgramLoader(program.slug);
-                if (!loader) return;
-                const mod = await loader();
-                const data = (mod.default ?? mod) as ProgramJSON;
-                const totals = data.days.map((d) => sectionSeconds(d.blocks?.morning) + sectionSeconds(d.blocks?.noon) + sectionSeconds(d.blocks?.evening));
-                const avg = totals.length ? Math.round(totals.reduce((a, b) => a + b, 0) / totals.length) : 0;
-                if (!cancel) setAvgDaySec(avg);
-            } catch {
-                // silencieux: on retombe sur le label “marketing”
-            }
-        })();
-        return () => {
-            cancel = true;
-        };
-    }, [program.slug]);
-
-    // KPI on view
+    // KPI on view (analytics)
     useEffect(() => {
         const el = sectionRef.current;
         if (!el) return;
@@ -147,18 +107,18 @@ export default function Planning({ program, dailyLoadLabel, bgImageSrc = '/image
         return () => io.disconnect();
     }, [program.slug]);
 
-    // Valeurs à afficher
+    // Valeurs à afficher (100% BDD)
     const duration = `${program.duration_days} jours`;
 
-    const computedCharge = avgDaySec != null && avgDaySec > 0 ? fmtMinFromSec(avgDaySec) : undefined;
-
-    const charge = dailyLoadLabel ?? computedCharge ?? getChargeLabel(program.slug) ?? '10–20 min/j';
+    // Priorité: label injecté depuis la page serveur -> sinon mapping par niveau -> sinon défaut
+    const charge = dailyLoadLabel ?? levelToCharge(program.level) ?? '10–20 min/j';
 
     const modulable = 'Oui — matin • midi • soir';
-    const rattrapage = 'Rattrapage simple (≤ 20 min)';
+    const catchupMax = maxMinutesFromLabel(charge) ?? 20;
+    const rattrapage = `Rattrapage simple (≤ ${catchupMax} min)`;
 
     // libellé minutes pour les vignettes (retire “/j” si présent)
-    const minuteLabel = (computedCharge ?? charge).replace(/\s*\/j\b/i, '');
+    const minuteLabel = charge.replace(/\s*\/j\b/i, '');
 
     // Semaine type
     const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -205,13 +165,12 @@ export default function Planning({ program, dailyLoadLabel, bgImageSrc = '/image
                         </li>
                     </ul>
 
-                    {/* Agenda — mobile-first: timeline verticale; desktop: grille 7 colonnes */}
+                    {/* Agenda — mobile-first: timeline; desktop: grille 7 colonnes */}
                     <div className="mt-6 sm:mt-8">
                         <div className="mb-2 text-sm font-semibold text-foreground">Exemple d’agenda</div>
 
-                        {/* MOBILE: timeline verticale (sans scroll) */}
+                        {/* MOBILE: timeline verticale */}
                         <div className="relative sm:hidden">
-                            {/* rail */}
                             <div className="absolute left-3 top-0 bottom-0 w-px bg-gold-100/70" aria-hidden />
                             <ol className="space-y-2">
                                 {days.map((d, i) => {
