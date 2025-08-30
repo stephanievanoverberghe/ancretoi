@@ -7,25 +7,34 @@ import ProgramCard, { type ProgramCardProgram } from '@/components/programs/card
 import { Info } from 'lucide-react';
 import { track } from '@/lib/analytics.client';
 
-/* ---------- Filtres par durée ---------- */
-type DurationFilter = 'all' | 7 | 10 | 30 | 90;
+/* ---------- Filtres par niveau ---------- */
+type LevelFilter = 'all' | 'Basique' | 'Cible' | 'Premium';
 
-const FILTERS: Array<{ key: DurationFilter; label: string }> = [
+const FILTERS: Array<{ key: LevelFilter; label: string }> = [
     { key: 'all', label: 'Tous' },
-    { key: 7, label: '7 j' },
-    { key: 10, label: '10 j' },
-    { key: 30, label: '30 j' },
-    { key: 90, label: '90 j' },
+    { key: 'Basique', label: 'Basique' },
+    { key: 'Cible', label: 'Cible' },
+    { key: 'Premium', label: 'Premium' },
 ];
+
+function normLevel(lvl?: ProgramCardProgram['level']): 'Basique' | 'Cible' | 'Premium' | undefined {
+    if (!lvl) return undefined;
+    const s = String(lvl).toLowerCase();
+    if (s === 'basique' || s === 'beginner') return 'Basique';
+    if (s === 'cible' || s === 'intermediate' || s === 'intermédiaire') return 'Cible';
+    if (s === 'premium' || s === 'advanced' || s === 'avancé') return 'Premium';
+    return undefined; // inconnu => pas filtré si "all", exclu si un filtre précis est choisi
+}
 
 type Props = { programs: ProgramCardProgram[] };
 
 export default function CollectionsGrid({ programs }: Props) {
-    const [filter, setFilter] = useState<DurationFilter>('all');
+    const [filter, setFilter] = useState<LevelFilter>('all');
 
     const filtered = useMemo(() => {
         if (filter === 'all') return programs;
-        return programs.filter((p) => p.duration_days === filter);
+        // garde seulement ceux dont le level normalisé correspond
+        return programs.filter((p) => normLevel(p.level) === filter);
     }, [filter, programs]);
 
     return (
@@ -49,7 +58,7 @@ export default function CollectionsGrid({ programs }: Props) {
                     <p className="mt-3 text-[15px] sm:text-base text-muted-foreground">4 parcours clairs pour ancrer des rituels courts et tenables.</p>
 
                     <div className="mt-4 flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-semibold text-muted-foreground">Durée :</span>
+                        <span className="text-xs font-semibold text-muted-foreground">Niveau :</span>
                         <div className="flex flex-wrap gap-1.5">
                             {FILTERS.map(({ key, label }) => {
                                 const active = filter === key;

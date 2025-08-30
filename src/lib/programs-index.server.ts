@@ -8,7 +8,7 @@ type PgLean = {
     status: 'draft' | 'preflight' | 'published';
     hero?: { title?: string | null; heroImage?: { url?: string | null } | null } | null;
     card?: { image?: { url?: string | null; alt?: string | null } | null; tagline?: string | null; summary?: string | null } | null;
-    meta?: { durationDays?: number | null; level?: 'Basique' | 'Cible' | 'Premium' | null } | null;
+    meta?: { durationDays?: number | null; level?: 'Basique' | 'Cible' | 'Premium' | null } | null; // ⬅️ level
     price?: { amountCents?: number | null; currency?: string | null; taxIncluded?: boolean | null; compareAtCents?: number | null; stripePriceId?: string | null } | null;
 };
 
@@ -32,8 +32,7 @@ function mapDocToProgram(d: PgLean): Program {
         title: d.hero?.title?.trim() || d.programSlug,
         tagline: d.card?.tagline?.trim() || d.card?.summary?.trim() || '',
         duration_days: d.meta?.durationDays ?? 0,
-        // ⬇️ on stocke déjà "Basique|Cible|Premium" en BDD
-        level: (d.meta?.level as Program['level']) || 'Basique',
+        level: (d.meta?.level as Program['level']) || 'Basique', // ⬅️ on alimente le niveau
         status: d.status === 'published' ? 'published' : 'draft',
         cover: d.card?.image?.url || d.hero?.heroImage?.url || '',
         price: mapPrice(d.price),

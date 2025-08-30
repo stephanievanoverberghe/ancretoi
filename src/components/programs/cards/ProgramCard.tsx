@@ -14,6 +14,9 @@ export type ProgramCardProgram = {
     status?: 'draft' | 'preflight' | 'published' | string;
     cover?: string | null;
     price?: { amount_cents: number | null; currency?: string } | null;
+
+    // ⬇️ NEW: pour le filtre par niveau
+    level?: 'Basique' | 'Cible' | 'Premium' | (string & {});
 };
 
 type Props = { program: ProgramCardProgram; position?: number };
