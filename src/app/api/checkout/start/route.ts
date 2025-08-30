@@ -1,4 +1,3 @@
-// src/app/api/checkout/start/route.ts
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
@@ -8,7 +7,7 @@ import { dbConnect } from '@/db/connect';
 import { UserModel } from '@/db/schemas';
 import Enrollment from '@/models/Enrollment';
 import { getSession } from '@/lib/session';
-import { PROGRAMS } from '@/lib/programs-index';
+import { getProgramBySlug } from '@/lib/programs-index.server';
 
 type LeanUser = { _id: Types.ObjectId; email: string };
 type LeanEnrollment = {
@@ -20,7 +19,6 @@ type LeanEnrollment = {
     completedAt?: Date;
 };
 
-// ✅ Construit une base publique absolue, compatible Vercel (preview/prod)
 function getBaseUrl(req: Request) {
     const u = new URL(req.url);
     const proto = req.headers.get('x-forwarded-proto') ?? u.protocol.replace(':', '') ?? 'https';
@@ -38,7 +36,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Non authentifié', redirectTo: `/login?next=${encodeURIComponent(next)}` }, { status: 401 });
     }
 
-    const program = PROGRAMS.find((p) => p.slug === slug && p.status === 'published');
+    // ✅ lecture DB (seulement “published”)
+    const program = await getProgramBySlug(slug);
     if (!program) return NextResponse.json({ error: 'Programme introuvable' }, { status: 404 });
 
     await dbConnect();
@@ -46,7 +45,7 @@ export async function POST(req: Request) {
     const user = await UserModel.findOne({ email: sess.email }).select({ _id: 1, email: 1 }).lean<LeanUser>().exec();
     if (!user?._id) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 401 });
 
-    // Déjà inscrit → redirige directement
+    // Déjà inscrit → redirection directe
     const existing = await Enrollment.findOne({
         userId: user._id,
         programSlug: slug,
@@ -54,6 +53,7 @@ export async function POST(req: Request) {
     })
         .select({ _id: 1 })
         .lean<Pick<LeanEnrollment, '_id'> | null>();
+
     if (existing?._id) {
         return NextResponse.json({ ok: true, redirectTo: `/member/${slug}/day/1` });
     }
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     // Payant → Stripe
     const stripe = getStripe();
 
-    // Dev bypass (local)
+    // Dev bypass
     if (!stripe && process.env.CHECKOUT_DEV_BYPASS === 'true') {
         const enr = await Enrollment.findOneAndUpdate(
             { userId: user._id, programSlug: slug },
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
     const currency = (program.price?.currency || 'EUR').toUpperCase();
     if (!amount || amount <= 0) return NextResponse.json({ error: 'Montant invalide.' }, { status: 400 });
 
-    // ✅ URLs absolues (plus d'APP_URL)
+    // URLs absolues
     const base = getBaseUrl(req);
     const success = `${base}/checkout/success?program=${slug}&session_id={CHECKOUT_SESSION_ID}`;
     const cancel = `${base}/programs/${slug}#commencer`;
