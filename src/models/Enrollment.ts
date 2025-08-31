@@ -1,3 +1,5 @@
+// src/models/schemas.ts
+
 import { Schema, model, models, Types } from 'mongoose';
 
 export type EnrollmentStatus = 'active' | 'completed' | 'paused';

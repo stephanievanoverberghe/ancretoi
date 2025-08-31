@@ -1,3 +1,5 @@
+// src/db/schemas.ts
+
 import { Schema, model, models, Types } from 'mongoose';
 
 export type UserRole = 'user' | 'admin';

@@ -1,4 +1,4 @@
-// lib/auth.ts (ou où tu as getCurrentUser)
+// src/lib/authz.ts
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { dbConnect } from '@/db/connect';
@@ -15,10 +15,7 @@ export async function getCurrentUser() {
         role: 'user' | 'admin';
         passwordChangedAt?: Date | null;
     }>();
-
     if (!user) return null;
-
-    // Invalidation si le JWT a été émis avant le dernier changement de mot de passe
     if (user.passwordChangedAt && sess.iat && sess.iat * 1000 < new Date(user.passwordChangedAt).getTime()) {
         return null;
     }
@@ -29,5 +26,15 @@ export async function requireAdmin() {
     const user = await getCurrentUser();
     if (!user) redirect('/login?next=/admin');
     if (user.role !== 'admin') redirect('/');
+    return user;
+}
+
+// ✅ Nouveau : guard générique utilisateur
+export async function requireUser(nextPath: string = '/member') {
+    const user = await getCurrentUser();
+    if (!user) {
+        const next = encodeURIComponent(nextPath);
+        redirect(`/login?next=${next}`);
+    }
     return user;
 }

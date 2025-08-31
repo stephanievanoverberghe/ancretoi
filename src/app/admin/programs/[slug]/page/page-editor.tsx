@@ -1,7 +1,8 @@
 'use client';
 
 import { useForm, useFieldArray } from 'react-hook-form';
-import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useEffect, useId, useState } from 'react';
 import Link from 'next/link';
 
 import CreationSuccessModal from '../../components/CreationSuccessModal';
@@ -178,24 +179,64 @@ function isApiOk(x: unknown): x is ApiOk {
     return !!x && typeof x === 'object' && 'ok' in x && (x as { ok: unknown }).ok === true && 'page' in x;
 }
 
-/* ======================= UI: Modal (local) ======================= */
+/* ======================= UI: Modal (PORTAL GLOBAL) ======================= */
+function Modal({ open, onClose, children, title, footer }: { open: boolean; onClose: () => void; children: React.ReactNode; title?: string; footer?: React.ReactNode }) {
+    const [mounted, setMounted] = useState(false);
+    const titleId = useId();
 
-function Modal(props: { open: boolean; onClose: () => void; children: React.ReactNode; title?: string; footer?: React.ReactNode }) {
-    if (!props.open) return null;
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40" onClick={props.onClose} aria-hidden="true" />
-            <div className="relative z-10 w-full max-w-lg rounded-2xl border bg-white p-6 shadow-xl">
-                {props.title && <h3 className="text-lg font-semibold">{props.title}</h3>}
-                <div className="mt-3">{props.children}</div>
-                <div className="mt-4 flex items-center justify-end gap-2">
-                    {props.footer}
-                    <button onClick={props.onClose} className="rounded-lg bg-purple-600 px-3 py-2 text-sm text-white">
+    useEffect(() => setMounted(true), []);
+
+    // Scroll lock pendant l'ouverture
+    useEffect(() => {
+        if (!open || !mounted) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, [open, mounted]);
+
+    // ESC pour fermer
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [open, onClose]);
+
+    if (!open || !mounted) return null;
+
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
+            {/* Dialog */}
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={title ? titleId : undefined}
+                className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/10"
+                style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+            >
+                {title && (
+                    <div className="border-b px-5 py-4">
+                        <h3 id={titleId} className="text-lg font-semibold">
+                            {title}
+                        </h3>
+                    </div>
+                )}
+                <div className="px-5 py-4">{children}</div>
+                <div className="flex items-center justify-end gap-2 border-t px-5 py-3">
+                    {footer}
+                    <button onClick={onClose} className="rounded-lg bg-purple-600 px-3 py-2 text-sm text-white hover:opacity-90">
                         Fermer
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 
