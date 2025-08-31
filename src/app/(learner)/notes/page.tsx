@@ -36,11 +36,9 @@ function mean(nums: number[]): number | null {
     if (!nums.length) return null;
     return nums.reduce((a, b) => a + b, 0) / nums.length;
 }
-
 function round1(n: number | null): string {
     return n == null ? '—' : n.toFixed(1);
 }
-
 function delta(a: number | null, b: number | null): string {
     if (a == null || b == null) return '—';
     const d = b - a;
@@ -48,7 +46,8 @@ function delta(a: number | null, b: number | null): string {
     return `${sign}${d.toFixed(1)}`;
 }
 
-export default async function NotesPage({ searchParams }: { searchParams?: SearchParams }) {
+// ⬇️⬇️ Fix: searchParams est un Promise dans Next 15
+export default async function NotesPage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
     await dbConnect();
     const session = await requireUser('/login');
 
@@ -63,7 +62,9 @@ export default async function NotesPage({ searchParams }: { searchParams?: Searc
         );
     }
 
-    const programFilter = typeof searchParams?.program === 'string' ? searchParams.program : undefined;
+    // ⬇️⬇️ Fix: on attend le Promise avant d’accéder aux params
+    const sp = (await searchParams) ?? {};
+    const programFilter = typeof sp.program === 'string' ? sp.program : undefined;
 
     const states = await DayState.find({
         userId: user._id,
@@ -85,7 +86,7 @@ export default async function NotesPage({ searchParams }: { searchParams?: Searc
 
     const programs = Array.from(new Set(states.map((s) => s.programSlug)));
 
-    // ---- Stats globales (sur le filtre courant) ----
+    // Stats
     const baseline = {
         energie: states.map((s) => s.sliders?.energie).filter((n): n is number => typeof n === 'number'),
         focus: states.map((s) => s.sliders?.focus).filter((n): n is number => typeof n === 'number'),
@@ -114,7 +115,7 @@ export default async function NotesPage({ searchParams }: { searchParams?: Searc
 
     const completionRate = states.length === 0 ? 0 : Math.round((states.filter((s) => s.completed).length / states.length) * 100);
 
-    // ---- Grouping par programme pour une timeline claire ----
+    // Grouping par programme
     const byProgram = new Map<string, DayStateLean[]>();
     for (const s of states) {
         const arr = byProgram.get(s.programSlug) ?? [];
