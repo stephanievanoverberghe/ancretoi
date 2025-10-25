@@ -1,4 +1,3 @@
-// src/app/api/learn/progress/route.ts
 import 'server-only';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -14,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-// ⬇️ Ajoute 'reopenDay' dans l'enum
+// ⬇️ avec 'reopenDay'
 const Body = z.object({
     slug: z.string().trim().min(1),
     action: z.enum(['setDay', 'completeDay', 'reopenDay']),
@@ -60,46 +59,24 @@ export async function POST(req: Request) {
 
         const current = Math.max(1, Math.min(lastPublished, enr.currentDay ?? 1));
 
-        // ---------- setDay (existant) ----------
+        // setDay
         if (action === 'setDay') {
             const target = Math.max(1, Math.min(lastPublished, requestedDay ?? 1));
-            await Enrollment.updateOne(
-                { userId, programSlug },
-                {
-                    $set: {
-                        currentDay: target,
-                        status: target >= lastPublished ? 'completed' : 'active',
-                        updatedAt: new Date(),
-                    },
-                }
-            );
-            return NextResponse.json({
-                ok: true,
-                currentDay: target,
-                lastPublished,
-                status: target >= lastPublished ? 'completed' : 'active',
-            });
+            await Enrollment.updateOne({ userId, programSlug }, { $set: { currentDay: target, status: target >= lastPublished ? 'completed' : 'active', updatedAt: new Date() } });
+            return NextResponse.json({ ok: true, currentDay: target, lastPublished, status: target >= lastPublished ? 'completed' : 'active' });
         }
 
-        // ---------- completeDay (existant, inchangé) ----------
+        // completeDay
         if (action === 'completeDay') {
             const doneDay = Math.max(1, Math.min(lastPublished, requestedDay ?? current));
-            const state = await DayState.findOne({
-                userId: userDoc._id,
-                programSlug,
-                day: doneDay,
-            })
+
+            const state = await DayState.findOne({ userId: userDoc._id, programSlug, day: doneDay })
                 .select({ practiced: 1, data: 1 })
                 .lean<{ practiced?: boolean; data?: Record<string, unknown> } | null>();
 
             const practiced = !!state?.practiced;
 
-            const unit = await Unit.findOne({
-                programSlug,
-                unitType: 'day',
-                status: 'published',
-                unitIndex: doneDay,
-            })
+            const unit = await Unit.findOne({ programSlug, unitType: 'day', status: 'published', unitIndex: doneDay })
                 .select({ journalSchema: 1, unitIndex: 1 })
                 .lean<{ journalSchema?: { questions?: unknown[] } } | null>();
 
@@ -135,7 +112,7 @@ export async function POST(req: Request) {
             });
         }
 
-        // ---------- ✅ NEW: reopenDay ----------
+        // reopenDay
         if (action === 'reopenDay') {
             const target = Math.max(1, Math.min(lastPublished, requestedDay ?? current));
             await Enrollment.updateOne({ userId, programSlug }, { $set: { currentDay: target, status: 'active', updatedAt: new Date() } });

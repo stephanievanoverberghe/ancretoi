@@ -35,7 +35,7 @@ export default function FullscreenModal({ open, onClose, title, children, footer
             <div className="absolute inset-0 bg-black/45 backdrop-blur-sm" onClick={onClose} aria-hidden />
             {/* conteneur centré */}
             <div className="relative z-10 flex min-h-full items-center justify-center p-4 sm:p-6">
-                <div className="w-full max-w-lg rounded-2xl border bg-white p-6 shadow-xl">
+                <div className="w-full max-w-2xl rounded-2xl border bg-white p-6 shadow-xl">
                     {title && <h3 className="text-lg font-semibold">{title}</h3>}
                     <div className="mt-3">{children}</div>
                     <div className="mt-4 flex items-center justify-end gap-2">
