@@ -1,5 +1,4 @@
 // src/app/(learner)/learn/[slug]/intro/page.tsx
-
 import 'server-only';
 import { notFound } from 'next/navigation';
 import { dbConnect } from '@/db/connect';
@@ -32,14 +31,16 @@ export default async function IntroPage({ params }: { params: Promise<RouteParam
 
     return (
         <div className="mx-auto max-w-3xl space-y-6">
-            <header className="rounded-3xl border bg-white/70 p-6 shadow-sm backdrop-blur">
-                <p className="text-xs uppercase tracking-wide text-gray-500">{safeSlug}</p>
-                <h1 className="mt-1 text-2xl font-semibold">{page.hero?.title ?? 'Introduction'}</h1>
-                <p className="mt-1 text-sm text-gray-600">Avant de commencer : objectifs, bénéfices, et quelques rappels de sécurité.</p>
+            {/* HERO INTRO */}
+            <header className="rounded-3xl border border-border bg-card p-6 shadow-sm backdrop-blur">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">{safeSlug}</p>
+                <h1 className="mt-1 text-2xl font-semibold text-foreground">{page.hero?.title ?? 'Introduction'}</h1>
+                <p className="mt-1 text-sm text-muted-foreground">Avant de commencer : objectifs, bénéfices, et quelques rappels de sécurité.</p>
             </header>
 
-            <section className="rounded-2xl border bg-white/70 p-5 backdrop-blur">
-                <ul className="list-disc space-y-2 pl-5 text-sm text-gray-700">
+            {/* INFOS UTILES */}
+            <section className="rounded-2xl border border-border bg-card p-5 backdrop-blur">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-foreground">
                     <li>⏱ Durée totale estimée : {totalDays > 0 ? `${totalDays * 25}–${totalDays * 30} min` : 'à venir'}</li>
                     <li>📝 Notes intégrées (autosave)</li>
                     <li>🧘‍♀️ Bien-être : respiration 2 minutes en cas de surcharge</li>

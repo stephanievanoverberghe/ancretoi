@@ -14,9 +14,10 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
+// ⬇️ Ajoute 'reopenDay' dans l'enum
 const Body = z.object({
     slug: z.string().trim().min(1),
-    action: z.enum(['setDay', 'completeDay']),
+    action: z.enum(['setDay', 'completeDay', 'reopenDay']),
     day: z.number().int().positive().optional(),
 });
 
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
 
         const current = Math.max(1, Math.min(lastPublished, enr.currentDay ?? 1));
 
-        // ---------- setDay ----------
+        // ---------- setDay (existant) ----------
         if (action === 'setDay') {
             const target = Math.max(1, Math.min(lastPublished, requestedDay ?? 1));
             await Enrollment.updateOne(
@@ -80,13 +81,11 @@ export async function POST(req: Request) {
             });
         }
 
-        // ---------- completeDay (avec hard-guard) ----------
+        // ---------- completeDay (existant, inchangé) ----------
         if (action === 'completeDay') {
             const doneDay = Math.max(1, Math.min(lastPublished, requestedDay ?? current));
-
-            // 1) Charger l'état du jour en DB
             const state = await DayState.findOne({
-                userId: userDoc._id, // DayState.userId est un ObjectId
+                userId: userDoc._id,
                 programSlug,
                 day: doneDay,
             })
@@ -95,7 +94,6 @@ export async function POST(req: Request) {
 
             const practiced = !!state?.practiced;
 
-            // 2) Vérifier s'il existe des questions texte ce jour-là
             const unit = await Unit.findOne({
                 programSlug,
                 unitType: 'day',
@@ -107,18 +105,14 @@ export async function POST(req: Request) {
 
             const qList = Array.isArray(unit?.journalSchema?.questions) ? (unit!.journalSchema!.questions as unknown[]) : [];
             const hasTextQuestions = qList.length > 0;
-
-            // Au moins une réponse texte non vide si le jour a des questions
             const anyText = hasTextQuestions ? Object.values(state?.data ?? {}).some((v) => typeof v === 'string' && v.trim().length > 0) : true;
 
             if (!practiced || !anyText) {
                 return NextResponse.json({ ok: false, error: 'INCOMPLETE_DAY', requirements: { practiced, anyText } }, { status: 400 });
             }
 
-            // 3) Marquer le DayState comme complété (qualité de données)
             await DayState.updateOne({ userId: userDoc._id, programSlug, day: doneDay }, { $set: { completed: true, updatedAt: new Date() } }, { upsert: false });
 
-            // 4) Avancer l'enrollment comme avant
             const shouldAdvance = doneDay >= current;
             let nextDay = current;
             let status: 'active' | 'completed' = 'active';
@@ -139,6 +133,13 @@ export async function POST(req: Request) {
                 lastPublished,
                 status: shouldAdvance ? status : enr.status,
             });
+        }
+
+        // ---------- ✅ NEW: reopenDay ----------
+        if (action === 'reopenDay') {
+            const target = Math.max(1, Math.min(lastPublished, requestedDay ?? current));
+            await Enrollment.updateOne({ userId, programSlug }, { $set: { currentDay: target, status: 'active', updatedAt: new Date() } });
+            return NextResponse.json({ ok: true, currentDay: target, lastPublished, status: 'active' });
         }
 
         return NextResponse.json({ ok: false, error: 'UNKNOWN_ACTION' }, { status: 400 });

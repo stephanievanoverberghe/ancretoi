@@ -7,7 +7,9 @@ import { dbConnect } from '@/db/connect';
 import { requireUser } from '@/lib/authz';
 import { UserModel } from '@/db/schemas';
 import DayState from '@/models/DayState';
+import Enrollment from '@/models/Enrollment';
 
+/* ----------------------------- Zod Schemas ----------------------------- */
 const SliderObj = z
     .object({
         energie: z.number().min(0).max(10).optional(),
@@ -23,13 +25,16 @@ const Body = z.object({
     patch: z.object({
         data: z.record(z.string(), z.string()).optional(),
         sliders: SliderObj.optional(), // baseline
-        checkout: SliderObj.optional(), // ✅ ajout: checkout
+        checkout: SliderObj.optional(), // ✅ ajout: checkout (conservé)
         practiced: z.boolean().optional(),
         mantra3x: z.boolean().optional(),
         completed: z.boolean().optional(),
     }),
 });
 
+/* --------------------------------- POST --------------------------------
+   Sauvegarde/incrémente l'état du jour (notes, sliders, practiced, etc.)
+--------------------------------------------------------------------------- */
 export async function POST(req: Request) {
     try {
         await dbConnect();
@@ -70,6 +75,43 @@ export async function POST(req: Request) {
             .lean<{ _id: Types.ObjectId } | null>();
 
         return NextResponse.json({ ok: true, id: doc?._id ? String(doc._id) : null });
+    } catch {
+        return NextResponse.json({ ok: false, error: 'SERVER_ERROR' }, { status: 500 });
+    }
+}
+
+/* ------------------------------- DELETE ---------------------------------
+   Hard reset d’un jour :
+   - supprime le DayState (notes, sliders, checks, completed)
+   - remet l’enrollment sur ce jour (currentDay = day, status = 'active')
+   Query params attendus : ?slug=...&day=...
+--------------------------------------------------------------------------- */
+export async function DELETE(req: Request) {
+    try {
+        await dbConnect();
+
+        const { searchParams } = new URL(req.url);
+        const slug = (searchParams.get('slug') || '').toLowerCase().trim();
+        const day = Number(searchParams.get('day') || '0');
+
+        if (!slug || !Number.isFinite(day) || day < 1) {
+            return NextResponse.json({ ok: false, error: 'INVALID_QUERY' }, { status: 400 });
+        }
+
+        const user = await requireUser('/learn');
+        const userDoc = await UserModel.findOne({ email: user.email, deletedAt: null }).select({ _id: 1 }).lean<{ _id: Types.ObjectId } | null>();
+
+        if (!userDoc?._id) {
+            return NextResponse.json({ ok: false, error: 'USER_NOT_FOUND' }, { status: 401 });
+        }
+
+        // 1) Supprimer l’état stocké pour ce jour
+        await DayState.deleteOne({ userId: userDoc._id, programSlug: slug, day });
+
+        // 2) Ramener l’inscription sur ce jour et statut 'active'
+        await Enrollment.updateOne({ userId: String(userDoc._id), programSlug: slug }, { $set: { currentDay: day, status: 'active', updatedAt: new Date() } }, { upsert: true });
+
+        return NextResponse.json({ ok: true });
     } catch {
         return NextResponse.json({ ok: false, error: 'SERVER_ERROR' }, { status: 500 });
     }

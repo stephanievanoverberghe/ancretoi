@@ -120,26 +120,26 @@ export default async function LearnDayPage({ params }: { params: Promise<Params>
     return (
         <div className="mx-auto max-w-4xl space-y-6">
             {/* En-tête */}
-            <header className="rounded-3xl border bg-white/70 p-6 shadow-sm backdrop-blur">
-                <p className="text-xs uppercase tracking-wide text-gray-500">
+            <header className="rounded-3xl border border-border bg-card p-6 shadow-sm backdrop-blur">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     {safeSlug} · Jour {String(unit.unitIndex).padStart(2, '0')}
                 </p>
-                <h1 className="mt-1 text-2xl font-semibold">{unit.title ?? `Jour ${unit.unitIndex}`}</h1>
-                {unit.mantra && <p className="mt-1 text-sm text-gray-600">{unit.mantra}</p>}
-                <div className="mt-2 text-xs text-gray-500">⏱ {unit.durationMin ?? 25} min · 📝 notes 5–10 min · 💧 pense à t’hydrater</div>
+                <h1 className="mt-1 text-2xl font-semibold text-foreground">{unit.title ?? `Jour ${unit.unitIndex}`}</h1>
+                {unit.mantra && <p className="mt-1 text-sm text-muted-foreground">{unit.mantra}</p>}
+                <div className="mt-2 text-xs text-muted-foreground">⏱ {unit.durationMin ?? 25} min · 📝 notes 5–10 min · 💧 pense à t’hydrater</div>
             </header>
 
             {/* Player (placeholder si pas de vidéo) */}
-            <section className="overflow-hidden rounded-2xl border bg-white/70 p-4 backdrop-blur">
+            <section className="overflow-hidden rounded-2xl border border-border bg-card p-4 backdrop-blur">
                 {unit.videoAssetId ? (
                     // Branche ton lecteur HLS/Mux ici
                     <div className="aspect-video w-full rounded-xl bg-black/90" />
                 ) : (
-                    <div className="grid aspect-video w-full place-items-center rounded-lg bg-gray-100 text-sm text-gray-500">Vidéo à venir</div>
+                    <div className="grid aspect-video w-full place-items-center rounded-lg bg-muted text-sm text-muted-foreground">Vidéo à venir</div>
                 )}
 
                 {!!unit.contentParagraphs?.length && (
-                    <div className="prose prose-sm mt-4 max-w-none text-gray-800">
+                    <div className="mt-4 space-y-3 text-foreground">
                         {unit.contentParagraphs.map((p, i) => (
                             <p key={i}>{p}</p>
                         ))}
