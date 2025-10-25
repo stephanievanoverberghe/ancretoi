@@ -8,11 +8,21 @@ import { requireUser } from '@/lib/authz';
 import { UserModel } from '@/db/schemas';
 import Enrollment from '@/models/Enrollment';
 import Unit from '@/models/Unit';
+import Breadcrumbs from '@/components/ui/Breadcrumbs';
 
 type RouteParams = { slug: string };
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
+
+// Helper: turn "ancre-toi" → "Ancre Toi"
+function humanizeSlug(slug: string): string {
+    return slug
+        .split('-')
+        .filter(Boolean)
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(' ');
+}
 
 export default async function CourseLayout({ children, params }: { children: ReactNode; params: Promise<RouteParams> }) {
     await dbConnect();
@@ -38,11 +48,9 @@ export default async function CourseLayout({ children, params }: { children: Rea
     const currentDay = Math.max(1, Math.min(total || 1, enr?.currentDay ?? 1));
     const pad = (n: number) => String(n).padStart(2, '0');
 
-    // Accès séquentiel : jours futurs visibles mais non-cliquables
     const sequential = true;
     const isCompleted = enr?.status === 'completed';
 
-    // Items d’aside : Intro + published days + Conclusion (verrouillée tant que non terminé)
     const items: Array<{
         key: string;
         label: string;
@@ -90,13 +98,24 @@ export default async function CourseLayout({ children, params }: { children: Rea
     const displayName = user.name ?? userDoc?.name ?? '';
     const firstName = displayName ? displayName.split(' ')[0] : 'toi';
 
+    // ✅ Program name (humanized slug). If you later have a Program model with a title, swap here.
+    const programName = humanizeSlug(safeSlug);
+
     return (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[300px_1fr]">
             {/* ASIDE (desktop) */}
             <aside className="sticky top-6 hidden self-start md:block">
                 <div className="overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-sm backdrop-blur">
+                    {/* Fil d’Ariane */}
+                    <Breadcrumbs
+                        items={[
+                            { label: 'Mon espace', href: '/member' },
+                            { label: programName }, // ⬅️ string, not object
+                        ]}
+                    />
+
                     <div className="mb-4">
-                        <div className="text-xs uppercase tracking-wide text-muted-foreground">{safeSlug}</div>
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground">{programName}</div>
                         <div className="mt-1 text-lg font-semibold text-foreground">Salut {firstName} 👋</div>
 
                         <div className="mt-2">
@@ -130,7 +149,6 @@ export default async function CourseLayout({ children, params }: { children: Rea
                     {/* Étapes : jours publiés + conclusion */}
                     <ol className="mt-4 space-y-1">
                         {items.map((it) => {
-                            // Tons par état (tokens)
                             const tone = it.locked
                                 ? 'border-border text-muted-foreground opacity-70'
                                 : it.state === 'active'
@@ -141,7 +159,6 @@ export default async function CourseLayout({ children, params }: { children: Rea
 
                             const dot = it.state === 'active' ? 'bg-brand-600' : it.state === 'done' ? 'bg-secondary-500' : 'bg-muted';
 
-                            // ✅ gabarit 3 colonnes : dot | texte | lock
                             const RowInner = ({ asLink }: { asLink: boolean }) => {
                                 const content = (
                                     <div className={['grid grid-cols-[10px_1fr_auto] items-start gap-3 rounded-xl border p-3 text-sm transition', tone].join(' ')}>
@@ -150,7 +167,6 @@ export default async function CourseLayout({ children, params }: { children: Rea
                                             <span className="block truncate font-medium">{it.label}</span>
                                             {it.sub ? <span className="block truncate text-[11px] text-muted-foreground">{it.sub}</span> : null}
                                         </span>
-                                        {/* lock: taille fixe pour toutes les lignes */}
                                         <span className="ml-auto grid h-5 w-5 place-items-center">
                                             {it.locked ? <Lock className="h-4 w-4 text-muted-foreground" aria-hidden /> : <span className="h-4 w-4" aria-hidden />}
                                         </span>
