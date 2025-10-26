@@ -40,9 +40,9 @@ export default function FullscreenModal({ open, onClose, title, children, footer
                     <div className="mt-3">{children}</div>
                     <div className="mt-4 flex items-center justify-end gap-2">
                         {footer}
-                        <button onClick={onClose} className="rounded-lg bg-purple-600 px-3 py-2 text-sm text-white">
+                        {/* <button onClick={onClose} className="rounded-lg bg-purple-600 px-3 py-2 text-sm text-white">
                             Fermer
-                        </button>
+                        </button> */}
                     </div>
                 </div>
             </div>

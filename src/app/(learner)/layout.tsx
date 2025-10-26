@@ -5,7 +5,7 @@ import BottomNav from './components/BottomNav'; // ← import direct du client c
 export default function LearnerLayout({ children }: { children: ReactNode }) {
     return (
         <div className="min-h-dvh">
-            <main className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-8">{children}</main>
+            <main className="mx-auto max-w-6xl px-4 pb-24 pt-10 sm:pt-14 sm:px-6 lg:px-8">{children}</main>
             {/* nav mobile sticky */}
             <BottomNav />
         </div>

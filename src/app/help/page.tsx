@@ -63,7 +63,7 @@ export default async function HelpPage() {
     ];
 
     return (
-        <main className="mx-auto max-w-7xl px-4 pb-24 pt-10 sm:pt-14">
+        <main className="mx-auto max-w-6xl px-4 pb-24 pt-10 sm:pt-14">
             {/* Fil d’Ariane */}
             <Breadcrumbs items={[{ label: 'Mon espace', href: '/member' }, { label: 'Aide' }]} />
 

@@ -12,6 +12,10 @@ const UserSchema = new Schema(
         role: { type: String, enum: ['user', 'admin'], default: 'user', index: true },
         passwordHash: { type: String, default: null },
         deletedAt: { type: Date, default: null },
+        avatarUrl: { type: String, default: null },
+        theme: { type: String, enum: ['system', 'light', 'dark'], default: 'system' },
+        marketing: { type: Boolean, default: false },
+        productUpdates: { type: Boolean, default: true },
     },
     { timestamps: true }
 );
