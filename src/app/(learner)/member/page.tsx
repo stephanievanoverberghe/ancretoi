@@ -39,7 +39,6 @@ function getDisplayName(userEmail: string, sessionName?: string | null, dbName?:
 export default async function MemberPage() {
     await dbConnect();
     const user = await requireUser('/member');
-    const pad2 = (n: number) => String(n).padStart(2, '0');
 
     const userDoc = await UserModel.findOne({ email: user.email, deletedAt: null }).select({ _id: 1, name: 1 }).lean<{ _id: unknown; name?: string | null }>();
 
@@ -97,7 +96,7 @@ export default async function MemberPage() {
                         <p className="mt-1 text-sm text-muted-foreground">Reprends là où tu t’es arrêté — tout est prêt.</p>
                     </div>
                     {resume ? (
-                        <Link href={resume.unitsDone === 0 ? `/learn/${resume.programSlug}/day/${pad2(1)}` : '/continue'} className="btn w-full sm:w-auto">
+                        <Link href={resume.unitsDone === 0 ? `/learn/${resume.programSlug}/intro` : '/continue'} className="btn w-full sm:w-auto">
                             {resume.unitsDone === 0 ? 'Commencer' : 'Continuer'}
                         </Link>
                     ) : (
