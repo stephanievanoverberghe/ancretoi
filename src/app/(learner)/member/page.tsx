@@ -9,6 +9,7 @@ import { UserModel } from '@/db/schemas';
 import Enrollment from '@/models/Enrollment';
 import ProgramPage from '@/models/ProgramPage';
 import Unit from '@/models/Unit';
+import ProgramDetailButton from '@/components/program/ProgramDetailButton';
 
 type EnrollmentLean = {
     programSlug: string;
@@ -198,12 +199,7 @@ export default async function MemberPage() {
                                             {r.unitsDone === 0 ? 'Commencer' : 'Continuer'}
                                         </Link>
 
-                                        <Link
-                                            href={`/learn/${r.programSlug}`}
-                                            className="inline-flex items-center justify-center rounded-xl border border-border px-3 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted"
-                                        >
-                                            Détails
-                                        </Link>
+                                        <ProgramDetailButton slug={r.programSlug} />
                                     </div>
                                 </div>
                             </li>
