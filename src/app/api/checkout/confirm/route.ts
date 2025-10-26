@@ -15,55 +15,49 @@ type LeanEnrollment = {
     userId: Types.ObjectId;
     programSlug: string;
     status: 'active' | 'completed' | 'paused';
-    startedAt?: Date;
-    completedAt?: Date;
+    currentDay?: number | null;
 };
 
 export async function POST(req: Request) {
-    const body = (await req.json().catch(() => ({}))) as { session_id?: string; program?: string };
-    const session_id = body.session_id;
-    const bodyProgram = body.program ? normalizeProgramSlug(body.program) : '';
+    try {
+        const { session_id, program } = (await req.json().catch(() => ({}))) as { session_id?: string; program?: string };
+        const bodyProgram = program ? normalizeProgramSlug(program) : '';
+        if (!session_id || !bodyProgram) return NextResponse.json({ error: 'params manquants' }, { status: 400 });
 
-    if (!session_id || !bodyProgram) return NextResponse.json({ error: 'params manquants' }, { status: 400 });
+        const sess = await getSession();
+        if (!sess?.email) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
 
-    const sess = await getSession();
-    if (!sess?.email) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+        const stripe = getStripe();
+        if (!stripe) return NextResponse.json({ error: 'Stripe non configuré' }, { status: 501 });
 
-    const stripe = getStripe();
-    if (!stripe) return NextResponse.json({ error: 'Stripe non configuré' }, { status: 501 });
+        const checkout = await stripe.checkout.sessions.retrieve(session_id);
+        const paid = checkout.status === 'complete' || checkout.payment_status === 'paid';
+        if (!paid) return NextResponse.json({ error: 'Paiement non confirmé' }, { status: 402 });
 
-    const checkout = await stripe.checkout.sessions.retrieve(session_id);
+        const metaProgram = normalizeProgramSlug(String(checkout.metadata?.program || ''));
+        const metaUserId = String(checkout.metadata?.userId || '');
+        if (!metaProgram || !metaUserId) return NextResponse.json({ error: 'Métadonnées manquantes' }, { status: 400 });
+        if (metaProgram !== bodyProgram) return NextResponse.json({ error: 'Programme inattendu' }, { status: 400 });
 
-    const paid = checkout.status === 'complete' || checkout.payment_status === 'paid';
-    if (!paid) return NextResponse.json({ error: 'Paiement non confirmé' }, { status: 402 });
+        await dbConnect();
 
-    const metaProgram = normalizeProgramSlug(String(checkout.metadata?.program || ''));
-    const metaUserId = String(checkout.metadata?.userId || '');
+        const user = await UserModel.findOne({ email: sess.email }).select({ _id: 1 }).lean<LeanUserId>().exec();
+        if (!user?._id) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 401 });
+        if (String(user._id) !== metaUserId) return NextResponse.json({ error: 'Session non liée à cet utilisateur' }, { status: 403 });
 
-    if (!metaProgram || !metaUserId) {
-        return NextResponse.json({ error: 'Métadonnées de session manquantes' }, { status: 400 });
+        // Crée l’inscription si absente (jour 1 par défaut)
+        await Enrollment.findOneAndUpdate(
+            { userId: user._id, programSlug: bodyProgram },
+            { $setOnInsert: { userId: user._id, programSlug: bodyProgram, status: 'active', currentDay: 1, startedAt: new Date() } },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        ).lean<LeanEnrollment>();
+
+        // 🔁 Après achat: on renvoie vers /member (dashboard)
+        return NextResponse.json({
+            ok: true,
+            redirectTo: `/member`,
+        });
+    } catch {
+        return NextResponse.json({ error: 'SERVER_ERROR' }, { status: 500 });
     }
-    if (metaProgram !== bodyProgram) {
-        return NextResponse.json({ error: 'Programme inattendu' }, { status: 400 });
-    }
-
-    await dbConnect();
-    const user = await UserModel.findOne({ email: sess.email }).select({ _id: 1 }).lean<LeanUserId>().exec();
-    if (!user?._id) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 401 });
-
-    if (String(user._id) !== metaUserId) {
-        return NextResponse.json({ error: 'Session non liée à cet utilisateur' }, { status: 403 });
-    }
-
-    const enr = await Enrollment.findOneAndUpdate(
-        { userId: user._id, programSlug: bodyProgram },
-        { $setOnInsert: { userId: user._id, programSlug: bodyProgram, status: 'active', startedAt: new Date() } },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-    ).lean<LeanEnrollment>();
-
-    return NextResponse.json({
-        ok: true,
-        enrollmentId: enr?._id?.toString(),
-        redirectTo: `/learn/${bodyProgram}/day/1`,
-    });
 }

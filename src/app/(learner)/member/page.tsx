@@ -39,6 +39,7 @@ function getDisplayName(userEmail: string, sessionName?: string | null, dbName?:
 export default async function MemberPage() {
     await dbConnect();
     const user = await requireUser('/member');
+    const pad2 = (n: number) => String(n).padStart(2, '0');
 
     const userDoc = await UserModel.findOne({ email: user.email, deletedAt: null }).select({ _id: 1, name: 1 }).lean<{ _id: unknown; name?: string | null }>();
 
@@ -95,9 +96,15 @@ export default async function MemberPage() {
                         <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl text-foreground">Un seul pas aujourd’hui.</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Reprends là où tu t’es arrêté — tout est prêt.</p>
                     </div>
-                    <Link href="/continue" className="btn w-full sm:w-auto">
-                        Continuer
-                    </Link>
+                    {resume ? (
+                        <Link href={resume.unitsDone === 0 ? `/learn/${resume.programSlug}/day/${pad2(1)}` : '/continue'} className="btn w-full sm:w-auto">
+                            {resume.unitsDone === 0 ? 'Commencer' : 'Continuer'}
+                        </Link>
+                    ) : (
+                        <Link href="/programs" className="btn w-full sm:w-auto">
+                            Explorer
+                        </Link>
+                    )}
                 </div>
 
                 {/* mini progression si on a un cours */}
@@ -186,11 +193,12 @@ export default async function MemberPage() {
 
                                     <div className="mt-3 grid grid-cols-2 gap-2">
                                         <Link
-                                            href="/continue"
+                                            href={r.unitsDone === 0 ? `/learn/${r.programSlug}/intro` : '/continue'}
                                             className="inline-flex items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-800 transition hover:bg-brand-100"
                                         >
-                                            Continuer
+                                            {r.unitsDone === 0 ? 'Commencer' : 'Continuer'}
                                         </Link>
+
                                         <Link
                                             href={`/learn/${r.programSlug}`}
                                             className="inline-flex items-center justify-center rounded-xl border border-border px-3 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted"

@@ -16,20 +16,25 @@ type Props = {
     description?: string;
     posterSrc?: string;
     youtubeId?: string;
+
+    /** Slug du programme concerné par l’aperçu (ex: "reset-7") */
+    programSlug?: string;
+
     /** Flags serveur (passés depuis la page) */
     isAuthed?: boolean;
     hasActiveProgram?: boolean;
+    /** Si l’utilisateur a un programme actif, son slug (ex: "reset-7") */
     activeProgramSlug?: string | null;
 };
 
 export default function SampleDay({
     title = 'Aperçu d’un jour — teaser 20s',
-    description = 'Un extrait authentique : respiration guidée, intention du jour et carnet. Sans inscription.',
+    description = 'Un extrait authentique : respiration guidée, intention du jour et carnet.',
     posterSrc = '/images/sample-poster.webp',
     youtubeId = '3moPCb5lIdw',
+    programSlug = 'reset-7',
     isAuthed = false,
     hasActiveProgram = false,
-    activeProgramSlug = null,
 }: Props) {
     const sectionRef = useRef<HTMLElement>(null);
     const [showPlayer, setShowPlayer] = useState(false);
@@ -62,28 +67,29 @@ export default function SampleDay({
         track('sample_play');
     };
 
-    // Route de preview: day 1 du programme
-    const previewPath = '/learn/reset-7/day/1';
+    // Page programme (ancre du CTA "commencer" = achat / flow)
+    const programPage = `/programs/${programSlug}#commencer`;
 
-    // Libellé + destination selon état
+    // CTA selon état d’auth/achat:
+    // - Non connecté → login avec next=page programme (#commencer)
+    // - Connecté sans programme actif → page programme (#commencer)
+    // - Déjà inscrit → /member (ton espace s’occupe de rediriger vers le bon jour)
     const cta = (() => {
         if (!isAuthed) {
             return {
-                label: 'Essayer 1 jour gratuit',
-                href: `/login?next=${encodeURIComponent(previewPath)}`,
+                label: 'Commencer',
+                href: `/login?next=${encodeURIComponent(programPage)}`,
             };
         }
         if (!hasActiveProgram) {
             return {
-                label: 'Démarrer 1 jour gratuit',
-                href: previewPath,
+                label: 'Commencer maintenant',
+                href: programPage,
             };
         }
-        // utilisateur déjà inscrit à un programme
-        const slug = activeProgramSlug ?? 'reset-7';
         return {
             label: 'Continuer mon programme',
-            href: `/learn/${slug}/day/1`,
+            href: '/member',
         };
     })();
 
@@ -95,14 +101,8 @@ export default function SampleDay({
         <section ref={sectionRef} id="sample-day" aria-labelledby="sample-title" className="relative mx-[calc(50%-50vw)] w-screen bg-brand-50/30 py-16 sm:py-20 lg:py-24">
             {/* halos premium + voile + filets or */}
             <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
-                <div
-                    className="absolute -left-10 -top-16 h-56 w-56 rounded-full bg-brand-100/35 blur-2xl
-                     [mask-image:radial-gradient(closest-side,black,transparent)]"
-                />
-                <div
-                    className="absolute right-[-6%] bottom-[-12%] h-72 w-72 rounded-full bg-gold-100/35 blur-[60px]
-                     [mask-image:radial-gradient(closest-side,black,transparent)]"
-                />
+                <div className="absolute -left-10 -top-16 h-56 w-56 rounded-full bg-brand-100/35 blur-2xl [mask-image:radial-gradient(closest-side,black,transparent)]" />
+                <div className="absolute right-[-6%] bottom-[-12%] h-72 w-72 rounded-full bg-gold-100/35 blur-[60px] [mask-image:radial-gradient(closest-side,black,transparent)]" />
                 <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/40 mix-blend-soft-light" />
             </div>
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gold-100/70" aria-hidden />
