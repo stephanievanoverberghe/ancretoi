@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         .lean<Pick<LeanEnrollment, '_id'> | null>();
 
     if (existing?._id) {
-        return NextResponse.json({ ok: true, redirectTo: `/member/${slug}/day/1` });
+        return NextResponse.json({ ok: true, redirectTo: `/learn/${slug}/day/1` });
     }
 
     // Gratuit → inscription directe
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
         ).lean<LeanEnrollment>();
         return NextResponse.json({
             ok: true,
-            redirectTo: `/member/${slug}/day/1`,
+            redirectTo: `/learn/${slug}/day/1`,
             enrollmentId: enr?._id?.toString(),
         });
     }
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
         ).lean<LeanEnrollment>();
         return NextResponse.json({
             ok: true,
-            redirectTo: `/member/${slug}/day/1`,
+            redirectTo: `/learn/${slug}/day/1`,
             enrollmentId: enr?._id?.toString(),
             devBypass: true,
         });

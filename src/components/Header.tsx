@@ -12,11 +12,21 @@ export default async function Header() {
     const isAuthed = !!sess?.email;
 
     if (!isAuthed) {
-        return <HeaderClient isAuthed={false} email={null} displayName={null} />;
+        return <HeaderClient isAuthed={false} email={null} displayName={null} avatarUrl={null} />;
     }
 
     await dbConnect();
-    const user = await UserModel.findOne({ email: sess!.email }).select({ name: 1, role: 1, email: 1 }).lean<{ name?: string; role?: 'user' | 'admin'; email?: string }>();
+    const user = await UserModel.findOne({ email: sess!.email })
+        .select({ name: 1, role: 1, email: 1, avatarUrl: 1 }) // ⬅️ fetch avatar
+        .lean<{ name?: string; role?: 'user' | 'admin'; email?: string; avatarUrl?: string | null }>();
 
-    return <HeaderClient isAuthed email={user?.email ?? sess!.email!} displayName={user?.name ?? null} isAdmin={user?.role === 'admin'} />;
+    return (
+        <HeaderClient
+            isAuthed
+            email={user?.email ?? sess!.email!}
+            displayName={user?.name ?? null}
+            avatarUrl={user?.avatarUrl ?? null} // ⬅️ pass down
+            isAdmin={user?.role === 'admin'}
+        />
+    );
 }

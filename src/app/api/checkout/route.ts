@@ -50,7 +50,7 @@ export async function POST(req: Request) {
             { upsert: true, new: true, setDefaultsOnInsert: true }
         ).lean<LeanEnrollment>();
         const enrollmentId = enr ? enr._id.toString() : undefined;
-        return NextResponse.json({ ok: true, redirectTo: `/membre/${slug}/jour/1`, enrollmentId });
+        return NextResponse.json({ ok: true, redirectTo: `/learn/${slug}/day/1`, enrollmentId });
     }
 
     // Payant → Stripe
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
             { upsert: true, new: true, setDefaultsOnInsert: true }
         ).lean<LeanEnrollment>();
         const enrollmentId = enr ? enr._id.toString() : undefined;
-        return NextResponse.json({ ok: true, redirectTo: `/membre/${slug}/jour/1`, enrollmentId, devBypass: true });
+        return NextResponse.json({ ok: true, redirectTo: `/learn/${slug}/day/1`, enrollmentId, devBypass: true });
     }
 
     if (!stripe) return NextResponse.json({ error: 'Stripe non configuré (STRIPE_SECRET_KEY manquante).' }, { status: 501 });

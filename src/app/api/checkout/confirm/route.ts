@@ -64,6 +64,6 @@ export async function POST(req: Request) {
     return NextResponse.json({
         ok: true,
         enrollmentId: enr?._id?.toString(),
-        redirectTo: `/member/${bodyProgram}/day/1`,
+        redirectTo: `/learn/${bodyProgram}/day/1`,
     });
 }

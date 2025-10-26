@@ -63,7 +63,7 @@ export default function SampleDay({
     };
 
     // Route de preview: day 1 du programme
-    const previewPath = '/member/reset-7/day/1';
+    const previewPath = '/learn/reset-7/day/1';
 
     // Libellé + destination selon état
     const cta = (() => {
@@ -83,7 +83,7 @@ export default function SampleDay({
         const slug = activeProgramSlug ?? 'reset-7';
         return {
             label: 'Continuer mon programme',
-            href: `/member/${slug}/day/1`,
+            href: `/learn/${slug}/day/1`,
         };
     })();
 
