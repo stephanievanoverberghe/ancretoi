@@ -7,30 +7,31 @@ import Enrollment from '@/models/Enrollment';
 import Unit from '@/models/Unit';
 import ProgramPage from '@/models/ProgramPage';
 
-type Data = {
-    ok: true;
-    programSlug: string;
-    title: string;
-    subtitle: string | null;
-    coverUrl: string | null;
-    coverAlt: string | null;
-    total: number;
-    currentDay: number; // 1-based
-    done: number; // jours terminés
-    percent: number; // 0..100
-    status: 'active' | 'completed' | 'paused';
-    level?: string | null;
-    durationDays?: number | null;
-    dailyLoadLabel?: string | null;
-};
+// Récupère le slug via l'URL (compatible Next 15 / Vercel)
+function getSlugFromUrl(url: URL) {
+    const parts = url.pathname.split('/'); // ["", "api", "programs", "{slug}", "summary"]
+    const i = parts.findIndex((p) => p === 'programs');
+    return i >= 0 && parts[i + 1] ? decodeURIComponent(parts[i + 1]).toLowerCase() : '';
+}
 
-export async function GET(_: Request, { params }: { params: { slug: string } }) {
-    const slug = (params.slug || '').toLowerCase();
+// Normalise une URL d'image pour Next/Image (ajoute "/" et retire "public/")
+function normalizeCoverUrl(u?: string | null): string | null {
+    if (!u) return null;
+    if (u.startsWith('http') || u.startsWith('data:') || u.startsWith('/')) return u;
+    return '/' + u.replace(/^public\//, '');
+}
+
+export async function GET(req: Request) {
+    const url = new URL(req.url);
+    const slug = getSlugFromUrl(url);
+    if (!slug) return NextResponse.json({ error: 'SLUG_MISSING' }, { status: 400 });
+
     await dbConnect();
 
     const user = await requireUser(`/learn/${slug}`);
     const userDoc = await UserModel.findOne({ email: user.email, deletedAt: null }).select({ _id: 1 }).lean<{ _id: unknown } | null>();
     if (!userDoc?._id) return NextResponse.json({ error: 'UNAUTH' }, { status: 401 });
+
     const userId = String(userDoc._id);
 
     const [enr, total, pg] = await Promise.all([
@@ -39,7 +40,11 @@ export async function GET(_: Request, { params }: { params: { slug: string } }) 
             .lean<{ status: 'active' | 'completed' | 'paused'; currentDay?: number | null } | null>(),
         Unit.countDocuments({ programSlug: slug, unitType: 'day', status: 'published' }),
         ProgramPage.findOne({ programSlug: slug }).select({ hero: 1, card: 1, meta: 1 }).lean<{
-            hero?: { title?: string | null; subtitle?: string | null; cover?: { url?: string | null; alt?: string | null } | null } | null;
+            hero?: {
+                title?: string | null;
+                subtitle?: string | null;
+                cover?: { url?: string | null; alt?: string | null } | null;
+            } | null;
             card?: { image?: { url?: string | null; alt?: string | null } | null } | null;
             meta?: { level?: string | null; durationDays?: number | null; dailyLoadLabel?: string | null } | null;
         } | null>(),
@@ -51,10 +56,12 @@ export async function GET(_: Request, { params }: { params: { slug: string } }) 
     const done = enr.status === 'completed' ? total : Math.max(0, currentDay - 1);
     const percent = total ? Math.round((done / total) * 100) : 0;
 
-    const coverUrl = pg?.hero?.cover?.url ?? pg?.card?.image?.url ?? null;
+    // ✅ Fallback: hero.cover → card.image → null + normalisation
+    const rawCoverUrl = pg?.hero?.cover?.url ?? pg?.card?.image?.url ?? null;
+    const coverUrl = normalizeCoverUrl(rawCoverUrl);
     const coverAlt = pg?.hero?.cover?.alt ?? pg?.card?.image?.alt ?? '';
 
-    const payload: Data = {
+    return NextResponse.json({
         ok: true,
         programSlug: slug,
         title: pg?.hero?.title ?? slug,
@@ -66,10 +73,9 @@ export async function GET(_: Request, { params }: { params: { slug: string } }) 
         done,
         percent,
         status: enr.status,
+        // meta (utilisée par la modale)
         level: pg?.meta?.level ?? null,
         durationDays: pg?.meta?.durationDays ?? null,
         dailyLoadLabel: pg?.meta?.dailyLoadLabel ?? null,
-    };
-
-    return NextResponse.json(payload);
+    });
 }

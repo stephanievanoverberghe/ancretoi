@@ -277,8 +277,10 @@ export default function ProgramDetailButton({
                                         {plan.days.map((d) => {
                                             const isCurrent = d.index === summary.currentDay && summary.status !== 'completed';
                                             const href = `/learn/${summary.programSlug}/day/${pad2(d.index)}`;
+                                            const key = `${summary.programSlug}__${pad2(d.index)}__${d.title ?? ''}`;
+
                                             return (
-                                                <li key={d.index}>
+                                                <li key={key}>
                                                     <Link
                                                         href={href}
                                                         onClick={() => setOpen(false)}
