@@ -89,7 +89,7 @@ export default function CollectionsGrid({ programs }: Props) {
                 </header>
 
                 {/* Grille */}
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-6 lg:grid-cols-4">
                     {filtered.map((p, idx) => (
                         <ProgramCard key={p.slug} program={p} position={idx + 1} />
                     ))}

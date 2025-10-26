@@ -1,19 +1,15 @@
 // src/app/methode/page.tsx
 import Image from 'next/image';
 import Link from 'next/link';
+import Breadcrumbs from '@/components/ui/Breadcrumbs';
 
 export default function MethodePage() {
     return (
-        <>
+        <main className="mx-auto max-w-6xl px-4 pb-24 pt-10 sm:pt-14 sm:px-6 lg:px-8">
             {/* Intro */}
-            <section aria-labelledby="method-h1" className="py-14 sm:py-16 lg:py-20">
-                <nav aria-label="Fil d’Ariane" className="mb-4 text-sm text-muted-foreground">
-                    <Link href="/" className="hover:text-foreground">
-                        Accueil
-                    </Link>
-                    <span aria-hidden="true"> / </span>
-                    <span className="text-foreground">Méthode</span>
-                </nav>
+            <section aria-labelledby="method-h1">
+                {/* Fil d’Ariane */}
+                <Breadcrumbs items={[{ label: 'Accueil', href: '/' }, { label: 'Méthode' }]} />
 
                 <h1 id="method-h1" className="font-serif text-3xl sm:text-4xl leading-tight">
                     Méthode Serenity
@@ -136,6 +132,6 @@ export default function MethodePage() {
                     </Link>
                 </div>
             </section>
-        </>
+        </main>
     );
 }

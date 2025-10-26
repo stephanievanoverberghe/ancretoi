@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 type Prefs = {
     theme: 'system' | 'light' | 'dark';
@@ -8,16 +9,46 @@ type Prefs = {
     productUpdates: boolean;
 };
 
+function applyTheme(theme: Prefs['theme']) {
+    // Applique immédiatement le thème au <html>, sans attendre le refresh
+    const root = document.documentElement;
+    // Si tu utilises tailwind 'dark:' via class="dark"
+    if (theme === 'dark') {
+        root.classList.add('dark');
+        root.dataset.theme = 'dark';
+    } else if (theme === 'light') {
+        root.classList.remove('dark');
+        root.dataset.theme = 'light';
+    } else {
+        // "system" → calqué sur media query
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        root.dataset.theme = 'system';
+        if (prefersDark) root.classList.add('dark');
+        else root.classList.remove('dark');
+    }
+}
+
 export default function UpdatePrefsClient({ initial }: { initial: Prefs }) {
+    const router = useRouter();
     const [prefs, setPrefs] = useState<Prefs>(initial);
     const [ok, setOk] = useState<string | null>(null);
     const [err, setErr] = useState<string | null>(null);
-    const [pending, start] = useTransition();
+    const [pending, startTransition] = useTransition();
+
+    // Appliquer le thème au premier rendu (utile si SSR ne reflète pas encore le choix)
+    useEffect(() => {
+        applyTheme(prefs.theme);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     function set<K extends keyof Prefs>(k: K, v: Prefs[K]) {
         setOk(null);
         setErr(null);
-        setPrefs((p) => ({ ...p, [k]: v }));
+        const next = { ...prefs, [k]: v };
+        setPrefs(next);
+        if (k === 'theme') {
+            // Feedback instantané
+            applyTheme(v as Prefs['theme']);
+        }
     }
 
     const Seg = ({ v, label }: { v: Prefs['theme']; label: string }) => (
@@ -36,15 +67,23 @@ export default function UpdatePrefsClient({ initial }: { initial: Prefs }) {
     async function save() {
         setOk(null);
         setErr(null);
-        start(async () => {
+        startTransition(async () => {
             const r = await fetch('/api/settings/prefs', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify(prefs),
             });
-            const j = await r.json().catch(() => ({}));
-            if (!r.ok || !j?.ok) setErr(j?.error || 'Erreur inconnue');
-            else setOk('Préférences enregistrées ✅');
+            const j: { ok?: boolean; error?: string } = await r.json().catch(() => ({} as { ok?: boolean; error?: string }));
+            if (!r.ok || !j?.ok) {
+                setErr(j?.error || 'Erreur inconnue');
+                return;
+            }
+
+            setOk('Préférences enregistrées ✅');
+
+            // 1) On applique déjà le thème côté client (fait plus haut) — instantané
+            // 2) On force la mise à jour de tous les Server Components/Layout/Header
+            router.refresh();
         });
     }
 

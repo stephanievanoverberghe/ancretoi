@@ -5,10 +5,15 @@ import { dbConnect } from '@/db/connect';
 import { getSession } from '@/lib/session';
 import { UserModel } from '@/db/schemas';
 
-export async function POST(req: Request) {
+export const runtime = 'nodejs'; // ✅ nécessaire si tu utilises Buffer
+export const dynamic = 'force-dynamic'; // (optionnel) évite le cache en prod
+
+export async function POST(req: Request): Promise<Response> {
     try {
         const sess = await getSession();
-        if (!sess?.email) return NextResponse.json({ ok: false, error: 'UNAUTH' }, { status: 401 });
+        if (!sess?.email) {
+            return NextResponse.json({ ok: false, error: 'UNAUTH' }, { status: 401 });
+        }
 
         const form = await req.formData();
         const name = form.get('name');
@@ -41,7 +46,9 @@ export async function POST(req: Request) {
         await UserModel.updateOne({ email: sess.email }, { $set });
 
         return NextResponse.json({ ok: true, avatarUrl: avatarUrlToSave ?? undefined });
-    } catch (e) {
-        return NextResponse.json({ ok: false, error: 'SERVER_ERROR' }, { status: 500 }), e;
+    } catch (err) {
+        // Log optionnel, mais on RETOURNE une Response
+        console.error('POST /api/settings/avatar failed', err);
+        return NextResponse.json({ ok: false, error: 'SERVER_ERROR' }, { status: 500 });
     }
 }
