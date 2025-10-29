@@ -33,7 +33,7 @@ export default async function InspirationsPage() {
     const latest = docs[0] ?? null;
 
     return (
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
             <InspirationsHero latest={latest} />
 
             <section id="grid" className="mt-10 sm:mt-12">

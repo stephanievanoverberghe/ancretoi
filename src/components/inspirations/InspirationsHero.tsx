@@ -6,6 +6,7 @@ type Props = {
     latest: {
         title: string;
         videoUrl: string;
+        slug?: string; // ✅ ajout du slug ici pour corriger l’erreur TS
         summary?: string | null;
         tags?: string[] | null;
     } | null;
@@ -34,7 +35,10 @@ export default function InspirationsHero({ latest }: Props) {
     const bg = useMemo(() => youtubeThumb(latest?.videoUrl), [latest?.videoUrl]);
 
     return (
-        <section className="relative isolate overflow-hidden rounded-3xl border border-brand-200 bg-white/80 ring-1 ring-white/40 shadow-sm">
+        <section
+            className="relative isolate overflow-hidden w-screen left-1/2 right-1/2 -mx-[50vw] border-b border-brand-200 bg-white/80 ring-1 ring-white/40 shadow-sm mt-0"
+            style={{ marginTop: 0 }}
+        >
             {/* Background */}
             <div
                 aria-hidden
@@ -51,17 +55,18 @@ export default function InspirationsHero({ latest }: Props) {
             <div className="absolute inset-0 -z-10 bg-brand-50/30 mix-blend-soft-light" />
             <div className="absolute inset-x-0 bottom-0 h-px bg-gold-200" />
 
-            <div className="px-5 sm:px-8 md:px-10 py-10 sm:py-14 md:py-16">
+            {/* Contenu centré */}
+            <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10 py-14 sm:py-18 md:py-22">
                 <div className="max-w-3xl">
-                    <h1 className="font-serif text-[clamp(1.7rem,5.2vw,2.6rem)] leading-tight tracking-tight">{latest ? 'L’inspiration du moment' : 'Inspirations'}</h1>
-                    <p className="mt-2 text-[15px] sm:text-base text-muted-foreground">
+                    <h1 className="font-serif text-[clamp(1.8rem,5.5vw,2.8rem)] leading-tight tracking-tight">{latest ? 'L’inspiration du moment' : 'Inspirations'}</h1>
+                    <p className="mt-3 text-[15px] sm:text-base text-muted-foreground">
                         {latest
                             ? latest.summary || 'Une vidéo choisie pour t’aider à respirer, ressentir, t’ancrer.'
                             : 'Des vidéos qui éveillent la conscience, apaisent le mental et nourrissent l’âme.'}
                     </p>
 
                     {latest?.tags?.length ? (
-                        <div className="mt-4 flex flex-wrap gap-1.5">
+                        <div className="mt-5 flex flex-wrap gap-1.5">
                             {latest.tags.slice(0, 5).map((t) => (
                                 <span key={t} className="rounded-full bg-brand-50 text-brand-800 ring-1 ring-brand-100 px-2 py-0.5 text-[11px] font-medium">
                                     {t}
@@ -70,13 +75,13 @@ export default function InspirationsHero({ latest }: Props) {
                         </div>
                     ) : null}
 
-                    <div className="mt-6 flex flex-wrap gap-3">
+                    <div className="mt-8 flex flex-wrap gap-3">
                         <a href="#grid" className="btn">
                             Explorer les inspirations
                         </a>
                         {latest?.videoUrl && (
                             <a
-                                href={latest.videoUrl}
+                                href={latest.slug ? `/inspirations/${latest.slug}` : latest.videoUrl}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="inline-flex items-center justify-center rounded-xl bg-secondary-600 px-4 py-2.5 text-white text-sm hover:bg-secondary-700"

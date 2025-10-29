@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Search, ArrowUpDown, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
+import Link from 'next/link';
 
 type Item = {
     title: string;
@@ -252,10 +253,19 @@ export default function InspirationsGalleryClient({ items }: { items: Item[] }) 
                 <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {list.map((it) => {
                         const thumb = youtubeThumb(it.videoUrl);
+                        const href = it.slug ? `/inspirations/${it.slug}` : it.videoUrl;
                         return (
                             <li key={it.videoUrl}>
-                                <button
-                                    onClick={() => openModal(it)}
+                                <Link
+                                    href={href}
+                                    onClick={(e) => {
+                                        // Clic principal sans modifieurs → modal (SEO-friendly: le lien reste pour clic molette / cmd+clic)
+                                        const isPrimary = e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+                                        if (it.slug && isPrimary) {
+                                            e.preventDefault();
+                                            openModal(it);
+                                        }
+                                    }}
                                     className="group relative block w-full overflow-hidden rounded-2xl border border-brand-200 bg-white text-left shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg cursor-pointer"
                                     aria-label={`Ouvrir ${it.title}`}
                                 >
@@ -299,7 +309,7 @@ export default function InspirationsGalleryClient({ items }: { items: Item[] }) 
                                             </div>
                                         )}
                                     </div>
-                                </button>
+                                </Link>
                             </li>
                         );
                     })}
