@@ -15,7 +15,6 @@ type InspirationDoc = {
 };
 
 type Params = { slug: string };
-type MaybePromise<T> = T | Promise<T>;
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -57,7 +56,6 @@ async function getData(slug: string) {
 
     if (!doc) return { doc: null, related: [] as InspirationDoc[] };
 
-    // “Related” (mêmes tags ou dernières publiées)
     const related = await InspirationModel.find({
         status: 'published',
         deletedAt: null,
@@ -80,8 +78,8 @@ async function getData(slug: string) {
     return { doc, related };
 }
 
-// SEO dynamique — params peut être un Promise en Next 15
-export async function generateMetadata({ params }: { params: MaybePromise<Params> }): Promise<Metadata> {
+// ✅ Next 15.5 : params est un Promise
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
     const { slug } = await params;
     const { doc } = await getData(slug);
     if (!doc) return {};
@@ -101,17 +99,11 @@ export async function generateMetadata({ params }: { params: MaybePromise<Params
             description: desc,
             images: img ? [{ url: img }] : undefined,
         },
-        twitter: {
-            card: img ? 'summary_large_image' : 'summary',
-            title: doc.title,
-            description: desc,
-            images: img ? [img] : undefined,
-        },
     };
 }
 
-// Page — même ajustement: await params
-export default async function InspirationDetailPage({ params }: { params: MaybePromise<Params> }) {
+// ✅ même ajustement ici
+export default async function InspirationDetailPage({ params }: { params: Promise<Params> }) {
     const { slug } = await params;
     const { doc, related } = await getData(slug);
     if (!doc) notFound();
