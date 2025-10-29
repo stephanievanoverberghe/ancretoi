@@ -1,89 +1,119 @@
-import { revalidatePath } from 'next/cache';
+import Link from 'next/link';
 import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
 import { UserModel } from '@/db/schemas';
+import AdminUsersClient, { type UiUser } from './users-client';
 
-type UserListItem = {
-    _id: string;
+// ⬇️ importe TOUTES les actions directement (le fichier actions.ts commence par "use server")
+import {
+    setRole,
+    getUserDetail, // ⬅️ PAS de rename/wrapper
+    archiveUser,
+    restoreUser,
+    suspendUser,
+    unsuspendUser,
+    hardDeleteUser,
+    setUserLimits,
+} from './actions';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
+type UserRawLean = {
+    _id: import('mongoose').Types.ObjectId;
     name?: string | null;
     email: string;
     role: 'user' | 'admin';
     createdAt: Date;
-};
-type UserRaw = {
-    _id: unknown;
-    name?: string | null;
-    email: string;
-    role: 'user' | 'admin';
-    createdAt: string | Date;
+    avatarUrl?: string | null;
+    deletedAt?: Date | null;
+    suspendedAt?: Date | null;
 };
 
-async function setRole(formData: FormData) {
-    'use server';
+export default async function AdminUsersPage() {
     const me = await requireAdmin();
     await dbConnect();
 
-    const userId = String(formData.get('userId') || '');
-    const role = String(formData.get('role') || 'user') as 'user' | 'admin';
-    if (!userId) throw new Error('userId requis');
+    const raw = await UserModel.find({})
+        .select({
+            name: 1,
+            email: 1,
+            role: 1,
+            createdAt: 1,
+            avatarUrl: 1,
+            deletedAt: 1,
+            suspendedAt: 1,
+        })
+        .sort({ createdAt: -1 })
+        .lean<UserRawLean[]>();
 
-    const self = await UserModel.findById(userId).select({ email: 1 }).lean<{ email: string } | null>();
-    if (self?.email === me.email && role !== 'admin') {
-        throw new Error("Tu ne peux pas te retirer l'admin toi-même.");
-    }
-
-    await UserModel.updateOne({ _id: userId }, { $set: { role } });
-    revalidatePath('/admin/users');
-}
-
-export default async function AdminUsersPage() {
-    await requireAdmin();
-    await dbConnect();
-
-    const raw = await UserModel.find({ deletedAt: null }).select({ name: 1, email: 1, role: 1, createdAt: 1 }).sort({ createdAt: -1 }).lean<UserRaw[]>();
-
-    const users: UserListItem[] = raw.map((u) => ({
+    const users: UiUser[] = raw.map((u) => ({
         _id: String(u._id),
-        name: u.name ?? null,
+        name: u.name?.trim() || null,
         email: u.email,
         role: u.role,
-        createdAt: u.createdAt instanceof Date ? u.createdAt : new Date(u.createdAt),
+        createdAtIso: u.createdAt.toISOString(),
+        avatarUrl: u.avatarUrl || null,
+        isSelf: u.email === me.email,
+        isArchived: !!u.deletedAt,
+        isSuspended: !!u.suspendedAt,
     }));
 
-    return (
-        <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Utilisateurs</h2>
+    const stats = {
+        total: users.length,
+        admins: users.filter((u) => u.role === 'admin').length,
+        active: users.filter((u) => !u.isArchived).length,
+        archived: users.filter((u) => u.isArchived).length,
+    };
 
-            <div className="card p-4">
-                {!users.length ? (
-                    <p className="text-muted-foreground">Aucun utilisateur.</p>
-                ) : (
-                    <ul className="divide-y divide-border">
-                        {users.map((u) => (
-                            <li key={u._id} className="py-3">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="font-medium">{u.name || u.email}</div>
-                                        <div className="text-xs text-muted-foreground">
-                                            {u.email} • {u.role}
-                                        </div>
-                                    </div>
-                                    <form action={setRole} className="flex items-center gap-2">
-                                        <input type="hidden" name="userId" value={u._id} />
-                                        <select name="role" defaultValue={u.role} className="input">
-                                            <option value="user">user</option>
-                                            <option value="admin">admin</option>
-                                        </select>
-                                        <button className="button" type="submit">
-                                            Mettre à jour
-                                        </button>
-                                    </form>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+    return (
+        <div className="mx-auto max-w-7xl p-4 md:p-6 space-y-6">
+            {/* Header */}
+            <div className="rounded-2xl border border-brand-200/60 bg-gradient-to-br from-brand-600/10 via-brand-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
+                <div className="text-xs text-muted-foreground">
+                    <Link href="/admin" className="hover:underline">
+                        Admin
+                    </Link>
+                    <span className="px-1.5">›</span>
+                    <span className="text-foreground">Utilisateurs</span>
+                </div>
+                <h1 className="mt-1 text-xl md:text-2xl font-semibold tracking-tight">Utilisateurs</h1>
+                <p className="text-sm text-muted-foreground mt-1">Recherche, filtres, modale détaillée, actions admin.</p>
+
+                {/* Stats */}
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Total</div>
+                        <div className="text-2xl font-semibold">{stats.total}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Admins</div>
+                        <div className="text-2xl font-semibold">{stats.admins}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Actifs</div>
+                        <div className="text-2xl font-semibold">{stats.active}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Archivés</div>
+                        <div className="text-2xl font-semibold">{stats.archived}</div>
+                    </div>
+                </div>
             </div>
+
+            {/* Grid/list (Client) */}
+            <AdminUsersClient
+                users={users}
+                setRoleAction={setRole}
+                getUserDetailAction={getUserDetail}
+                archiveUserAction={archiveUser}
+                restoreUserAction={restoreUser}
+                suspendUserAction={suspendUser}
+                unsuspendUserAction={unsuspendUser}
+                hardDeleteUserAction={hardDeleteUser}
+                setUserLimitsAction={setUserLimits}
+            />
         </div>
     );
 }
