@@ -96,11 +96,13 @@ async function updateInspiration(formData: FormData) {
 }
 
 /* ---------- Page ---------- */
-export default async function EditInspirationPage({ params }: { params: { slug: string } }) {
+export default async function EditInspirationPage(props: { params: Promise<{ slug: string }> }) {
     await requireAdmin();
     await dbConnect();
 
-    const doc = await InspirationModel.findOne({ slug: params.slug, deletedAt: null })
+    const { slug } = await props.params;
+
+    const doc = await InspirationModel.findOne({ slug, deletedAt: null })
         .select({
             _id: 1,
             title: 1,
