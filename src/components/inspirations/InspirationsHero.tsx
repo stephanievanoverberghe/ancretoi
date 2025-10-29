@@ -58,7 +58,7 @@ export default function InspirationsHero({ latest }: Props) {
             {/* Contenu centré */}
             <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10 py-14 sm:py-18 md:py-22">
                 <div className="max-w-3xl">
-                    <h1 className="font-serif text-[clamp(1.8rem,5.5vw,2.8rem)] leading-tight tracking-tight">{latest ? 'L’inspiration du moment' : 'Inspirations'}</h1>
+                    <h1 className="font-serif text-[clamp(2rem,5.5vw,3rem)] leading-tight tracking-tight">{latest ? 'L’inspiration du moment' : 'Inspirations'}</h1>
                     <p className="mt-3 text-[15px] sm:text-base text-muted-foreground">
                         {latest
                             ? latest.summary || 'Une vidéo choisie pour t’aider à respirer, ressentir, t’ancrer.'

@@ -14,6 +14,9 @@ type InspirationDoc = {
     createdAt?: Date | string;
 };
 
+type Params = { slug: string };
+type MaybePromise<T> = T | Promise<T>;
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
@@ -41,12 +44,20 @@ async function getData(slug: string) {
         status: 'published',
         deletedAt: null,
     })
-        .select({ _id: 0, title: 1, slug: 1, videoUrl: 1, summary: 1, tags: 1, createdAt: 1 })
+        .select({
+            _id: 0,
+            title: 1,
+            slug: 1,
+            videoUrl: 1,
+            summary: 1,
+            tags: 1,
+            createdAt: 1,
+        })
         .lean<InspirationDoc | null>();
 
     if (!doc) return { doc: null, related: [] as InspirationDoc[] };
 
-    // Petits “related” (mêmes tags ou dernières publiées)
+    // “Related” (mêmes tags ou dernières publiées)
     const related = await InspirationModel.find({
         status: 'published',
         deletedAt: null,
@@ -55,15 +66,24 @@ async function getData(slug: string) {
     })
         .sort({ createdAt: -1 })
         .limit(6)
-        .select({ _id: 0, title: 1, slug: 1, videoUrl: 1, summary: 1, tags: 1, createdAt: 1 })
+        .select({
+            _id: 0,
+            title: 1,
+            slug: 1,
+            videoUrl: 1,
+            summary: 1,
+            tags: 1,
+            createdAt: 1,
+        })
         .lean<InspirationDoc[]>();
 
     return { doc, related };
 }
 
-// SEO dynamique
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-    const { doc } = await getData(params.slug);
+// SEO dynamique — params peut être un Promise en Next 15
+export async function generateMetadata({ params }: { params: MaybePromise<Params> }): Promise<Metadata> {
+    const { slug } = await params;
+    const { doc } = await getData(slug);
     if (!doc) return {};
 
     const img = youtubeThumb(doc.videoUrl) ?? undefined;
@@ -90,8 +110,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     };
 }
 
-export default async function InspirationDetailPage({ params }: { params: { slug: string } }) {
-    const { doc, related } = await getData(params.slug);
+// Page — même ajustement: await params
+export default async function InspirationDetailPage({ params }: { params: MaybePromise<Params> }) {
+    const { slug } = await params;
+    const { doc, related } = await getData(slug);
     if (!doc) notFound();
 
     const id = youtubeId(doc.videoUrl);
