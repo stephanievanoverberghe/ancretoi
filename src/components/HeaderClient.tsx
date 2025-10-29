@@ -256,7 +256,6 @@ export default function HeaderClient({
                     {isAuthed ? (
                         <>
                             <div className="mb-3 flex items-center gap-3 rounded-xl bg-muted p-3">
-                                {/* ⬇️ avatar in mobile header */}
                                 {avatarUrl ? (
                                     <span className="inline-block overflow-hidden rounded-xl" style={{ width: 36, height: 36 }}>
                                         <Image src={avatarUrl} alt="" width={36} height={36} className="object-cover" unoptimized />
@@ -272,12 +271,75 @@ export default function HeaderClient({
                                 </div>
                             </div>
 
-                            {/* links... (unchanged) */}
-                            {/* ... */}
+                            <nav className="flex flex-col gap-2">
+                                <Link href="/programs" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Programmes
+                                </Link>
+                                <Link href="/methode" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Méthode
+                                </Link>
+                                <Link href="/blog" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Blog
+                                </Link>
+                                <Link href="/inspirations" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Inspiration
+                                </Link>
+                                <Link href="/member" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Mon espace
+                                </Link>
+                                {isAdmin && (
+                                    <Link href="/admin" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                        Admin
+                                    </Link>
+                                )}
+                                <Link href="/settings" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Paramètres
+                                </Link>
+                                <Link href="/help" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Aide
+                                </Link>
+                                <div className="pt-1">
+                                    <LogoutButton />
+                                </div>
+                            </nav>
                         </>
                     ) : (
-                        // unauth mobile menu unchanged
-                        <>{/* ... */}</>
+                        <>
+                            {' '}
+                            <nav className="flex flex-col gap-2">
+                                <Link href="/programs" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Programmes
+                                </Link>
+                                <Link href="/methode" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Méthode
+                                </Link>
+                                <Link href="/blog" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Blog
+                                </Link>
+                                <Link href="/inspirations" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Inspiration
+                                </Link>
+                                <Link href="/help" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-card px-4 py-3 text-[15px] hover:bg-brand-50">
+                                    Aide
+                                </Link>
+                            </nav>
+                            <div className="mt-4 grid grid-cols-1 gap-2">
+                                <Link
+                                    href="/login"
+                                    onClick={() => setMobileOpen(false)}
+                                    className="block w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-[15px] font-medium text-white shadow-sm transition hover:bg-brand-700"
+                                >
+                                    Se connecter
+                                </Link>
+                                <Link
+                                    href="/register"
+                                    onClick={() => setMobileOpen(false)}
+                                    className="block w-full rounded-xl border border-secondary-200 bg-white px-4 py-3 text-center text-[15px] font-medium transition hover:bg-secondary-50"
+                                >
+                                    S’inscrire
+                                </Link>
+                            </div>
+                        </>
                     )}
                 </div>
             </aside>
