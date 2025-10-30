@@ -1,27 +1,60 @@
 // src/app/blog/page.tsx
-import Link from 'next/link';
+import 'server-only';
 import { dbConnect } from '@/db/connect';
 import { PostModel } from '@/db/schemas';
+import BlogHero from '@/components/blog/BlogHero';
+import BlogGalleryClient from '@/components/blog/BlogGalleryClient';
 
-export default async function BlogList() {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
+/* ---------- Types ---------- */
+export type BlogItem = {
+    slug: string;
+    title?: string | null;
+    summary?: string | null;
+    coverPath?: string | null;
+    coverAlt?: string | null;
+    readingTimeMin?: number | null;
+    publishedAt?: string | Date | null;
+    category?: string | null;
+    tags?: string[] | null;
+};
+
+export default async function BlogPage() {
     await dbConnect();
-    const posts = await PostModel.find({ status: 'published', deletedAt: null }).sort({ publishedAt: -1 }).select({ title: 1, slug: 1, summary: 1, publishedAt: 1, _id: 0 }).lean();
+
+    const docs = await PostModel.find({
+        status: 'published',
+        deletedAt: null,
+    })
+        .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
+        .select({
+            slug: 1,
+            title: 1,
+            summary: 1,
+            coverPath: 1,
+            coverAlt: 1,
+            readingTimeMin: 1,
+            publishedAt: 1,
+            category: 1,
+            tags: 1,
+            _id: 0,
+        })
+        .lean<BlogItem[]>();
+
+    const featured = docs[0] ?? null;
 
     return (
-        <div className="mx-auto max-w-4xl space-y-4 py-16 sm:py-20 lg:py-24">
-            <h1 className="font-serif text-3xl">Blog</h1>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
+            <BlogHero featured={featured} />
 
-            {posts.map((p) => (
-                <article key={p.slug} className="rounded-xl border border-border bg-card p-4 shadow-sm">
-                    <Link className="text-lg font-semibold underline decoration-brand-300 underline-offset-4 hover:decoration-brand-500" href={`/blog/${p.slug}`}>
-                        {p.title}
-                    </Link>
-                    {p.publishedAt && <div className="mt-1 text-xs text-muted-foreground">{new Date(p.publishedAt).toLocaleDateString('fr-FR')}</div>}
-                    {p.summary && <p className="mt-2 text-sm text-muted-foreground">{p.summary}</p>}
-                </article>
-            ))}
+            <section id="grid" className="mt-10 sm:mt-12">
+                <BlogGalleryClient items={docs} />
+            </section>
 
-            {!posts.length && <p className="text-muted-foreground">Aucun article publié pour l’instant.</p>}
+            {!docs.length && <p className="text-center text-muted-foreground mt-16">Bientôt des articles ✨</p>}
         </div>
     );
 }

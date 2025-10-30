@@ -2,7 +2,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-type Post = {
+import { dbConnect } from '@/db/connect';
+import { PostModel } from '@/db/schemas';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
+/* ---------- Types ---------- */
+type PostCard = {
     slug: string;
     title: string;
     date: string; // ISO
@@ -11,16 +19,20 @@ type Post = {
     readingTime?: number;
 };
 
-async function loadPosts(): Promise<Post[]> {
-    const modules = await Promise.all([
-        import('@/data/posts/rituel-matin-7-min.json'),
-        import('@/data/posts/equilibre-limites-douces.json'),
-        import('@/data/posts/ralentir-sans-procrastiner.json'),
-    ]);
-    const posts = modules.map((m) => m.default as Post);
-    return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
-}
+type PostLean = {
+    slug: string;
+    title?: string | null;
+    summary?: string | null;
+    content?: string | null;
+    coverPath?: string | null;
+    coverAlt?: string | null;
+    readingTimeMin?: number | null;
+    publishedAt?: string | Date | null;
+    updatedAt?: string | Date | null;
+    createdAt?: string | Date | null;
+};
 
+/* ---------- Utils ---------- */
 function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('fr-FR', {
         day: '2-digit',
@@ -29,6 +41,78 @@ function formatDate(iso: string) {
     });
 }
 
+function stripMarkdown(md: string) {
+    return (md || '')
+        .replace(/`{1,3}[^`]*`{1,3}/g, ' ')
+        .replace(/```[\s\S]*?```/g, ' ')
+        .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+        .replace(/\[[^\]]*\]\([^)]+\)/g, ' ')
+        .replace(/^#{1,6}\s*/gm, '')
+        .replace(/^\s*[-*+]\s+/gm, '')
+        .replace(/^\s*\d+\.\s+/gm, '')
+        .replace(/^>\s+/gm, '')
+        .replace(/[*_~`>#]/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+}
+
+function excerptFrom(summary?: string | null, content?: string | null, max = 220) {
+    const src = (summary && summary.trim()) || stripMarkdown(content || '');
+    if (!src) return '';
+    if (src.length <= max) return src;
+    const cut = src.slice(0, max);
+    const lastSpace = cut.lastIndexOf(' ');
+    return (lastSpace > 60 ? cut.slice(0, lastSpace) : cut).trim() + '…';
+}
+
+function normalizePublicPath(p?: string | null) {
+    if (!p) return '';
+    return p.startsWith('/') ? p : `/${p}`;
+}
+
+/* ---------- Data ---------- */
+async function loadPosts(): Promise<PostCard[]> {
+    await dbConnect();
+
+    const docs = await PostModel.find({
+        status: 'published',
+        deletedAt: null,
+    })
+        .select({
+            slug: 1,
+            title: 1,
+            summary: 1,
+            content: 1,
+            coverPath: 1,
+            coverAlt: 1,
+            readingTimeMin: 1,
+            publishedAt: 1,
+            updatedAt: 1,
+            createdAt: 1,
+        })
+        .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
+        .limit(3)
+        .lean<PostLean[]>(); // 👈 typé: plus de any
+
+    return docs.map((d) => {
+        const date = (d.publishedAt ? new Date(d.publishedAt) : d.updatedAt ? new Date(d.updatedAt) : d.createdAt ? new Date(d.createdAt) : new Date()).toISOString();
+
+        const excerpt = excerptFrom(d.summary, d.content);
+        const src = normalizePublicPath(d.coverPath);
+        const alt = (d.coverAlt && d.coverAlt.trim()) || 'Image de couverture';
+
+        return {
+            slug: d.slug,
+            title: (d.title || '').trim() || 'Sans titre',
+            date,
+            excerpt,
+            hero: { src, alt },
+            readingTime: typeof d.readingTimeMin === 'number' ? d.readingTimeMin : undefined,
+        };
+    });
+}
+
+/* ---------- Component ---------- */
 export default async function BlogTeasers() {
     const posts = await loadPosts();
 
@@ -54,13 +138,24 @@ export default async function BlogTeasers() {
                             {/* Image */}
                             <Link href={`/blog/${p.slug}`} aria-label={p.title} className="block">
                                 <div className="relative aspect-[4/3] w-full overflow-hidden">
-                                    <Image
-                                        src={p.hero.src}
-                                        alt={p.hero.alt}
-                                        fill
-                                        sizes="(max-width: 768px) 92vw, 33vw"
-                                        className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                                    />
+                                    {p.hero.src ? (
+                                        <Image
+                                            src={p.hero.src}
+                                            alt={p.hero.alt}
+                                            fill
+                                            sizes="(max-width: 768px) 92vw, 33vw"
+                                            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                                        />
+                                    ) : (
+                                        <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
+                                            <svg width="40" height="40" viewBox="0 0 24 24">
+                                                <path
+                                                    d="M21 19V5a2 2 0 0 0-2-2H5C3.9 3 3 3.9 3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2ZM8 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm11 6-5-7-4 5-2-3-4 5h15Z"
+                                                    fill="currentColor"
+                                                />
+                                            </svg>
+                                        </div>
+                                    )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-black/5 to-transparent" aria-hidden />
                                     <div className="absolute left-3 top-3 flex items-center gap-2">
                                         <span className="rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-foreground ring-1 ring-border">{formatDate(p.date)}</span>
@@ -73,7 +168,7 @@ export default async function BlogTeasers() {
 
                             <div className="h-px w-full bg-gold-100/80" aria-hidden />
 
-                            {/* Contenu → colonne avec espace extensible pour pousser le CTA en bas */}
+                            {/* Contenu */}
                             <div className="flex flex-1 flex-col p-4 sm:p-5">
                                 <header>
                                     <h3 className="font-serif text-[clamp(1rem,2.6vw,1.15rem)] leading-snug">
@@ -87,7 +182,6 @@ export default async function BlogTeasers() {
                                     <p className="line-clamp-3 text-[15px] text-brand-900">{p.excerpt}</p>
                                 </div>
 
-                                {/* CTA collé en bas */}
                                 <div className="mt-4">
                                     <Link
                                         href={`/blog/${p.slug}`}

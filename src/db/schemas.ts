@@ -52,16 +52,50 @@ const PostSchema = new Schema(
     {
         title: { type: String, required: true, trim: true },
         slug: { type: String, required: true, unique: true, index: true },
+
+        status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
+
         summary: { type: String, default: '' },
-        coverUrl: { type: String, default: '' },
         content: { type: String, default: '' },
-        status: { type: String, enum: ['draft', 'published'], default: 'draft' },
-        publishedAt: { type: Date, default: null },
-        authorEmail: { type: String, index: true },
-        deletedAt: { type: Date, default: null },
+
+        // Couverture locale (dans /public)
+        coverPath: { type: String, default: '' }, // ex: "/images/blog/slug/cover.jpg"
+        coverAlt: { type: String, default: '' },
+
+        // Taxonomie
+        category: { type: String, default: '' }, // libre ou fais un enum si tu veux
+        tags: { type: [String], default: [] }, // array de strings en minuscule
+
+        // SEO
+        seoTitle: { type: String, default: '' },
+        seoDescription: { type: String, default: '' },
+        canonicalUrl: { type: String, default: '' },
+
+        // Divers
+        isFeatured: { type: Boolean, default: false },
+        readingTimeMin: { type: Number, default: 1 },
+
+        // Dates & auteur
+        publishedAt: { type: Date, default: null, index: true },
+        authorEmail: { type: String, default: '' },
+
+        // Soft delete
+        deletedAt: { type: Date, default: null, index: true },
     },
-    { timestamps: true }
+    {
+        timestamps: true, // createdAt, updatedAt
+        strict: true,
+        versionKey: false,
+    }
 );
+
+// Normalise tags en minuscule et trim
+PostSchema.pre('save', function (next) {
+    if (Array.isArray(this.tags)) {
+        this.tags = this.tags.map((t: string) => (t || '').trim().toLowerCase()).filter(Boolean);
+    }
+    next();
+});
 
 /* ---------- INSPIRATIONAL VIDEOS ---------- */
 const InspirationSchema = new Schema(

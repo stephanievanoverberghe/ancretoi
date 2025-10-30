@@ -1,66 +1,120 @@
+// src/app/admin/blog/page.tsx
+import 'server-only';
 import Link from 'next/link';
-import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
+import { requireAdmin } from '@/lib/authz';
 import { PostModel } from '@/db/schemas';
+import AdminPostsGridClient, { type AdminPostRow } from './new/components/AdminPostsGridClient';
 
-type PostListItem = {
-    _id: string;
-    title: string;
-    slug: string;
-    status: 'draft' | 'published';
-    publishedAt: Date | null;
-    createdAt: Date;
-};
-type PostRaw = {
+type PostLean = {
     _id: unknown;
-    title: string;
+    title?: string | null;
     slug: string;
     status: 'draft' | 'published';
-    publishedAt: string | Date | null;
-    createdAt: string | Date;
+    coverPath: string | null;
+    summary?: string | null;
+    tags?: string[] | null;
+    category?: string | null;
+    createdAt?: Date | string | null;
+    updatedAt?: Date | string | null;
+    publishedAt?: Date | string | null;
+    deletedAt?: Date | string | null;
 };
 
-export default async function BlogAdminList() {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
+export default async function AdminBlogListPage() {
     await requireAdmin();
     await dbConnect();
 
-    const raw = await PostModel.find({ deletedAt: null }).select({ title: 1, slug: 1, status: 1, publishedAt: 1, createdAt: 1 }).sort({ createdAt: -1 }).lean<PostRaw[]>();
+    const [actives, archivedCount] = await Promise.all([
+        PostModel.find({ deletedAt: null })
+            .select({ title: 1, slug: 1, status: 1, coverPath: 1, summary: 1, tags: 1, category: 1, createdAt: 1, updatedAt: 1, publishedAt: 1 })
+            .sort({ createdAt: -1 })
+            .lean<PostLean[]>(),
+        PostModel.countDocuments({ deletedAt: { $ne: null } }),
+    ]);
 
-    const posts: PostListItem[] = raw.map((a) => ({
-        _id: String(a._id),
-        title: a.title,
-        slug: a.slug,
-        status: a.status,
-        publishedAt: a.publishedAt ? (a.publishedAt instanceof Date ? a.publishedAt : new Date(a.publishedAt)) : null,
-        createdAt: a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt),
+    const rows: AdminPostRow[] = actives.map((d) => ({
+        id: String(d._id),
+        slug: d.slug,
+        status: d.status,
+        title: (d.title ?? '').trim() || 'Sans titre',
+        coverPath: d.coverPath ?? null,
+        summary: d.summary ?? null,
+        tags: Array.isArray(d.tags) ? d.tags : [],
+        category: d.category ?? null,
+        timestamps: {
+            createdAt: d.createdAt ? new Date(d.createdAt as string | Date).toISOString() : null,
+            updatedAt: d.updatedAt ? new Date(d.updatedAt as string | Date).toISOString() : null,
+            publishedAt: d.publishedAt ? new Date(d.publishedAt as string | Date).toISOString() : null,
+        },
     }));
 
+    const stats = {
+        total: rows.length,
+        published: rows.filter((r) => r.status === 'published').length,
+        draft: rows.filter((r) => r.status === 'draft').length,
+        archived: archivedCount,
+    };
+
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Articles</h2>
-                <Link href="/admin/blog/new" className="button">
-                    Nouvel article
-                </Link>
+        <div className="mx-auto max-w-7xl space-y-6">
+            {/* ===== Header style "Inspirations" ===== */}
+            <div className="rounded-2xl border border-brand-200/60 bg-gradient-to-br from-brand-600/10 via-brand-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
+                <div className="text-xs text-muted-foreground">
+                    <Link href="/admin" className="hover:underline">
+                        Admin
+                    </Link>
+                    <span className="px-1.5">›</span>
+                    <span className="text-foreground">Articles</span>
+                </div>
+                <h1 className="mt-1 text-xl md:text-2xl font-semibold tracking-tight">Articles</h1>
+                <p className="text-sm text-muted-foreground mt-1">Rédaction, édition et publication des billets du blog.</p>
+
+                {/* Stats */}
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Total</div>
+                        <div className="text-2xl font-semibold">{stats.total}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Publiés</div>
+                        <div className="text-2xl font-semibold">{stats.published}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Brouillons</div>
+                        <div className="text-2xl font-semibold">{stats.draft}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Archivés</div>
+                        <div className="text-2xl font-semibold">{stats.archived}</div>
+                    </div>
+                </div>
+
+                {/* Actions (droite) */}
+                <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                    <Link href="/admin/blog/archives" className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50">
+                        Archives ({stats.archived})
+                    </Link>
+                    <Link
+                        href="/admin/blog/new"
+                        className="inline-flex items-center gap-2 rounded-xl border border-brand-300 bg-brand-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+                        aria-label="Créer un nouvel article"
+                    >
+                        <span aria-hidden className="text-xl leading-none">
+                            ＋
+                        </span>
+                        <span className="hidden sm:inline">Nouvel article</span>
+                    </Link>
+                </div>
             </div>
 
-            <div className="card p-4">
-                {!posts.length ? (
-                    <p className="text-muted-foreground">Aucun article.</p>
-                ) : (
-                    <ul className="divide-y divide-border">
-                        {posts.map((a) => (
-                            <li key={a._id} className="py-3 flex items-center justify-between">
-                                <div>
-                                    <div className="font-medium">{a.title}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                        /{a.slug} • {a.status}
-                                    </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+            {/* ===== Grid (client) ===== */}
+            <div className="px-0 sm:px-2 md:px-0">
+                <AdminPostsGridClient rows={rows} />
             </div>
         </div>
     );
