@@ -1,10 +1,11 @@
+// src/app/admin/programs/components/AdminProgramsGridClient.tsx
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { BadgeCheck, Search, Eye, Layers, Calendar, Clock3, Tag, ExternalLink, Lock, X, PencilLine, CalendarPlus, Presentation } from 'lucide-react';
+import { BadgeCheck, Search, Eye, Layers, Calendar, Clock3, Tag, ExternalLink, Lock, X, PencilLine, CalendarPlus, Presentation, ChevronDown } from 'lucide-react';
 import DeleteProgramButton from '@/components/admin/DeleteProgramButton';
 
 /* ===================== Types ===================== */
@@ -27,9 +28,7 @@ export type AdminProgramRow = {
 };
 
 type StatusFilter = 'all' | 'draft' | 'preflight' | 'published';
-type LevelFilter = 'Basique' | 'Cible' | 'Premium';
-
-/** Nouveau: clé de tri */
+type LevelFilter = '' | 'Basique' | 'Cible' | 'Premium';
 type SortKey = 'recent' | 'alphaAsc' | 'alphaDesc';
 
 /* ===================== Utils ===================== */
@@ -68,7 +67,7 @@ function LevelBadge({ level }: { level: AdminProgramRow['meta']['level'] }) {
     return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ring-1 ${colors}`}>{level}</span>;
 }
 
-/* ================= Modal Quick View (LAISSE COMME ÇA) ================= */
+/* ================= Modal Quick View (inchangée) ================= */
 
 function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => void; row: AdminProgramRow | null }) {
     const [mounted, setMounted] = useState(false);
@@ -215,15 +214,15 @@ function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => 
     );
 }
 
-/* ==================== Grid + Toolbar (MOBILE-FIRST, CLEAN) ==================== */
+/* ==================== Grid + Toolbar (style "Inspirations") ==================== */
 
-const LS_KEY = 'adminProgramsToolbar:v6';
+const LS_KEY = 'adminProgramsToolbar:v7';
 
 type PersistedState = {
     q: string;
     status: StatusFilter;
-    levels: LevelFilter[];
-    /** Nouveau: on persiste le tri */
+    level: LevelFilter; // '' => tous
+    tag: string; // '' => tous
     sort: SortKey;
 };
 
@@ -247,11 +246,17 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
         return () => window.removeEventListener('keydown', onKey);
     }, []);
 
-    /** Filtres conservés */
+    /** Dropdowns: Statut / Niveau / Tag / Tri */
     const [status, setStatus] = useState<StatusFilter>('all');
-    const [levels, setLevels] = useState<LevelFilter[]>([]);
-    /** Nouveau: tri */
+    const [level, setLevel] = useState<LevelFilter>('');
     const [sort, setSort] = useState<SortKey>('recent');
+
+    const uniqueTags = useMemo(() => {
+        const set = new Set<string>();
+        rows.forEach((r) => r.meta.tags?.forEach((t) => t && set.add(t)));
+        return Array.from(set).sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+    }, [rows]);
+    const [tag, setTag] = useState<string>('');
 
     /** Persistance */
     useEffect(() => {
@@ -262,18 +267,19 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
             setQRaw(s.q ?? '');
             setQ(s.q ?? '');
             setStatus((s.status as StatusFilter) ?? 'all');
-            setLevels(Array.isArray(s.levels) ? (s.levels as LevelFilter[]) : []);
+            setLevel((s.level as LevelFilter) ?? '');
+            setTag(typeof s.tag === 'string' ? s.tag : '');
             setSort((s.sort as SortKey) ?? 'recent');
         } catch {
             /* ignore */
         }
     }, []);
     useEffect(() => {
-        const s: PersistedState = { q, status, levels, sort };
+        const s: PersistedState = { q, status, level, tag, sort };
         localStorage.setItem(LS_KEY, JSON.stringify(s));
-    }, [q, status, levels, sort]);
+    }, [q, status, level, tag, sort]);
 
-    /** Stats pour statuts */
+    /** Stats pour libellés Statut */
     const stats = useMemo(() => {
         const total = rows.length;
         const by = rows.reduce(
@@ -288,12 +294,13 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
         return { total, ...by };
     }, [rows]);
 
-    /** Filtrage + tri */
+    /** Filtrage + tri (comme Inspirations) */
     const filtered = useMemo(() => {
         const ql = q.trim().toLowerCase();
         const passes = (r: AdminProgramRow) => {
             if (status !== 'all' && r.status !== status) return false;
-            if (levels.length > 0 && (!r.meta.level || !levels.includes(r.meta.level))) return false;
+            if (level && r.meta.level !== level) return false;
+            if (tag && !r.meta.tags.includes(tag)) return false;
             if (ql) {
                 const hay = `${r.title} ${r.programSlug} ${r.meta.tags.join(' ')}`.toLowerCase();
                 if (!hay.includes(ql)) return false;
@@ -312,29 +319,27 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
                 default: {
                     const aa = a.timestamps.updatedAt || a.timestamps.createdAt || '';
                     const bb = b.timestamps.updatedAt || b.timestamps.createdAt || '';
-                    return bb.localeCompare(aa); // récents d'abord
+                    return bb.localeCompare(aa);
                 }
             }
         });
 
         return out;
-    }, [rows, q, status, levels, sort]);
+    }, [rows, q, status, level, tag, sort]);
 
     const [openSlug, setOpenSlug] = useState<string | null>(null);
     const current = useMemo(() => rows.find((r) => r.programSlug === openSlug) ?? null, [openSlug, rows]);
 
-    const toggleLevel = (lv: LevelFilter) => setLevels((prev) => (prev.includes(lv) ? prev.filter((x) => x !== lv) : [...prev, lv]));
-
-    /* ======== TOOLBAR collante (verre), 100% mobile-first ======== */
+    /* ======== Toolbar style “Inspirations” (search au-dessus + dropdowns) ======== */
     return (
         <>
             <section className="sticky top-[env(safe-area-inset-top,0px)] z-10 -mx-4 mb-4 bg-gradient-to-b from-white/80 to-transparent px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/60 sm:mx-0 sm:rounded-xl sm:border sm:border-brand-200 sm:bg-white/70">
-                {/* Recherche */}
-                <div className="relative">
+                {/* Search */}
+                <div className="relative w-full mb-3">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <input
                         ref={searchRef}
-                        placeholder="Rechercher (/, titre, slug, tag)"
+                        placeholder="Rechercher (/, titre, slug, tag)…"
                         value={qRaw}
                         onChange={(e) => setQRaw(e.target.value)}
                         className="w-full rounded-full border border-brand-400 bg-white pl-10 pr-10 py-2 text-sm shadow-inner outline-none transition focus-visible:ring-2 focus-visible:ring-brand-500"
@@ -354,71 +359,88 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
                     )}
                 </div>
 
-                {/* Statuts (pills scrollables) */}
-                <div className="mt-3 flex flex-col sm:flex-row w-full snap-x snap-mandatory gap-2 overflow-x-auto pb-1">
-                    {(
-                        [
-                            { key: 'all' as StatusFilter, label: `Tous (${stats.total})` },
-                            { key: 'draft' as StatusFilter, label: `Brouillons (${stats.draft})` },
-                            { key: 'preflight' as StatusFilter, label: `Préflight (${stats.preflight})` },
-                            { key: 'published' as StatusFilter, label: `Publiés (${stats.published})` },
-                        ] as const
-                    ).map((opt) => {
-                        const active = status === opt.key;
-                        return (
-                            <button
-                                key={opt.key}
-                                onClick={() => setStatus(opt.key)}
-                                aria-pressed={active}
-                                className={[
-                                    'snap-start whitespace-nowrap rounded-full px-3 py-1 text-xs ring-1 transition cursor-pointer',
-                                    active ? 'bg-brand-600 text-white ring-brand-100 shadow-sm' : 'bg-muted text-gray-800 ring-gray-200 hover:bg-brand-100',
-                                ].join(' ')}
-                            >
-                                {opt.label}
-                            </button>
-                        );
-                    })}
-                </div>
+                {/* Dropdowns */}
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-4">
+                    {/* Statut */}
+                    <div className="relative">
+                        <label htmlFor="pg-status" className="sr-only">
+                            Filtrer par statut
+                        </label>
+                        <select
+                            id="pg-status"
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value as StatusFilter)}
+                            className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            <option value="all">Tous les statuts ({stats.total})</option>
+                            <option value="published">Publiés ({stats.published})</option>
+                            <option value="preflight">Préflight ({stats.preflight})</option>
+                            <option value="draft">Brouillons ({stats.draft})</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    </div>
 
-                {/* Niveaux (chips) */}
-                <div className="mt-3 flex flex-col sm:flex-row w-full snap-x snap-mandatory gap-2 overflow-x-auto pb-1">
-                    {(['Basique', 'Cible', 'Premium'] as LevelFilter[]).map((lv) => {
-                        const active = levels.includes(lv);
-                        const cls = active ? 'bg-brand-600 text-white ring-brand-100 shadow-sm' : 'bg-muted text-gray-800 ring-gray-200 hover:bg-brand-100';
-                        return (
-                            <button
-                                key={lv}
-                                onClick={() => toggleLevel(lv)}
-                                className={`snap-start whitespace-nowrap rounded-full px-3 py-1 text-xs ring-1 transition cursor-pointer ${cls}`}
-                                aria-pressed={active}
-                            >
-                                {lv}
-                                {active && <X className="ml-1 inline-block h-3.5 w-3.5 opacity-80" />}
-                            </button>
-                        );
-                    })}
-                </div>
+                    {/* Niveau */}
+                    <div className="relative">
+                        <label htmlFor="pg-level" className="sr-only">
+                            Filtrer par niveau
+                        </label>
+                        <select
+                            id="pg-level"
+                            value={level}
+                            onChange={(e) => setLevel(e.target.value as LevelFilter)}
+                            className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            <option value="">Tous les niveaux</option>
+                            <option value="Basique">Basique</option>
+                            <option value="Cible">Cible</option>
+                            <option value="Premium">Premium</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    </div>
 
-                {/* Tri compact (Récents / A→Z / Z→A) */}
-                <div className="mt-2 flex justify-end">
-                    <label htmlFor="programs-sort" className="sr-only">
-                        Trier les programmes
-                    </label>
-                    <select
-                        id="programs-sort"
-                        value={sort}
-                        onChange={(e) => setSort(e.target.value as SortKey)}
-                        className="rounded-full border border-brand-300 bg-white px-3 py-1.5 text-xs text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                    >
-                        <option value="recent">Récents</option>
-                        <option value="alphaAsc">A → Z</option>
-                        <option value="alphaDesc">Z → A</option>
-                    </select>
+                    {/* Tag */}
+                    <div className="relative">
+                        <label htmlFor="pg-tag" className="sr-only">
+                            Filtrer par tag
+                        </label>
+                        <select
+                            id="pg-tag"
+                            value={tag}
+                            onChange={(e) => setTag(e.target.value)}
+                            className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            <option value="">Tous les tags</option>
+                            {uniqueTags.map((t) => (
+                                <option key={t} value={t}>
+                                    {t}
+                                </option>
+                            ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    </div>
+
+                    {/* Tri */}
+                    <div className="relative">
+                        <label htmlFor="pg-sort" className="sr-only">
+                            Trier les programmes
+                        </label>
+                        <select
+                            id="pg-sort"
+                            value={sort}
+                            onChange={(e) => setSort(e.target.value as SortKey)}
+                            className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            <option value="recent">Récents</option>
+                            <option value="alphaAsc">A → Z</option>
+                            <option value="alphaDesc">Z → A</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    </div>
                 </div>
             </section>
 
-            {/* Grid responsive */}
+            {/* Grid */}
             {filtered.length === 0 ? (
                 <div className="rounded-2xl border border-brand-600 border-dashed p-8 text-center">
                     <p className="text-sm text-gray-500">Aucun programme ne correspond.</p>
@@ -466,7 +488,7 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
                                 </div>
 
                                 <div className="mt-3 grid grid-cols-2 gap-2">
-                                    {/* Ligne 1 : Jours / Landing (50% / 50%) */}
+                                    {/* Ligne 1 : Jours / Landing */}
                                     <Link
                                         href={`/admin/programs/${r.programSlug}/units`}
                                         className="inline-flex w-full items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-800 bg-brand-50 ring-1 ring-brand-200 hover:ring-brand-500 transition hover:bg-brand-100"
@@ -480,7 +502,7 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
                                         <CalendarPlus className="h-4 w-4" /> Landing
                                     </Link>
 
-                                    {/* Ligne 2 : Éditer / Aperçu (50% / 50%) */}
+                                    {/* Ligne 2 : Éditer / Aperçu */}
                                     <Link
                                         href={`/admin/programs/${r.programSlug}/edit`}
                                         className="inline-flex w-full items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-800 bg-brand-50 ring-1 ring-brand-200 hover:ring-brand-500 transition hover:bg-brand-100"
@@ -494,7 +516,7 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
                                         <Eye className="h-4 w-4" /> Aperçu
                                     </button>
 
-                                    {/* Ligne 3 : Supprimer seule en pleine largeur */}
+                                    {/* Ligne 3 : Supprimer */}
                                     <div className="col-span-2 [&>button]:w-full">
                                         <DeleteProgramButton slug={r.programSlug} />
                                     </div>
@@ -505,7 +527,7 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
                 </ul>
             )}
 
-            {/* QuickView (inchangée) */}
+            {/* QuickView */}
             <QuickViewModal open={!!openSlug} onClose={() => setOpenSlug(null)} row={current} />
         </>
     );

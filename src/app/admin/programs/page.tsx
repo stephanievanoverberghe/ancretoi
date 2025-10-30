@@ -1,3 +1,4 @@
+// src/app/admin/programs/page.tsx
 import 'server-only';
 import Link from 'next/link';
 import { dbConnect } from '@/db/connect';
@@ -75,23 +76,54 @@ export default async function ProgramsListPage() {
         })
     );
 
-    return (
-        <div className="relative">
-            {/* Header sticky — bouton “Nouveau” visible sur TOUTES les tailles */}
-            <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 mb-4 -mx-4 bg-gradient-to-b from-background/80 to-transparent px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:-mx-6 md:-mx-8">
-                <div className="mx-auto flex max-w-7xl items-center justify-between">
-                    <div>
-                        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Programmes</h1>
-                        <p className="text-xs text-muted-foreground sm:text-sm">Gère tes parcours, prix, statuts et contenus.</p>
-                    </div>
+    const stats = {
+        total: rows.length,
+        published: rows.filter((r) => r.status === 'published').length,
+        preflight: rows.filter((r) => r.status === 'preflight').length,
+        draft: rows.filter((r) => r.status === 'draft').length,
+    };
 
-                    {/* 👇 plus de `hidden sm:inline-flex` : visible aussi en mobile */}
+    return (
+        <div className="mx-auto max-w-7xl space-y-6">
+            {/* ===== Header style "Utilisateurs / Inspirations" ===== */}
+            <div className="rounded-2xl border border-brand-200/60 bg-gradient-to-br from-brand-600/10 via-brand-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
+                <div className="text-xs text-muted-foreground">
+                    <Link href="/admin" className="hover:underline">
+                        Admin
+                    </Link>
+                    <span className="px-1.5">›</span>
+                    <span className="text-foreground">Programmes</span>
+                </div>
+                <h1 className="mt-1 text-xl md:text-2xl font-semibold tracking-tight">Programmes</h1>
+                <p className="text-sm text-muted-foreground mt-1">Gère tes parcours, statuts, prix et contenus.</p>
+
+                {/* Stats */}
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Total</div>
+                        <div className="text-2xl font-semibold">{stats.total}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Publiés</div>
+                        <div className="text-2xl font-semibold">{stats.published}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Pré-flight</div>
+                        <div className="text-2xl font-semibold">{stats.preflight}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Brouillons</div>
+                        <div className="text-2xl font-semibold">{stats.draft}</div>
+                    </div>
+                </div>
+
+                {/* Actions à droite */}
+                <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
                     <Link
                         href="/admin/programs/new"
                         className="inline-flex items-center gap-2 rounded-xl border border-brand-300 bg-brand-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
                         aria-label="Créer un nouveau programme"
                     >
-                        {/* Icône + toujours visible, texte caché sur mobile */}
                         <span aria-hidden className="text-xl leading-none">
                             ＋
                         </span>
@@ -100,8 +132,8 @@ export default async function ProgramsListPage() {
                 </div>
             </div>
 
-            {/* Grid + contrôles (client) */}
-            <div className="mx-auto max-w-7xl px-0 sm:px-2 md:px-4">
+            {/* ===== Grid + contrôles (client) ===== */}
+            <div className="px-0 sm:px-2 md:px-0">
                 <AdminProgramsGridClient rows={rows} />
             </div>
         </div>

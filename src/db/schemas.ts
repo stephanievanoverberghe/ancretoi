@@ -67,7 +67,7 @@ const PostSchema = new Schema(
 const InspirationSchema = new Schema(
     {
         title: { type: String, required: true, trim: true },
-        slug: { type: String, required: true, index: true },
+        slug: { type: String, required: true },
         videoUrl: { type: String, required: true },
         summary: { type: String, default: '' },
         tags: { type: [String], default: [] },

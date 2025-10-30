@@ -37,33 +37,59 @@ export default async function AdminHome() {
     return (
         <div className="space-y-8 max-w-full overflow-x-hidden">
             {/* Header + actions */}
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Tableau de bord</h1>
+            <div className="mx-auto max-w-7xl">
+                <div className="rounded-2xl border border-brand-200/60 bg-gradient-to-br from-brand-600/10 via-brand-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
+                    {/* Titre */}
+                    <h1 className="mt-1 text-xl md:text-2xl font-semibold tracking-tight">Tableau de bord</h1>
                     <p className="text-sm text-muted-foreground mt-1">Vue d’ensemble des contenus et de l’activité.</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    <Link
-                        href="/admin/programs/new"
-                        className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm ring-1 ring-brand-700/40 hover:bg-brand-700"
-                    >
-                        + Nouveau programme
-                    </Link>
-                    <Link
-                        href="/admin/newsletter"
-                        className="inline-flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-sm font-medium text-brand-700 ring-1 ring-brand-100 hover:bg-brand-50"
-                    >
-                        Ouvrir Newsletter
-                    </Link>
-                </div>
-            </div>
 
-            {/* KPI cliquables */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCardLink href="/admin/programs" icon={<Boxes className="h-5 w-5" />} label="Programmes publiés" value={programsCount} />
-                <StatCardLink href="/admin/blog" icon={<Newspaper className="h-5 w-5" />} label="Articles publiés" value={posts} />
-                <StatCardLink href="/admin/inspirations" icon={<Video className="h-5 w-5" />} label="Inspirations publiées" value={videos} />
-                <StatCardLink href="/admin/users" icon={<Users className="h-5 w-5" />} label="Utilisateurs actifs" value={users} />
+                    {/* Stats (cartes) */}
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <Link href="/admin/programs" className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4 hover:bg-brand-50 transition border border-white/60">
+                            <div className="text-xs text-muted-foreground flex items-center gap-2">
+                                <Boxes className="h-4 w-4" /> Programmes publiés
+                            </div>
+                            <div className="text-2xl font-semibold tabular-nums">{programsCount}</div>
+                        </Link>
+
+                        <Link href="/admin/blog" className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4 hover:bg-brand-50 transition border border-white/60">
+                            <div className="text-xs text-muted-foreground flex items-center gap-2">
+                                <Newspaper className="h-4 w-4" /> Articles publiés
+                            </div>
+                            <div className="text-2xl font-semibold tabular-nums">{posts}</div>
+                        </Link>
+
+                        <Link href="/admin/inspirations" className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4 hover:bg-brand-50 transition border border-white/60">
+                            <div className="text-xs text-muted-foreground flex items-center gap-2">
+                                <Video className="h-4 w-4" /> Inspirations publiées
+                            </div>
+                            <div className="text-2xl font-semibold tabular-nums">{videos}</div>
+                        </Link>
+
+                        <Link href="/admin/users" className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4 hover:bg-brand-50 transition border border-white/60">
+                            <div className="text-xs text-muted-foreground flex items-center gap-2">
+                                <Users className="h-4 w-4" /> Utilisateurs actifs
+                            </div>
+                            <div className="text-2xl font-semibold tabular-nums">{users}</div>
+                        </Link>
+                    </div>
+
+                    {/* Actions (alignées à droite, en bas) */}
+                    <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                        <Link href="/admin/newsletter" className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50">
+                            Ouvrir Newsletter
+                        </Link>
+                        <Link
+                            href="/admin/programs/new"
+                            className="inline-flex items-center gap-2 rounded-xl border border-brand-300 bg-brand-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+                        >
+                            <span aria-hidden className="text-xl leading-none">
+                                ＋
+                            </span>
+                            <span className="hidden sm:inline">Nouveau</span>
+                        </Link>
+                    </div>
+                </div>
             </div>
 
             {/* Analytics */}
@@ -203,34 +229,6 @@ export default async function AdminHome() {
 }
 
 /* ===== UI atoms ===== */
-
-function StatCardLink({ href, icon, label, value }: { href: string; icon: React.ReactNode; label: string; value: number }) {
-    return (
-        <Link
-            href={href}
-            aria-label={`${label} — ouvrir`}
-            className={[
-                'group relative block overflow-hidden rounded-2xl border border-brand-200 bg-white/85 p-4',
-                'ring-1 ring-white/40 shadow-sm transition',
-                'hover:-translate-y-[1px] hover:shadow-[0_8px_24px_rgb(0_0_0/0.06)] hover:bg-brand-50',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60',
-            ].join(' ')}
-        >
-            <div className="relative flex items-center gap-3">
-                <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white ring-1 ring-brand-100 text-brand-700">{icon}</div>
-                <div className="ml-auto text-2xl font-semibold tabular-nums">{value}</div>
-            </div>
-            <div className="mt-2 flex items-center text-sm text-muted-foreground">
-                <span>{label}</span>
-                {/* pastille à droite en hover/focus */}
-                <span
-                    aria-hidden
-                    className="ml-auto inline-block h-1.5 w-1.5 rounded-full bg-gold-300 ring-2 ring-white opacity-0 scale-75 transition group-hover:opacity-100 group-hover:scale-100 group-focus-visible:opacity-100 group-focus-visible:scale-100"
-                />
-            </div>
-        </Link>
-    );
-}
 
 function MiniKpi({ label, value }: { label: string; value: number | string }) {
     return (

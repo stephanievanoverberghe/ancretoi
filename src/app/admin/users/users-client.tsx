@@ -1,3 +1,4 @@
+// src/app/admin/users/users-client.tsx
 'use client';
 
 import Link from 'next/link';
@@ -161,7 +162,6 @@ function ConfirmActionModal({
         <div className="fixed inset-0 z-[1300] flex items-center justify-center p-4" role="dialog" aria-modal aria-labelledby={titleId} aria-describedby={descId}>
             <div className="absolute inset-0 bg-black/55" onClick={() => !pending && onClose()} aria-hidden />
             <div className={`relative z-10 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ${t.ring}`}>
-                {/* Header */}
                 <div className="flex items-start gap-3 border-b px-5 py-4">
                     <div className={`rounded-full p-2 ring-1 ${t.iconBox}`}>
                         <AlertTriangle className="h-5 w-5" />
@@ -176,7 +176,6 @@ function ConfirmActionModal({
                     </div>
                 </div>
 
-                {/* Aperçu */}
                 {preview && preview.lines.length > 0 && (
                     <div className={`mx-5 mt-4 rounded-lg ${t.infoBg} p-3 ring-1 ${t.infoRing}`}>
                         <div className="mb-2 text-sm font-medium">Aperçu</div>
@@ -191,7 +190,6 @@ function ConfirmActionModal({
                     </div>
                 )}
 
-                {/* Checkbox si nécessaire */}
                 {config.requiresCheckbox && (
                     <label className="m-5 mt-3 flex items-start gap-2 text-sm">
                         <input type="checkbox" className="mt-0.5" checked={checked} disabled={pending} onChange={(e) => setChecked(e.target.checked)} />
@@ -201,7 +199,6 @@ function ConfirmActionModal({
                     </label>
                 )}
 
-                {/* Footer */}
                 <div className="mt-3 flex items-center justify-end gap-2 border-t px-5 py-3">
                     <button onClick={() => !pending && onClose()} className="rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50 disabled:opacity-60" disabled={pending}>
                         Annuler
@@ -608,6 +605,9 @@ function UserQuickViewModal({
 }
 
 /* ================== GRID (cards : bouton Voir seulement) ================== */
+const LS_KEY = 'adminUsersToolbar:v1';
+type Persisted = { q: string; role: RoleFilter; status: StatusFilter; sort: SortKey };
+
 export default function AdminUsersClient({
     users,
     setRoleAction,
@@ -619,15 +619,9 @@ export default function AdminUsersClient({
     hardDeleteUserAction,
     setUserLimitsAction,
 }: Props) {
+    // ----- Recherche avec debounce + raccourci '/' + persistance
     const [qRaw, setQRaw] = useState('');
     const [q, setQ] = useState('');
-    const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-    const [sort, setSort] = useState<SortKey>('recent');
-
-    const [openUserId, setOpenUserId] = useState<string | null>(null);
-    const [detail, setDetail] = useState<UiUserDetail | null>(null);
-
     useEffect(() => {
         const id = setTimeout(() => setQ(qRaw.trim().toLowerCase()), 220);
         return () => clearTimeout(id);
@@ -645,6 +639,68 @@ export default function AdminUsersClient({
         return () => window.removeEventListener('keydown', onKey);
     }, []);
 
+    // ----- Filtres + tri
+    const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+    const [sort, setSort] = useState<SortKey>('recent');
+
+    // ----- Persistance LS
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(LS_KEY);
+            if (!raw) return;
+            const s = JSON.parse(raw) as Partial<Persisted>;
+            setQRaw(s.q ?? '');
+            setQ(s.q ?? '');
+            setRoleFilter((s.role as RoleFilter) ?? 'all');
+            setStatusFilter((s.status as StatusFilter) ?? 'all');
+            setSort((s.sort as SortKey) ?? 'recent');
+        } catch {
+            /* ignore */
+        }
+    }, []);
+    useEffect(() => {
+        const s: Persisted = { q, role: roleFilter, status: statusFilter, sort };
+        localStorage.setItem(LS_KEY, JSON.stringify(s));
+    }, [q, roleFilter, statusFilter, sort]);
+
+    // ----- Stats pour libellés (comme Inspirations)
+    const stats = useMemo(() => {
+        const total = users.length;
+        const admins = users.filter((u) => u.role === 'admin').length;
+        const usersCount = total - admins;
+        const active = users.filter((u) => !u.isArchived && !u.isSuspended).length;
+        const archived = users.filter((u) => !!u.isArchived).length;
+        const suspended = users.filter((u) => !!u.isSuspended).length;
+        return { total, admins, usersCount, active, archived, suspended };
+    }, [users]);
+
+    // ----- Data filtrée + tri
+    const filtered = useMemo(() => {
+        let list = users.slice();
+
+        if (roleFilter !== 'all') list = list.filter((u) => u.role === roleFilter);
+        if (statusFilter !== 'all') {
+            list = list.filter((u) => {
+                if (statusFilter === 'active') return !u.isArchived && !u.isSuspended;
+                if (statusFilter === 'archived') return !!u.isArchived;
+                if (statusFilter === 'suspended') return !!u.isSuspended;
+                return true;
+            });
+        }
+        if (q) list = list.filter((u) => `${u.name || ''} ${u.email}`.toLowerCase().includes(q));
+
+        if (sort === 'alpha') {
+            list.sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email, 'fr', { sensitivity: 'base' }));
+        } else {
+            list.sort((a, b) => new Date(b.createdAtIso).getTime() - new Date(a.createdAtIso).getTime());
+        }
+        return list;
+    }, [users, q, roleFilter, statusFilter, sort]);
+
+    // ----- Détail / modale
+    const [openUserId, setOpenUserId] = useState<string | null>(null);
+    const [detail, setDetail] = useState<UiUserDetail | null>(null);
     useEffect(() => {
         let canceled = false;
         (async () => {
@@ -662,113 +718,99 @@ export default function AdminUsersClient({
         };
     }, [openUserId, getUserDetailAction]);
 
-    const filtered = useMemo(() => {
-        let list = users.slice();
-        if (roleFilter !== 'all') list = list.filter((u) => u.role === roleFilter);
-        if (statusFilter !== 'all') {
-            list = list.filter((u) => {
-                if (statusFilter === 'active') return !u.isArchived && !u.isSuspended;
-                if (statusFilter === 'archived') return !!u.isArchived;
-                if (statusFilter === 'suspended') return !!u.isSuspended;
-                return true;
-            });
-        }
-        if (q) {
-            list = list.filter((u) => `${u.name || ''} ${u.email}`.toLowerCase().includes(q));
-        }
-        if (sort === 'alpha') {
-            list.sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email, 'fr', { sensitivity: 'base' }));
-        } else {
-            list.sort((a, b) => new Date(b.createdAtIso).getTime() - new Date(a.createdAtIso).getTime());
-        }
-        return list;
-    }, [users, q, roleFilter, statusFilter, sort]);
-
     return (
         <>
-            {/* Toolbar mobile-first */}
+            {/* ===== Toolbar STICKY — recherche au-dessus des dropdowns ===== */}
             <section className="sticky top-[env(safe-area-inset-top,0px)] z-10 -mx-4 mb-4 bg-gradient-to-b from-white/80 to-transparent px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/60 sm:mx-0 sm:rounded-xl sm:border sm:border-brand-200 sm:bg-white/70">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="relative w-full sm:max-w-sm">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                        <input
-                            ref={searchRef}
-                            value={qRaw}
-                            onChange={(e) => setQRaw(e.target.value)}
-                            placeholder="Rechercher (/, nom ou email)…"
-                            className="w-full rounded-full border border-brand-400 bg-white pl-10 pr-10 py-2 text-sm shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                        />
-                        {qRaw && (
-                            <button
-                                onClick={() => {
-                                    setQRaw('');
-                                    setQ('');
-                                }}
-                                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-100"
-                                aria-label="Effacer"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
-                        )}
+                {/* Barre de recherche */}
+                <div className="relative w-full mb-3">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <input
+                        ref={searchRef}
+                        placeholder="Rechercher (/, nom, email)…"
+                        value={qRaw}
+                        onChange={(e) => setQRaw(e.target.value)}
+                        className="w-full rounded-full border border-brand-400 bg-white pl-10 pr-10 py-2 text-sm shadow-inner outline-none transition focus-visible:ring-2 focus-visible:ring-brand-500"
+                        aria-label="Rechercher un utilisateur"
+                    />
+                    {qRaw && (
+                        <button
+                            aria-label="Effacer la recherche"
+                            className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-500 transition hover:bg-gray-100"
+                            onClick={() => {
+                                setQRaw('');
+                                setQ('');
+                            }}
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    )}
+                </div>
+
+                {/* Ligne de dropdowns */}
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {/* Filtrer par rôle */}
+                    <div className="relative">
+                        <label htmlFor="users-role" className="sr-only">
+                            Filtrer par rôle
+                        </label>
+                        <select
+                            id="users-role"
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
+                            className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            <option value="all">Tous les rôles ({stats.total})</option>
+                            <option value="admin">Admins ({stats.admins})</option>
+                            <option value="user">Users ({stats.usersCount})</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                        <div className="inline-flex overflow-hidden rounded-full ring-1 ring-brand-300">
-                            {(['all', 'admin', 'user'] as RoleFilter[]).map((k) => {
-                                const active = roleFilter === k;
-                                const label = k === 'all' ? 'Tous' : k === 'admin' ? 'Admins' : 'Users';
-                                return (
-                                    <button
-                                        key={k}
-                                        onClick={() => setRoleFilter(k)}
-                                        className={['px-3 py-1.5 text-xs cursor-pointer', active ? 'bg-brand-600 text-white' : 'bg-white text-gray-800 hover:bg-brand-50'].join(
-                                            ' '
-                                        )}
-                                    >
-                                        {label}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                    {/* Filtrer par état */}
+                    <div className="relative">
+                        <label htmlFor="users-status" className="sr-only">
+                            Filtrer par état
+                        </label>
+                        <select
+                            id="users-status"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                            className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            <option value="all">Tous les états ({stats.total})</option>
+                            <option value="active">Actifs ({stats.active})</option>
+                            <option value="archived">Archivés ({stats.archived})</option>
+                            <option value="suspended">Suspendus ({stats.suspended})</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    </div>
 
-                        <div className="inline-flex overflow-hidden rounded-full ring-1 ring-brand-300">
-                            {(['all', 'active', 'archived', 'suspended'] as StatusFilter[]).map((k) => {
-                                const active = statusFilter === k;
-                                const label = k === 'all' ? 'Tous états' : k === 'active' ? 'Actifs' : k === 'archived' ? 'Archivés' : 'Suspendus';
-                                return (
-                                    <button
-                                        key={k}
-                                        onClick={() => setStatusFilter(k)}
-                                        className={['px-3 py-1.5 text-xs cursor-pointer', active ? 'bg-brand-600 text-white' : 'bg-white text-gray-800 hover:bg-brand-50'].join(
-                                            ' '
-                                        )}
-                                    >
-                                        {label}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                    {/* Tri */}
+                    <div className="relative">
+                        <label htmlFor="users-sort" className="sr-only">
+                            Trier
+                        </label>
+                        <select
+                            id="users-sort"
+                            value={sort}
+                            onChange={(e) => setSort(e.target.value as SortKey)}
+                            className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            <option value="recent">Récents</option>
+                            <option value="alpha">A → Z</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    </div>
 
-                        <div className="relative">
-                            <label htmlFor="users-sort" className="sr-only">
-                                Trier
-                            </label>
-                            <select
-                                id="users-sort"
-                                value={sort}
-                                onChange={(e) => setSort(e.target.value as SortKey)}
-                                className="appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-1.5 text-xs text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                            >
-                                <option value="recent">Récents</option>
-                                <option value="alpha">A → Z</option>
-                            </select>
-                            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                        </div>
+                    {/* Statistiques (optionnel ou autre filtre) */}
+                    <div className="hidden xl:block text-xs text-muted-foreground text-right pr-2 py-2">
+                        <span className="font-medium">{stats.total}</span> utilisateurs • {stats.admins} admin • {stats.active} actifs
                     </div>
                 </div>
             </section>
 
-            {/* Grid — bouton Voir uniquement */}
+            {/* ===== Grid ===== */}
             {filtered.length === 0 ? (
                 <div className="rounded-2xl border border-brand-600 border-dashed p-8 text-center">
                     <p className="text-sm text-gray-500">Aucun utilisateur ne correspond.</p>
@@ -777,7 +819,7 @@ export default function AdminUsersClient({
                 <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {filtered.map((u) => (
                         <li key={u._id} className="group overflow-hidden rounded-2xl border border-brand-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                            {/* Cover image FULL */}
+                            {/* Cover */}
                             <div className="relative aspect-[16/9] w-full bg-gray-100">
                                 {u.avatarUrl ? (
                                     <Image src={u.avatarUrl} alt={u.name || u.email} fill className="object-cover" sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw" />
@@ -821,7 +863,7 @@ export default function AdminUsersClient({
                 </ul>
             )}
 
-            {/* Modale de détail + actions */}
+            {/* ===== Modale de détail + actions ===== */}
             <UserQuickViewModal
                 open={!!openUserId}
                 onClose={() => setOpenUserId(null)}

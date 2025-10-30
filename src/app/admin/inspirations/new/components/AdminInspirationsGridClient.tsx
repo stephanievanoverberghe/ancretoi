@@ -1,13 +1,15 @@
+// src/app/admin/inspirations/new/components/AdminInspirationsGridClient.tsx
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Eye, Tag, ExternalLink, Lock, X, PencilLine, PlayCircle, CalendarClock } from 'lucide-react';
+import { Search, Eye, Tag, ExternalLink, Lock, X, PencilLine, PlayCircle, CalendarClock, ChevronDown } from 'lucide-react';
 
 import DeleteInspirationButton from '@/components/admin/DeleteInspirationButton';
 
+/* ================== Types ================== */
 export type AdminInspirationRow = {
     id: string;
     slug: string;
@@ -22,6 +24,16 @@ export type AdminInspirationRow = {
 type StatusFilter = 'all' | 'draft' | 'published';
 type SortKey = 'recent' | 'alphaAsc' | 'alphaDesc';
 
+type PersistedState = {
+    q: string;
+    status: StatusFilter;
+    sort: SortKey;
+    tag: string; // '' => tous
+};
+
+const LS_KEY = 'adminInspirationsToolbar:v2';
+
+/* ================== Utils ================== */
 function formatRelative(iso: string | null) {
     if (!iso) return '—';
     const d = new Date(iso);
@@ -168,16 +180,10 @@ function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => 
     );
 }
 
-const LS_KEY = 'adminInspirationsToolbar:v1';
-
-type PersistedState = {
-    q: string;
-    status: StatusFilter;
-    sort: SortKey;
-};
+/* =============== GRID =============== */
 
 export default function AdminInspirationsGridClient({ rows }: { rows: AdminInspirationRow[] }) {
-    // Recherche
+    /* ----- Recherche (/, debounce, clear) ----- */
     const [qRaw, setQRaw] = useState('');
     const [q, setQ] = useState('');
     const searchRef = useRef<HTMLInputElement | null>(null);
@@ -196,11 +202,17 @@ export default function AdminInspirationsGridClient({ rows }: { rows: AdminInspi
         return () => window.removeEventListener('keydown', onKey);
     }, []);
 
-    // Filtres + tri
+    /* ----- Dropdowns: Statut / Tri / Tag ----- */
     const [status, setStatus] = useState<StatusFilter>('all');
     const [sort, setSort] = useState<SortKey>('recent');
+    const uniqueTags = useMemo(() => {
+        const set = new Set<string>();
+        rows.forEach((r) => r.tags?.forEach((t) => t && set.add(t)));
+        return Array.from(set).sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+    }, [rows]);
+    const [tag, setTag] = useState<string>(''); // '' => tous
 
-    // Persistance
+    /* ----- Persistance ----- */
     useEffect(() => {
         try {
             const raw = localStorage.getItem(LS_KEY);
@@ -210,34 +222,31 @@ export default function AdminInspirationsGridClient({ rows }: { rows: AdminInspi
             setQ(s.q ?? '');
             setStatus((s.status as StatusFilter) ?? 'all');
             setSort((s.sort as SortKey) ?? 'recent');
+            setTag(typeof s.tag === 'string' ? s.tag : '');
         } catch {
             /* ignore */
         }
     }, []);
     useEffect(() => {
-        const s: PersistedState = { q, status, sort };
+        const s: PersistedState = { q, status, sort, tag };
         localStorage.setItem(LS_KEY, JSON.stringify(s));
-    }, [q, status, sort]);
+    }, [q, status, sort, tag]);
 
-    // Stats
+    /* ----- Stats (pour libellés) ----- */
     const stats = useMemo(() => {
         const total = rows.length;
-        const by = rows.reduce(
-            (acc, r) => {
-                if (r.status === 'draft') acc.draft += 1;
-                else acc.published += 1;
-                return acc;
-            },
-            { draft: 0, published: 0 }
-        );
-        return { total, ...by };
+        let draft = 0,
+            published = 0;
+        rows.forEach((r) => (r.status === 'draft' ? draft++ : published++));
+        return { total, draft, published };
     }, [rows]);
 
-    // Filtrage + tri
+    /* ----- Filtrage + Tri ----- */
     const filtered = useMemo(() => {
         const ql = q.trim().toLowerCase();
         const passes = (r: AdminInspirationRow) => {
             if (status !== 'all' && r.status !== status) return false;
+            if (tag && !r.tags.includes(tag)) return false;
             if (ql) {
                 const hay = `${r.title} ${r.slug} ${(r.tags || []).join(' ')} ${r.summary ?? ''}`.toLowerCase();
                 if (!hay.includes(ql)) return false;
@@ -262,20 +271,22 @@ export default function AdminInspirationsGridClient({ rows }: { rows: AdminInspi
         });
 
         return out;
-    }, [rows, q, status, sort]);
+    }, [rows, q, status, sort, tag]);
 
+    /* ----- Quick view ----- */
     const [openSlug, setOpenSlug] = useState<string | null>(null);
     const current = useMemo(() => rows.find((r) => r.slug === openSlug) ?? null, [openSlug, rows]);
 
     return (
         <>
-            {/* Toolbar */}
+            {/* ===== Toolbar (recherche au dessus + 3 dropdowns) ===== */}
             <section className="sticky top-[env(safe-area-inset-top,0px)] z-10 -mx-4 mb-4 bg-gradient-to-b from-white/80 to-transparent px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/60 sm:mx-0 sm:rounded-xl sm:border sm:border-brand-200 sm:bg-white/70">
-                <div className="relative">
+                {/* Search */}
+                <div className="relative w-full mb-3">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <input
                         ref={searchRef}
-                        placeholder="Rechercher (/, titre, slug, tag, résumé)"
+                        placeholder="Rechercher (/, titre, slug, tag, résumé)…"
                         value={qRaw}
                         onChange={(e) => setQRaw(e.target.value)}
                         className="w-full rounded-full border border-brand-400 bg-white pl-10 pr-10 py-2 text-sm shadow-inner outline-none transition focus-visible:ring-2 focus-visible:ring-brand-500"
@@ -295,49 +306,68 @@ export default function AdminInspirationsGridClient({ rows }: { rows: AdminInspi
                     )}
                 </div>
 
-                <div className="mt-3 flex flex-col sm:flex-row w-full snap-x snap-mandatory gap-2 overflow-x-auto pb-1">
-                    {(
-                        [
-                            { key: 'all' as StatusFilter, label: `Tous (${stats.total})` },
-                            { key: 'draft' as StatusFilter, label: `Brouillons (${stats.draft})` },
-                            { key: 'published' as StatusFilter, label: `Publiés (${stats.published})` },
-                        ] as const
-                    ).map((opt) => {
-                        const active = status === opt.key;
-                        return (
-                            <button
-                                key={opt.key}
-                                onClick={() => setStatus(opt.key)}
-                                aria-pressed={active}
-                                className={[
-                                    'snap-start whitespace-nowrap rounded-full px-3 py-1 text-xs ring-1 transition cursor-pointer',
-                                    active ? 'bg-brand-600 text-white ring-brand-100 shadow-sm' : 'bg-muted text-gray-800 ring-gray-200 hover:bg-brand-100',
-                                ].join(' ')}
-                            >
-                                {opt.label}
-                            </button>
-                        );
-                    })}
-                </div>
+                {/* Dropdowns */}
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    {/* Statut */}
+                    <div className="relative">
+                        <label htmlFor="insp-status" className="sr-only">
+                            Filtrer par statut
+                        </label>
+                        <select
+                            id="insp-status"
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value as StatusFilter)}
+                            className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            <option value="all">Tous les statuts ({stats.total})</option>
+                            <option value="published">Publiés ({stats.published})</option>
+                            <option value="draft">Brouillons ({stats.draft})</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    </div>
 
-                <div className="mt-2 flex justify-end">
-                    <label htmlFor="insp-sort" className="sr-only">
-                        Trier les inspirations
-                    </label>
-                    <select
-                        id="insp-sort"
-                        value={sort}
-                        onChange={(e) => setSort(e.target.value as SortKey)}
-                        className="rounded-full border border-brand-300 bg-white px-3 py-1.5 text-xs text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                    >
-                        <option value="recent">Récents</option>
-                        <option value="alphaAsc">A → Z</option>
-                        <option value="alphaDesc">Z → A</option>
-                    </select>
+                    {/* Tag */}
+                    <div className="relative">
+                        <label htmlFor="insp-tag" className="sr-only">
+                            Filtrer par tag
+                        </label>
+                        <select
+                            id="insp-tag"
+                            value={tag}
+                            onChange={(e) => setTag(e.target.value)}
+                            className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            <option value="">Tous les tags</option>
+                            {uniqueTags.map((t) => (
+                                <option key={t} value={t}>
+                                    {t}
+                                </option>
+                            ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    </div>
+
+                    {/* Tri */}
+                    <div className="relative">
+                        <label htmlFor="insp-sort" className="sr-only">
+                            Trier les inspirations
+                        </label>
+                        <select
+                            id="insp-sort"
+                            value={sort}
+                            onChange={(e) => setSort(e.target.value as SortKey)}
+                            className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                            <option value="recent">Récents</option>
+                            <option value="alphaAsc">A → Z</option>
+                            <option value="alphaDesc">Z → A</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    </div>
                 </div>
             </section>
 
-            {/* Grid */}
+            {/* ===== Grid ===== */}
             {filtered.length === 0 ? (
                 <div className="rounded-2xl border border-brand-600 border-dashed p-8 text-center">
                     <p className="text-sm text-gray-500">Aucune inspiration ne correspond.</p>
@@ -382,9 +412,17 @@ export default function AdminInspirationsGridClient({ rows }: { rows: AdminInspi
                                     {r.tags.length > 0 && (
                                         <div className="mt-2 flex flex-wrap gap-1">
                                             {r.tags.slice(0, 4).map((t) => (
-                                                <span key={t} className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px]">
+                                                <button
+                                                    key={t}
+                                                    onClick={() => setTag((prev) => (prev === t ? '' : t))}
+                                                    className={[
+                                                        'rounded-full px-2 py-0.5 text-[11px] ring-1 transition cursor-pointer',
+                                                        tag === t ? 'bg-brand-600 text-white ring-brand-100' : 'bg-gray-100 text-gray-800 ring-gray-200 hover:bg-brand-100',
+                                                    ].join(' ')}
+                                                    title={`Filtrer par: ${t}`}
+                                                >
                                                     {t}
-                                                </span>
+                                                </button>
                                             ))}
                                             {r.tags.length > 4 && <span className="text-[11px] text-muted-foreground">+{r.tags.length - 4}</span>}
                                         </div>
@@ -408,7 +446,6 @@ export default function AdminInspirationsGridClient({ rows }: { rows: AdminInspi
                                             <Eye className="h-4 w-4" /> Aperçu
                                         </button>
 
-                                        {/* Ligne 3 : Suppression (pleine largeur) */}
                                         <div className="col-span-2 [&>button]:w-full">
                                             <DeleteInspirationButton slug={r.slug} />
                                         </div>
