@@ -1,3 +1,5 @@
+// src/app/settings/components/AvatarUploadClient.tsx
+
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
