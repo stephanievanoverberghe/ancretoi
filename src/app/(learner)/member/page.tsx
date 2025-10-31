@@ -9,7 +9,10 @@ import { UserModel } from '@/db/schemas';
 import Enrollment from '@/models/Enrollment';
 import ProgramPage from '@/models/ProgramPage';
 import Unit from '@/models/Unit';
-import ProgramDetailButton from '@/components/program/ProgramDetailButton';
+
+// UI clients (à créer ci-dessous)
+import ProgressDonutClient from './components/ProgressDonutClient';
+import StreakHeatmapClient from './components/StreakHeatmapClient';
 
 type EnrollmentLean = {
     programSlug: string;
@@ -17,6 +20,7 @@ type EnrollmentLean = {
     currentDay?: number | null;
     updatedAt?: Date | null;
 };
+
 type ProgramLean = {
     programSlug: string;
     hero?: { title?: string | null } | null;
@@ -28,7 +32,6 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-/** Affiche un prénom robuste… */
 function getDisplayName(userEmail: string, sessionName?: string | null, dbName?: string | null) {
     const raw = (sessionName ?? dbName ?? '').trim();
     if (raw) return raw.split(' ')[0];
@@ -86,142 +89,292 @@ export default async function MemberPage() {
 
     const resume = rows.find((r) => r.status === 'active') ?? rows[0] ?? null;
 
+    // === KPIs globaux (simples, basés sur rows) ===
+    const activeCount = rows.filter((r) => r.status === 'active').length;
+    const avgPercent = rows.length ? Math.round(rows.reduce((s, r) => s + r.percent, 0) / rows.length) : 0;
+    const totalUnitsDone = rows.reduce((s, r) => s + r.unitsDone, 0);
+    const lastActivityIso = enrollments[0]?.updatedAt ? enrollments[0].updatedAt.toISOString() : null;
+
     return (
-        <div className="space-y-6">
-            {/* HERO tendance */}
-            <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-[0_1px_0_#ffffff66,0_10px_30px_-10px_rgba(129,95,178,.25)] backdrop-blur-xl">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <>
+            {/* ===== HERO ===== */}
+            <section className="relative overflow-hidden rounded-3xl border border-brand-200/60 bg-gradient-to-br from-brand-600/10 via-brand-500/5 to-amber-400/10 ring-1 ring-black/5 p-5 md:p-6 backdrop-blur">
+                <div className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(70%_60%_at_80%_0%,#000_15%,transparent_75%)]">
+                    <div className="absolute -top-10 -right-10 h-56 w-56 rounded-full bg-brand-200/30 blur-3xl" />
+                    <div className="absolute -bottom-10 -left-10 h-56 w-56 rounded-full bg-amber-200/30 blur-3xl" />
+                </div>
+
+                <div className="relative grid gap-6 md:grid-cols-[1fr_240px] items-start">
                     <div>
                         <p className="text-sm text-muted-foreground">Bonjour {displayName}</p>
-                        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl text-foreground">Un seul pas aujourd’hui.</h1>
-                        <p className="mt-1 text-sm text-muted-foreground">Reprends là où tu t’es arrêté — tout est prêt.</p>
-                    </div>
-                    {resume ? (
-                        <Link href={resume.unitsDone === 0 ? `/learn/${resume.programSlug}/intro` : '/continue'} className="btn w-full sm:w-auto">
-                            {resume.unitsDone === 0 ? 'Commencer' : 'Continuer'}
-                        </Link>
-                    ) : (
-                        <Link href="/programs" className="btn w-full sm:w-auto">
-                            Explorer
-                        </Link>
-                    )}
-                </div>
+                        <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight">Ton espace d’évolution</h1>
+                        <p className="mt-1 text-sm text-muted-foreground">Reprends là où tu t’es arrêté·e, suis ta progression, et retrouve ton bilan.</p>
 
-                {/* mini progression si on a un cours */}
-                {resume && (
-                    <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="min-w-0">
-                            <div className="text-xs uppercase tracking-wide text-muted-foreground">{resume.programSlug}</div>
-                            <div className="truncate text-base font-medium text-foreground">{resume.title}</div>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            {resume ? (
+                                <Link
+                                    href={resume.unitsDone === 0 ? `/learn/${resume.programSlug}/intro` : '/continue'}
+                                    className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700"
+                                >
+                                    {resume.unitsDone === 0 ? 'Commencer' : 'Continuer'}
+                                </Link>
+                            ) : (
+                                <Link
+                                    href="/programs"
+                                    className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700"
+                                >
+                                    Explorer les cours
+                                </Link>
+                            )}
+
+                            <a href="#stats" className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 text-sm hover:bg-white">
+                                Voir mes statistiques
+                            </a>
+                            <Link href="/member/summary" className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 text-sm hover:bg-white">
+                                Ouvrir le bilan
+                            </Link>
                         </div>
-                        <div className="w-full sm:w-80">
-                            <div
-                                className="h-2 w-full overflow-hidden rounded-full bg-muted"
-                                role="progressbar"
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                                aria-valuenow={resume.percent}
-                            >
-                                <div className="h-full bg-brand-600 transition-[width] duration-500" style={{ width: `${resume.percent}%` }} />
-                            </div>
-                            <div className="mt-1 text-right text-xs text-muted-foreground">
-                                {resume.unitsDone}/{resume.unitsTotal} — {resume.percent}%
-                            </div>
+
+                        {/* KPIs */}
+                        <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <Kpi label="Cours actifs" value={activeCount} />
+                            <Kpi label="Progression moyenne" value={`${avgPercent}%`} />
+                            <Kpi label="Unités effectuées" value={totalUnitsDone} />
+                            <Kpi label="Dernière activité" value={lastActivityIso ? new Date(lastActivityIso).toLocaleDateString('fr-FR') : '—'} />
                         </div>
                     </div>
-                )}
+
+                    {/* Donut global (moyenne) */}
+                    <div className="rounded-2xl border border-white/60 bg-white/80 p-4 ring-1 ring-black/5 shadow-sm">
+                        <div className="text-sm font-medium text-center">Progression globale</div>
+                        <div className="mt-2 grid place-items-center">
+                            <ProgressDonutClient percent={avgPercent} size={172} stroke={14} label={`${avgPercent}%`} />
+                        </div>
+                        {resume && (
+                            <div className="mt-3 text-center text-xs text-muted-foreground">
+                                Focus actuel : <span className="font-medium">{resume.title}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </section>
 
-            {/* Raccourcis */}
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <QuickCard href="/notes" title="Notes" subtitle="Journal & exports" />
-                <QuickCard href="/library" title="Ressources" subtitle="Audios, PDFs, templates" />
-                <QuickCard href="/help" title="Aide" subtitle="Sécurité, support, FAQ" />
-            </section>
+            {/* ===== Anchor pills ===== */}
+            <nav className="mt-6 flex flex-wrap gap-2">
+                <a href="#courses" className="rounded-lg px-3 py-1.5 text-xs ring-1 ring-border hover:bg-muted">
+                    Mes cours
+                </a>
+                <a href="#stats" className="rounded-lg px-3 py-1.5 text-xs ring-1 ring-border hover:bg-muted">
+                    Statistiques
+                </a>
+                <a href="#summary" className="rounded-lg px-3 py-1.5 text-xs ring-1 ring-border hover:bg-muted">
+                    Bilan
+                </a>
+            </nav>
 
-            {/* Liste de tes cours */}
-            <section className="space-y-3">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-foreground">Mes cours</h2>
-                    {rows.length > 0 && (
-                        <Link href="/continue" className="text-sm font-medium text-brand-700 hover:underline">
-                            Reprendre →
-                        </Link>
-                    )}
-                </div>
+            {/* ===== Layout 2 colonnes ===== */}
+            <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+                {/* Colonne principale */}
+                <div className="space-y-6">
+                    {/* ===== MES COURS ===== */}
+                    <section id="courses" className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold">Mes cours</h2>
+                            {rows.length > 0 && (
+                                <Link href="/continue" className="text-sm font-medium text-brand-700 hover:underline">
+                                    Reprendre →
+                                </Link>
+                            )}
+                        </div>
 
-                {rows.length === 0 ? (
-                    <EmptyState />
-                ) : (
-                    <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {rows.map((r) => (
-                            <li
-                                key={r.programSlug}
-                                className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
-                            >
-                                <div className="relative aspect-[16/10] w-full bg-muted">
-                                    {r.coverUrl ? (
-                                        <Image
-                                            src={r.coverUrl}
-                                            alt={r.coverAlt ?? ''}
-                                            fill
-                                            className="object-cover"
-                                            sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 320px"
-                                        />
-                                    ) : (
-                                        <div className="flex h-full w-full items-center justify-center text-muted-foreground">Aucune image</div>
-                                    )}
-                                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
-                                </div>
-
-                                <div className="p-4">
-                                    <div className="text-xs text-muted-foreground">{r.programSlug}</div>
-                                    <h3 className="line-clamp-2 text-base font-semibold sm:text-lg text-foreground">{r.title}</h3>
-
-                                    <div
-                                        className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted"
-                                        role="progressbar"
-                                        aria-valuemin={0}
-                                        aria-valuemax={100}
-                                        aria-valuenow={r.percent}
+                        {rows.length === 0 ? (
+                            <EmptyState />
+                        ) : (
+                            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                {rows.map((r) => (
+                                    <li
+                                        key={r.programSlug}
+                                        className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
                                     >
-                                        <div className="h-full bg-brand-600 transition-[width] duration-500" style={{ width: `${r.percent}%` }} />
-                                    </div>
-                                    <div className="mt-1 text-right text-xs text-muted-foreground">
-                                        {r.unitsDone}/{r.unitsTotal} — {r.percent}%
-                                    </div>
+                                        <div className="relative aspect-[16/10] w-full bg-muted">
+                                            {r.coverUrl ? (
+                                                <Image
+                                                    src={r.coverUrl}
+                                                    alt={r.coverAlt ?? ''}
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 320px"
+                                                />
+                                            ) : (
+                                                <div className="flex h-full w-full items-center justify-center text-muted-foreground">Aucune image</div>
+                                            )}
+                                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+                                            {/* Niveau badge */}
+                                            {r.level && (
+                                                <span className="absolute left-2 top-2 rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-medium ring-1 ring-black/5">
+                                                    {r.level}
+                                                </span>
+                                            )}
+                                        </div>
 
-                                    <div className="mt-3 grid grid-cols-2 gap-2">
-                                        <Link
-                                            href={r.unitsDone === 0 ? `/learn/${r.programSlug}/intro` : '/continue'}
-                                            className="inline-flex items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-800 transition hover:bg-brand-100"
-                                        >
-                                            {r.unitsDone === 0 ? 'Commencer' : 'Continuer'}
-                                        </Link>
+                                        <div className="p-4">
+                                            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{r.programSlug}</div>
+                                            <h3 className="line-clamp-2 text-base font-semibold sm:text-lg">{r.title}</h3>
 
-                                        <ProgramDetailButton slug={r.programSlug} />
-                                    </div>
+                                            <div
+                                                className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted"
+                                                role="progressbar"
+                                                aria-valuenow={r.percent}
+                                                aria-valuemin={0}
+                                                aria-valuemax={100}
+                                            >
+                                                <div className="h-full bg-brand-600 transition-[width] duration-500" style={{ width: `${r.percent}%` }} />
+                                            </div>
+                                            <div className="mt-1 text-right text-xs text-muted-foreground">
+                                                {r.unitsDone}/{r.unitsTotal} — {r.percent}%
+                                            </div>
+
+                                            <div className="mt-3 grid grid-cols-2 gap-2">
+                                                <Link
+                                                    href={r.unitsDone === 0 ? `/learn/${r.programSlug}/intro` : '/continue'}
+                                                    className="inline-flex items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-800 transition hover:bg-brand-100"
+                                                >
+                                                    {r.unitsDone === 0 ? 'Commencer' : 'Continuer'}
+                                                </Link>
+                                                {/* détail programme */}
+                                                <Link
+                                                    href={`/programs/${encodeURIComponent(r.programSlug)}`}
+                                                    className="inline-flex items-center justify-center rounded-xl border px-3 py-1.5 text-sm hover:bg-muted"
+                                                >
+                                                    Détails
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </section>
+
+                    {/* ===== STATISTIQUES ===== */}
+                    <section id="stats" className="space-y-4">
+                        <h2 className="text-lg font-semibold">Statistiques</h2>
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="rounded-2xl border border-border bg-card p-4">
+                                <div className="text-sm font-medium">Assiduité (30 jours)</div>
+                                {/* Le composant va fetch /api/me/streak (à créer plus tard si tu veux du réel).
+                   Pour l’instant, il affiche un mock interne si l’API n’existe pas. */}
+                                <div className="mt-2">
+                                    <StreakHeatmapClient days={30} />
                                 </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </section>
+                                <p className="mt-2 text-xs text-muted-foreground">Objectif : 4 jours / semaine. Rappels activables dans Paramètres &gt; Préférences.</p>
+                            </div>
+
+                            <div className="rounded-2xl border border-border bg-card p-4">
+                                <div className="text-sm font-medium">Temps estimé d’apprentissage</div>
+                                <p className="mt-1 text-xs text-muted-foreground">Calcul simple : ~10 min / unité terminée (à affiner si tu stockes de la durée par unité).</p>
+                                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                                    <KpiSoft label="Unités terminées" value={totalUnitsDone} />
+                                    <KpiSoft label="Estimation (min)" value={totalUnitsDone * 10} />
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* ===== BILAN ===== */}
+                    <section id="summary" className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold">Bilan</h2>
+                            <Link href="/member/summary" className="text-sm font-medium text-brand-700 hover:underline">
+                                Ouvrir le bilan complet →
+                            </Link>
+                        </div>
+                        <div className="rounded-2xl border border-border bg-card p-4">
+                            <ul className="text-sm space-y-1">
+                                <li>
+                                    • Cours actifs : <strong>{activeCount}</strong>
+                                </li>
+                                <li>
+                                    • Progression moyenne : <strong>{avgPercent}%</strong>
+                                </li>
+                                <li>
+                                    • Unités complétées : <strong>{totalUnitsDone}</strong>
+                                </li>
+                                <li>
+                                    • Dernière activité : <strong>{lastActivityIso ? new Date(lastActivityIso).toLocaleString('fr-FR') : '—'}</strong>
+                                </li>
+                            </ul>
+                            <p className="mt-2 text-xs text-muted-foreground">Astuce : cible une progression régulière (petits pas) plutôt qu’un gros rush hebdomadaire.</p>
+                        </div>
+                    </section>
+                </div>
+
+                {/* Colonne droite sticky */}
+                <aside className="space-y-6 lg:sticky lg:top-24 lg:h-max">
+                    <section className="rounded-2xl border border-brand-200 bg-white/80 p-5 ring-1 ring-white/40 shadow-sm">
+                        <header className="mb-3">
+                            <h3 className="text-base font-semibold">Streak & Badges</h3>
+                            <p className="text-xs text-muted-foreground">Garde le rythme et débloque des récompenses.</p>
+                        </header>
+                        <StreakHeatmapClient days={14} size={11} />
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            <Badge label="Premiers pas" active />
+                            <Badge label="7 jours 💫" />
+                            <Badge label="30 jours 🔥" />
+                        </div>
+                    </section>
+
+                    <section className="rounded-2xl border border-border bg-card p-5">
+                        <h3 className="text-base font-semibold">Raccourcis</h3>
+                        <div className="mt-3 grid gap-2">
+                            <QuickLink href="/notes" label="Notes & exports" />
+                            <QuickLink href="/library" label="Médiathèque" />
+                            <QuickLink href="/help" label="Aide & sécurité" />
+                        </div>
+                    </section>
+                </aside>
+            </div>
+        </>
+    );
+}
+
+/* ===== UI atoms ===== */
+function Kpi({ label, value }: { label: string; value: number | string }) {
+    return (
+        <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-3 border border-white/60">
+            <div className="text-[11px] text-muted-foreground">{label}</div>
+            <div className="mt-1 text-xl font-semibold tabular-nums">{value}</div>
         </div>
     );
 }
 
-/* ---------- petits composants dans le même fichier pour simplifier ---------- */
-function QuickCard({ href, title, subtitle }: { href: string; title: string; subtitle: string }) {
+function KpiSoft({ label, value }: { label: string; value: number | string }) {
     return (
-        <Link
-            href={href}
-            className="group block overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
-        >
-            <div className="text-sm font-semibold text-foreground">{title}</div>
-            <div className="text-xs text-muted-foreground">{subtitle}</div>
-            <div className="mt-3 h-7 w-24 rounded-full bg-gradient-to-r from-brand-500/30 to-secondary-500/30 opacity-70 transition group-hover:opacity-100" />
+        <div className="rounded-lg border border-border bg-background p-3">
+            <div className="text-xs text-muted-foreground">{label}</div>
+            <div className="mt-1 text-base font-semibold tabular-nums">{value}</div>
+        </div>
+    );
+}
+
+function QuickLink({ href, label }: { href: string; label: string }) {
+    return (
+        <Link href={href} className="rounded-lg px-3 py-2 text-sm font-medium text-brand-700 ring-1 ring-brand-100 hover:bg-brand-50">
+            {label}
         </Link>
+    );
+}
+
+function Badge({ label, active = false }: { label: string; active?: boolean }) {
+    return (
+        <span
+            className={[
+                'inline-flex items-center rounded-md px-2 py-0.5 text-[11px] ring-1',
+                active ? 'bg-amber-50 text-amber-800 ring-amber-200' : 'bg-muted text-foreground/80 ring-border',
+            ].join(' ')}
+        >
+            {label}
+        </span>
     );
 }
 
