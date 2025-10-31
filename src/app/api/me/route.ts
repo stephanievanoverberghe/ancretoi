@@ -1,3 +1,5 @@
+// src/app/api/me/route.ts
+
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/db/connect';
 import { UserModel } from '@/db/schemas';

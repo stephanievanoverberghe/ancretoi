@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import './globals.css';
 import { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
@@ -5,12 +6,15 @@ import { Inter, Playfair_Display } from 'next/font/google';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
+// imports cookies
+import CookieBanner from './cookies/components/CookieBanner';
+import AnalyticsGate from './cookies/components/AnalyticsGate';
+
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', display: 'swap' });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 const isProd = process.env.NODE_ENV === 'production';
-// Désactiver l’indexation (preview, staging, etc.), mettre NEXT_PUBLIC_INDEX=false
 const allowIndex = (process.env.NEXT_PUBLIC_INDEX ?? (isProd ? 'true' : 'false')) === 'true';
 
 export const metadata: Metadata = {
@@ -86,7 +90,6 @@ export const metadata: Metadata = {
 
     icons: {
         icon: '/favicon.ico',
-        // apple: '/apple-touch-icon.png',
     },
 
     formatDetection: {
@@ -112,15 +115,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     Aller au contenu
                 </a>
 
+                {/* HEADER */}
                 <Suspense fallback={<div className="border-b border-brand-100 bg-brand-50/70 px-4 py-3 text-sm text-brand-800">Chargement…</div>}>
                     <Header />
                 </Suspense>
 
+                {/* CONTENU PRINCIPAL */}
                 <main id="main" className="flex-1 mx-auto w-full max-w-7xl">
                     <Suspense fallback={<div className="text-sm text-secondary-700">Chargement…</div>}>{children}</Suspense>
                 </main>
 
+                {/* FOOTER */}
                 <Footer />
+
+                {/* 🟣 Gestion cookies (affiché si pas de cookie existant) */}
+                <CookieBanner days={365} />
+
+                {/* 🟢 Scripts conditionnels (Analytics selon consentement) */}
+                <AnalyticsGate />
             </body>
         </html>
     );

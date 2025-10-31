@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { SignJWT, jwtVerify } from 'jose';
 import type { NextResponse, NextRequest } from 'next/server';
 import { cookies } from 'next/headers';

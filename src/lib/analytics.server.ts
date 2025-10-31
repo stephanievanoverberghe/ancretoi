@@ -1,4 +1,4 @@
-// src/app/admin/_data/analytics.ts
+// src/lib/analytics.server.ts
 import 'server-only';
 import { dbConnect } from '@/db/connect';
 import { requireAdmin } from '@/lib/authz';
