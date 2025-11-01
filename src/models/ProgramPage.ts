@@ -1,59 +1,14 @@
 import { Schema, model, models, type Model, type InferSchemaType, Types } from 'mongoose';
 
-/* ---------- Sous-schémas réutilisables ---------- */
 const ImageSchema = new Schema(
     { url: { type: String, required: true }, alt: { type: String, default: '' }, width: { type: Number, default: null }, height: { type: Number, default: null } },
     { _id: false }
 );
-
 const FaqSchema = new Schema({ q: { type: String, default: '' }, a: { type: String, default: '' } }, { _id: false });
-
 const BenefitSchema = new Schema({ icon: { type: String, default: '' }, title: { type: String, default: '' }, text: { type: String, default: '' } }, { _id: false });
-
-const TestimonialSchema = new Schema(
-    { name: { type: String, default: '' }, role: { type: String, default: '' }, text: { type: String, default: '' }, avatar: { type: String, default: '' } },
-    { _id: false }
-);
-
 const SeoSchema = new Schema({ title: { type: String, default: '' }, description: { type: String, default: '' }, image: { type: String, default: '' } }, { _id: false });
-
 const CurriculumItemSchema = new Schema({ label: { type: String, required: true }, summary: { type: String, default: '' } }, { _id: false });
 
-/* ---------- Blocs “landing” ---------- */
-const PageGardeSchema = new Schema(
-    {
-        heading: { type: String, default: '' },
-        tagline: { type: String, default: '' },
-        format: { type: String, default: '' },
-        audience: { type: String, default: '' },
-        safetyNote: { type: String, default: '' },
-    },
-    { _id: false }
-);
-
-const IntroSchema = new Schema(
-    {
-        finalite: { type: String, default: '' },
-        pourQui: { type: String, default: '' },
-        pasPourQui: { type: String, default: '' },
-        commentUtiliser: { type: String, default: '' },
-        cadreSecurite: { type: String, default: '' },
-    },
-    { _id: false }
-);
-
-const ConclusionSchema = new Schema(
-    {
-        texte: { type: String, default: '' },
-        kitEntretien: { type: String, default: '' },
-        cap7_14_30: { type: String, default: '' },
-        siCaDeraille: { type: String, default: '' },
-        allerPlusLoin: { type: String, default: '' },
-    },
-    { _id: false }
-);
-
-/* ---------- Prix ---------- */
 const PriceSchema = new Schema(
     {
         amountCents: { type: Number, default: null },
@@ -65,18 +20,6 @@ const PriceSchema = new Schema(
     { _id: false }
 );
 
-/* ---------- Comparateur (nouveau) ---------- */
-const CompareSchema = new Schema(
-    {
-        objectif: { type: String, default: '' }, // “Réinitialiser ton rythme”
-        charge: { type: String, default: '' }, // “10–15 min/j”
-        idealSi: { type: String, default: '' }, // “Tu veux poser 3 micro-rituels…”
-        ctaLabel: { type: String, default: '' }, // “Voir RESET-7” (facultatif)
-    },
-    { _id: false }
-);
-
-/* ---------- Schéma principal ProgramPage ---------- */
 const ProgramPageSchema = new Schema(
     {
         programSlug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
@@ -98,8 +41,6 @@ const ProgramPageSchema = new Schema(
             badges: { type: [String], default: [] },
         },
 
-        pageGarde: { type: PageGardeSchema, default: {} },
-
         meta: {
             durationDays: { type: Number, min: 1, max: 365, default: 7 },
             estMinutesPerDay: { type: Number, min: 1, max: 180, default: 20 },
@@ -110,16 +51,9 @@ const ProgramPageSchema = new Schema(
             instructors: { type: [String], default: [] },
         },
 
-        /* ✅ nouveau bloc pour le comparateur */
-        compare: { type: CompareSchema, default: {} },
-
         highlights: { type: [BenefitSchema], default: [] },
         curriculum: { type: [CurriculumItemSchema], default: [] },
-        testimonials: { type: [TestimonialSchema], default: [] },
         faq: { type: [FaqSchema], default: [] },
-
-        intro: { type: IntroSchema, default: {} },
-        conclusion: { type: ConclusionSchema, default: {} },
         seo: { type: SeoSchema, default: {} },
 
         price: { type: PriceSchema, default: { currency: 'EUR', taxIncluded: true } },

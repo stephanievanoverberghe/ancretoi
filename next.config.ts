@@ -6,7 +6,10 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             { protocol: 'https', hostname: 'i.ytimg.com' }, // YouTube thumbs
             { protocol: 'https', hostname: 'img.youtube.com' }, // autre alias possible
-            // ajoute ici d’autres domaines externes si besoin
+            {
+                protocol: 'https',
+                hostname: 'vumbnail.com',
+            },
         ],
     },
 };

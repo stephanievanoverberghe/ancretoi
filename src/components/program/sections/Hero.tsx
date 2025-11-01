@@ -14,7 +14,7 @@ import { track } from '@/lib/analytics.client';
 
 type Props = {
     program: Program;
-    /** étiquette "charge/jour" injectée depuis la BDD (ex. "20–40 min/j") */
+    /** Étiquette “charge/jour” déjà calculée côté serveur (ex. "20–40 min/j") */
     dailyLoadLabel?: string;
     sampleAudioSrc?: string;
     heroSrcOverride?: string;
@@ -27,17 +27,22 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
     const isFree = (program.price?.amount_cents ?? NaN) === 0;
     const priceLabel = formatPrice(program.price) ?? null;
 
-    // ✅ plus aucun appel lib externe : on utilise uniquement la donnée injectée
+    // pas d’appel externe ici : on prend ce qui vient de la BDD
     const charge = useMemo(() => dailyLoadLabel ?? '10–20 min/j', [dailyLoadLabel]);
 
-    const chips: Array<{ icon: ChipKind; label: string }> = [
-        { icon: 'time', label: `${program.duration_days} jours` },
-        { icon: 'charge', label: charge },
-        { icon: 'level', label: program.level },
-    ];
+    const chips = useMemo(
+        () =>
+            [
+                { icon: 'time' as const, label: `${program.duration_days} jours` },
+                { icon: 'charge' as const, label: charge },
+                program.level ? ({ icon: 'level' as const, label: program.level } as const) : null,
+            ].filter(Boolean) as Array<{ icon: ChipKind; label: string }>,
+        [program.duration_days, program.level, charge]
+    );
 
     const heroSrc = heroSrcOverride || program.cover || '/images/programs/hero-programs.webp';
 
+    // tracking vue 50%
     const sectionRef = useRef<HTMLElement | null>(null);
     const viewedRef = useRef(false);
     const observeTrack = useCallback(() => {
@@ -60,11 +65,13 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
 
     useEffect(() => observeTrack(), [observeTrack]);
 
+    // UI local
     const [open, setOpen] = useState(false);
-
-    // ✅ rend le portail seulement après mount (évite mismatch hydratation)
-    const [mounted, setMounted] = useState(false);
+    const [mounted, setMounted] = useState(false); // pour le portail mobile
     useEffect(() => setMounted(true), []);
+
+    // LCP : on donne la priorité si pas d’autre visuel dominant
+    const imagePriority = true;
 
     return (
         <section
@@ -72,11 +79,14 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
             id="program-detail-hero"
             aria-labelledby="hero-title"
             aria-describedby="hero-desc"
-            className="relative isolate mx-[calc(50%-50vw)] w-screen overflow-hidden min-h-[56svh] md:min-h-[62svh] flex items-center"
+            className="
+        relative isolate mx-[calc(50%-50vw)] w-screen overflow-hidden overflow-x-clip
+        min-h-[56svh] md:min-h-[62svh] flex items-center
+      "
         >
-            {/* BG full-bleed + voiles */}
+            {/* BG full-bleed + veils */}
             <div className="pointer-events-none absolute inset-0 -z-20" aria-hidden="true">
-                <Image src={heroSrc} alt="" fill sizes="100vw" className="object-cover object-[center_45%] opacity-90" priority={false} />
+                <Image src={heroSrc} alt="" fill sizes="100vw" className="object-cover object-[center_45%] opacity-90" priority={imagePriority} />
                 <div className="absolute inset-0 md:hidden bg-gradient-to-b from-white/92 via-white/78 to-white/28" />
                 <div className="absolute inset-0 hidden md:block bg-gradient-to-r from-white/90 via-white/70 to-transparent" />
                 <div className="absolute inset-0 hidden sm:block bg-brand-50/30 mix-blend-soft-light" />
@@ -98,17 +108,19 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
             {/* filet or */}
             <div className="absolute inset-x-0 bottom-0 h-px bg-gold-200" aria-hidden="true" />
 
-            {/* contenu */}
+            {/* contenu centré */}
             <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 md:px-8 py-10 sm:py-14 lg:py-16">
                 <div className="relative max-w-[44rem]">
+                    {/* plaque verre */}
                     <div className="pointer-events-none absolute -inset-4 sm:-inset-6 -z-10 rounded-3xl bg-white/45 sm:bg-white/30 backdrop-blur-[2px] sm:backdrop-blur-[1.5px] ring-1 ring-white/50 sm:ring-white/40" />
 
+                    {/* fil d’Ariane */}
                     <nav className="mb-3 text-sm text-muted-foreground" aria-label="Fil d’Ariane">
-                        <Link className="hover:underline" href="/">
+                        <Link prefetch={false} className="hover:underline" href="/">
                             Accueil
                         </Link>{' '}
                         <span aria-hidden>›</span>{' '}
-                        <Link className="hover:underline" href="/programs">
+                        <Link prefetch={false} className="hover:underline" href="/programs">
                             Programmes
                         </Link>{' '}
                         <span aria-hidden>›</span>{' '}
@@ -125,6 +137,7 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
                         {program.tagline}
                     </p>
 
+                    {/* chips */}
                     <ul className="mt-5 flex flex-wrap gap-2">
                         {chips.map((c) => (
                             <li
@@ -144,6 +157,7 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
 
                     <p className="mt-3 text-sm text-muted-foreground">Rituels courts, tenables. Accès à vie. Sans matériel.</p>
 
+                    {/* CTAs */}
                     <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
                         {isAvailable ? (
                             <BuyButton slug={program.slug} isFree={isFree} />
@@ -164,7 +178,11 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
                             <span className="ml-2">Écouter un extrait</span>
                         </button>
 
-                        {priceLabel && <span className="inline-flex items-center text-sm text-muted-foreground">— {priceLabel}</span>}
+                        {!!priceLabel && (
+                            <span className="inline-flex items-center text-sm text-muted-foreground" aria-live="polite">
+                                — {priceLabel}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
@@ -177,17 +195,19 @@ export default function Hero({ program, dailyLoadLabel, sampleAudioSrc = '/audio
                             <div className="min-w-0">
                                 <div className="text-sm font-medium truncate">{program.title}</div>
                                 <div className="text-xs text-muted-foreground">
-                                    {program.duration_days} j • {program.level}
+                                    {program.duration_days} j{program.level ? ` • ${program.level}` : ''}
                                 </div>
                             </div>
-                            <div className="text-sm font-semibold">{priceLabel ?? 'Bientôt'}</div>
-                            {isAvailable ? (
-                                <BuyButton slug={program.slug} isFree={isFree} />
-                            ) : (
-                                <button onClick={() => track('program_detail_cta_click', { slug: program.slug, target: 'waitlist_mobile' })} className="btn">
-                                    Être prévenu·e
-                                </button>
-                            )}
+                            <div className="shrink-0 text-sm font-semibold">{priceLabel ?? 'Bientôt'}</div>
+                            <div className="shrink-0">
+                                {isAvailable ? (
+                                    <BuyButton slug={program.slug} isFree={isFree} />
+                                ) : (
+                                    <button onClick={() => track('program_detail_cta_click', { slug: program.slug, target: 'waitlist_mobile' })} className="btn">
+                                        Être prévenu·e
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>,
                     document.body

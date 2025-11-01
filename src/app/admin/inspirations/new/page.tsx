@@ -124,12 +124,12 @@ export default async function NewInspirationPage() {
 
     /* ======================= UI ======================= */
     return (
-        <div className="mx-auto max-w-5xl p-4 md:p-6 space-y-6">
+        <div className="mx-auto max-w-7xl space-y-6">
             {/* ===== Header / Breadcrumb ===== */}
             <div className="rounded-2xl border border-violet-200/40 bg-gradient-to-br from-violet-600/10 via-violet-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="min-w-0">
-                        <div className="text-xs text-gray-500">
+                        <nav className="text-xs text-gray-500">
                             <Link href="/admin" className="hover:underline">
                                 Admin
                             </Link>
@@ -139,7 +139,7 @@ export default async function NewInspirationPage() {
                             </Link>
                             <span className="px-1.5">›</span>
                             <span className="text-gray-700">Nouvelle</span>
-                        </div>
+                        </nav>
                         <h1 className="mt-1 text-xl md:text-2xl font-semibold text-slate-900">Nouvelle inspiration</h1>
                         <p className="text-sm text-gray-600 mt-1">Ajoute une vidéo (YouTube/Vimeo/MP4), son résumé, les tags et le statut.</p>
                     </div>

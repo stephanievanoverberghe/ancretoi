@@ -1,11 +1,10 @@
-// src/app/admin/programs/components/CreationSuccessModal.tsx
+// app/admin/programs/components/CreationSuccessModal.tsx
 
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
 
 export default function CreationSuccessModal() {
@@ -13,7 +12,7 @@ export default function CreationSuccessModal() {
     const router = useRouter();
 
     const show = search.get('created') === '1';
-    const slug = (search.get('slug') ?? '').trim();
+    const slug = (search.get('slug') ?? '').trim().toLowerCase();
 
     const [open, setOpen] = useState(show);
     const [mounted, setMounted] = useState(false);
@@ -21,7 +20,6 @@ export default function CreationSuccessModal() {
     useEffect(() => setOpen(show), [show]);
     useEffect(() => setMounted(true), []);
 
-    // lock scroll
     useEffect(() => {
         if (!open || !mounted) return;
         const prev = document.body.style.overflow;
@@ -54,18 +52,6 @@ export default function CreationSuccessModal() {
                                 Ton programme <span className="font-medium">{slug}</span> a bien été ajouté.
                             </p>
                         </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                        <Link
-                            href={`/admin/programs/${slug}/units`}
-                            className="inline-flex items-center justify-center rounded-md bg-brand-700 px-3 py-2 text-white hover:bg-brand-800"
-                        >
-                            Créer les unités
-                        </Link>
-                        <Link href={`/admin/programs/${slug}/page`} className="inline-flex items-center justify-center rounded-md border px-3 py-2 hover:bg-gray-50">
-                            Configurer la landing
-                        </Link>
                     </div>
 
                     <div className="mt-3 flex items-center justify-end">

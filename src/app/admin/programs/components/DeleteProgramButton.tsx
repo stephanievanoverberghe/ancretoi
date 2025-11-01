@@ -9,12 +9,13 @@ type Props = {
     slug: string;
     className?: string;
     afterDelete?: 'refresh' | 'redirect';
-    redirectTo?: string;
+    /** utilisé seulement si afterDelete === 'redirect' */
+    redirectTo?: string; // défaut: /admin/programs?deleted=1&slug=...
 };
 
 type PreviewCounts = { programPage: number; units: number; states: number };
 
-export default function DeleteProgramButton({ slug, className, afterDelete = 'refresh', redirectTo = '/admin/programs' }: Props) {
+export default function DeleteProgramButton({ slug, className, afterDelete = 'redirect', redirectTo }: Props) {
     const [open, setOpen] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -41,10 +42,13 @@ export default function DeleteProgramButton({ slug, className, afterDelete = 're
         setError(null);
         setPreview(null);
         try {
-            const r = await fetch(`/api/admin/programs?slug=${encodeURIComponent(slug)}&dryRun=true`, { method: 'DELETE' });
+            // ✅ cohérent avec /api/admin/programs/[slug]
+            const r = await fetch(`/api/admin/programs/${encodeURIComponent(slug)}?dryRun=1`, {
+                method: 'DELETE',
+            });
             const data = await r.json();
             if (!r.ok) throw new Error(data?.error || `HTTP ${r.status}`);
-            setPreview(data.deleted ?? null);
+            setPreview(data.deleted ?? { programPage: 0, units: 0, states: 0 });
         } catch (e) {
             setPreview(null);
             setError(e instanceof Error ? e.message : String(e));
@@ -55,12 +59,18 @@ export default function DeleteProgramButton({ slug, className, afterDelete = 're
         setBusy(true);
         setError(null);
         try {
-            const r = await fetch(`/api/admin/programs?slug=${encodeURIComponent(slug)}`, { method: 'DELETE' });
+            const r = await fetch(`/api/admin/programs/${encodeURIComponent(slug)}`, { method: 'DELETE' });
             const data = await r.json();
             if (!r.ok) throw new Error(data?.error || `HTTP ${r.status}`);
+
             setOpen(false);
-            if (afterDelete === 'redirect') router.push(redirectTo);
-            else router.refresh();
+
+            if (afterDelete === 'redirect') {
+                const to = redirectTo || `/admin/programs?deleted=1&slug=${encodeURIComponent(slug)}`;
+                router.push(to);
+            } else {
+                router.refresh();
+            }
         } catch (e) {
             setError(e instanceof Error ? e.message : String(e));
         } finally {
@@ -70,6 +80,7 @@ export default function DeleteProgramButton({ slug, className, afterDelete = 're
 
     function onOpen() {
         setConfirm(false);
+        setError(null);
         setOpen(true);
         void loadPreview();
     }
@@ -84,7 +95,6 @@ export default function DeleteProgramButton({ slug, className, afterDelete = 're
         return () => window.removeEventListener('keydown', onKey);
     }, [open, busy]);
 
-    // ==== centrage du bouton déclencheur (sans wrapper) ====
     const triggerClasses = [
         'group mx-auto inline-flex items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium cursor-pointer',
         'border-red-200 bg-red-50/70 text-red-700 hover:bg-red-50 hover:border-red-300',
@@ -123,7 +133,7 @@ export default function DeleteProgramButton({ slug, className, afterDelete = 're
                                         Supprimer « {slug} »
                                     </h3>
                                     <p id={descId} className="mt-0.5 text-sm text-muted-foreground">
-                                        Cette action est définitive. Elle supprimera la landing, les unités et les états associés.
+                                        Action définitive : landing, unités et états associés seront supprimés.
                                     </p>
                                 </div>
                             </div>
@@ -144,14 +154,14 @@ export default function DeleteProgramButton({ slug, className, afterDelete = 're
                                                 <Database className="h-4 w-4 text-red-600" /> États: <span className="font-semibold">{preview.states}</span>
                                             </li>
                                         </ul>
+                                    ) : error ? (
+                                        <div className="rounded-md bg-red-100 px-3 py-2 text-sm text-red-800">{error}</div>
                                     ) : (
                                         <div className="flex items-center gap-2 text-sm text-red-700">
                                             <Loader2 className="h-4 w-4 animate-spin" /> Chargement…
                                         </div>
                                     )}
                                 </div>
-
-                                {error && <div className="rounded-md bg-red-100 px-3 py-2 text-sm text-red-800">{error}</div>}
 
                                 <label className="mt-1 flex items-start gap-2 text-sm">
                                     <input type="checkbox" className="mt-0.5" checked={confirm} disabled={busy} onChange={(e) => setConfirm(e.target.checked)} />

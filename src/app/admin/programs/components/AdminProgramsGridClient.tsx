@@ -1,12 +1,13 @@
-// src/app/admin/programs/components/AdminProgramsGridClient.tsx
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { BadgeCheck, Search, Eye, Layers, Calendar, Clock3, Tag, ExternalLink, Lock, X, PencilLine, CalendarPlus, Presentation, ChevronDown } from 'lucide-react';
-import DeleteProgramButton from '@/components/admin/DeleteProgramButton';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { BadgeCheck, Search, Eye, Calendar, Clock3, Tag, ExternalLink, Lock, X, PencilLine, ChevronDown, CheckCircle2 } from 'lucide-react';
+import DeleteProgramButton from '@/app/admin/programs/components/DeleteProgramButton';
+import CreationSuccessModal from './CreationSuccessModal';
 
 /* ===================== Types ===================== */
 
@@ -67,7 +68,64 @@ function LevelBadge({ level }: { level: AdminProgramRow['meta']['level'] }) {
     return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ring-1 ${colors}`}>{level}</span>;
 }
 
-/* ================= Modal Quick View (inchangée) ================= */
+/* ============== Deletion Success Modal (inline) ============== */
+function DeletionSuccessModal() {
+    const search = useSearchParams();
+    const router = useRouter();
+    const show = search.get('deleted') === '1';
+    const slug = (search.get('slug') ?? '').trim().toLowerCase();
+    const [open, setOpen] = useState(show);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => setOpen(show), [show]);
+    useEffect(() => setMounted(true), []);
+
+    useEffect(() => {
+        if (!open || !mounted) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, [open, mounted]);
+
+    if (!open || !mounted) return null;
+
+    const onClose = () => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('deleted');
+        url.searchParams.delete('slug');
+        router.replace(url.pathname + (url.search || ''));
+        setOpen(false);
+    };
+
+    return createPortal(
+        <div className="fixed inset-0 z-[1100]">
+            <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+                <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl ring-1 ring-brand-100/70">
+                    <div className="flex items-start gap-3">
+                        <CheckCircle2 className="h-6 w-6 text-emerald-600" aria-hidden />
+                        <div>
+                            <div className="text-lg font-semibold">Programme supprimé</div>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                <span className="font-medium">{slug || '—'}</span> a été supprimé avec succès.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-end">
+                        <button onClick={onClose} className="rounded-md bg-purple-600 px-3 py-2 text-white hover:bg-purple-700">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+}
+
+/* ================= Modal Quick View ================= */
 
 function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => void; row: AdminProgramRow | null }) {
     const [mounted, setMounted] = useState(false);
@@ -120,7 +178,7 @@ function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => 
                     {/* Body */}
                     <div className="grid gap-4 p-5 md:grid-cols-3">
                         <div className="md:col-span-2 space-y-3">
-                            <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div className="grid grid-cols-3 gap-2 text-sm">
                                 <div className="rounded-lg border p-2">
                                     <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
                                         <Calendar className="h-4 w-4" /> Jours
@@ -132,12 +190,6 @@ function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => 
                                         <Clock3 className="h-4 w-4" /> Min / jour
                                     </div>
                                     <div className="font-semibold">{row.meta.estMinutesPerDay ?? '—'}</div>
-                                </div>
-                                <div className="rounded-lg border p-2">
-                                    <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-                                        <Layers className="h-4 w-4" /> Unités (jour)
-                                    </div>
-                                    <div className="font-semibold">{row.stats.unitsCount}</div>
                                 </div>
                                 <div className="rounded-lg border p-2">
                                     <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
@@ -173,15 +225,10 @@ function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => 
                         </div>
 
                         <div className="space-y-2">
-                            <Link href={`/admin/programs/${row.programSlug}/units`} className="btn w-full justify-center">
-                                Gérer les unités
+                            <Link href={`/admin/programs/${row.programSlug}/edit`} className="btn w-full justify-center">
+                                Éditer
                             </Link>
-                            <Link href={`/admin/programs/${row.programSlug}/page`} className="btn-secondary w-full justify-center">
-                                Configurer la landing
-                            </Link>
-                            <Link href={`/admin/programs/${row.programSlug}/edit`} className="btn-secondary w-full justify-center">
-                                Éditer métadonnées
-                            </Link>
+
                             {row.status === 'published' ? (
                                 <Link
                                     href={`/programs/${row.programSlug}`}
@@ -194,9 +241,12 @@ function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => 
                                     <Lock className="h-4 w-4" /> Non publié
                                 </div>
                             )}
+
                             <div className="pt-1 [&>button]:w-full">
-                                <DeleteProgramButton slug={row.programSlug} />
+                                {/* après suppression, on revient ici avec ?deleted=1&slug=... */}
+                                <DeleteProgramButton slug={row.programSlug} afterDelete="redirect" />
                             </div>
+
                             <div className="pt-2">
                                 <button
                                     onClick={onClose}
@@ -214,9 +264,9 @@ function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => 
     );
 }
 
-/* ==================== Grid + Toolbar (style "Inspirations") ==================== */
+/* ==================== Grid + Toolbar ==================== */
 
-const LS_KEY = 'adminProgramsToolbar:v7';
+const LS_KEY = 'adminProgramsToolbar:v9';
 
 type PersistedState = {
     q: string;
@@ -227,6 +277,10 @@ type PersistedState = {
 };
 
 export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRow[] }) {
+    // Modales succès
+    const _showCreationSuccess = <CreationSuccessModal />;
+    const _showDeletionSuccess = <DeletionSuccessModal />;
+
     /** Recherche (debounce) + raccourci "/" */
     const [qRaw, setQRaw] = useState('');
     const [q, setQ] = useState('');
@@ -294,7 +348,7 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
         return { total, ...by };
     }, [rows]);
 
-    /** Filtrage + tri (comme Inspirations) */
+    /** Filtrage + tri */
     const filtered = useMemo(() => {
         const ql = q.trim().toLowerCase();
         const passes = (r: AdminProgramRow) => {
@@ -330,9 +384,13 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
     const [openSlug, setOpenSlug] = useState<string | null>(null);
     const current = useMemo(() => rows.find((r) => r.programSlug === openSlug) ?? null, [openSlug, rows]);
 
-    /* ======== Toolbar style “Inspirations” (search au-dessus + dropdowns) ======== */
+    /* ======== Toolbar + Grid ======== */
     return (
         <>
+            {/* Modales succès (invisibles, mais montées dans le DOM) */}
+            {_showCreationSuccess}
+            {_showDeletionSuccess}
+
             <section className="sticky top-[env(safe-area-inset-top,0px)] z-10 -mx-4 mb-4 bg-gradient-to-b from-white/80 to-transparent px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/60 sm:mx-0 sm:rounded-xl sm:border sm:border-brand-200 sm:bg-white/70">
                 {/* Search */}
                 <div className="relative w-full mb-3">
@@ -480,29 +538,22 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
                                 <h3 className="line-clamp-2 text-base font-semibold sm:text-lg">{r.title}</h3>
 
                                 <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-600">
-                                    <span className="inline-flex items-center gap-1">
-                                        <Layers className="h-4 w-4" /> {r.stats.unitsCount} unité{r.stats.unitsCount > 1 ? 's' : ''}
-                                    </span>
-                                    <span>•</span>
                                     <span>{formatPrice(r.price)}</span>
+                                    {r.meta.durationDays ? (
+                                        <>
+                                            <span>•</span>
+                                            <span>{r.meta.durationDays} j</span>
+                                        </>
+                                    ) : null}
+                                    {r.meta.estMinutesPerDay ? (
+                                        <>
+                                            <span>•</span>
+                                            <span>{r.meta.estMinutesPerDay} min/j</span>
+                                        </>
+                                    ) : null}
                                 </div>
 
                                 <div className="mt-3 grid grid-cols-2 gap-2">
-                                    {/* Ligne 1 : Jours / Landing */}
-                                    <Link
-                                        href={`/admin/programs/${r.programSlug}/units`}
-                                        className="inline-flex w-full items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-800 bg-brand-50 ring-1 ring-brand-200 hover:ring-brand-500 transition hover:bg-brand-100"
-                                    >
-                                        <Presentation className="h-4 w-4" /> Jours
-                                    </Link>
-                                    <Link
-                                        href={`/admin/programs/${r.programSlug}/page`}
-                                        className="inline-flex w-full items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-800 bg-brand-50 ring-1 ring-brand-200 hover:ring-brand-500 transition hover:bg-brand-100"
-                                    >
-                                        <CalendarPlus className="h-4 w-4" /> Landing
-                                    </Link>
-
-                                    {/* Ligne 2 : Éditer / Aperçu */}
                                     <Link
                                         href={`/admin/programs/${r.programSlug}/edit`}
                                         className="inline-flex w-full items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-800 bg-brand-50 ring-1 ring-brand-200 hover:ring-brand-500 transition hover:bg-brand-100"
@@ -516,9 +567,8 @@ export default function AdminProgramsGridClient({ rows }: { rows: AdminProgramRo
                                         <Eye className="h-4 w-4" /> Aperçu
                                     </button>
 
-                                    {/* Ligne 3 : Supprimer */}
                                     <div className="col-span-2 [&>button]:w-full">
-                                        <DeleteProgramButton slug={r.programSlug} />
+                                        <DeleteProgramButton slug={r.programSlug} afterDelete="redirect" />
                                     </div>
                                 </div>
                             </div>

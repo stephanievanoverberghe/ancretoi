@@ -1,4 +1,3 @@
-// src/models/Unit.ts
 import { Schema, model, models, type Model, type InferSchemaType, Types } from 'mongoose';
 
 const JournalSliderSchema = new Schema(
@@ -17,11 +16,7 @@ const JournalQuestionSchema = new Schema(
 );
 const JournalCheckSchema = new Schema({ key: { type: String, required: true }, label: { type: String, required: true } }, { _id: false });
 const JournalSchema = new Schema(
-    {
-        sliders: { type: [JournalSliderSchema], default: [] },
-        questions: { type: [JournalQuestionSchema], default: [] },
-        checks: { type: [JournalCheckSchema], default: [] },
-    },
+    { sliders: { type: [JournalSliderSchema], default: [] }, questions: { type: [JournalQuestionSchema], default: [] }, checks: { type: [JournalCheckSchema], default: [] } },
     { _id: false }
 );
 
@@ -37,10 +32,11 @@ const UnitSchema = new Schema(
         // Médias
         videoAssetId: { type: String, default: '' },
         audioAssetId: { type: String, default: '' },
+        videoUrl: { type: String, default: '' },
 
         // Contenus
-        contentParagraphs: { type: [String], default: [] }, // texte d’accompagnement sous forme de paragraphes
-        safetyNote: { type: String, default: '' }, // encadré sécurité
+        contentParagraphs: { type: [String], default: [] }, // description courte (paragraphe 1)
+        safetyNote: { type: String, default: '' },
         journalSchema: { type: JournalSchema, default: { sliders: [], questions: [], checks: [] } },
 
         status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
