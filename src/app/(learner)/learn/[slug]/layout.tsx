@@ -54,7 +54,7 @@ export default async function CourseLayout({ children, params }: { children: Rea
 
     const currentDay = Math.max(1, Math.min(lastPublished || 1, enr?.currentDay ?? 1));
     const isCompleted = enr?.status === 'completed';
-    const started = !!enr?.introEngaged; // ✅ maintenant, on suit le check persistant
+    const started = !!enr?.introEngaged;
     const pad = (n: number) => String(n).padStart(2, '0');
 
     const completedSet = new Set<number>();
@@ -83,7 +83,6 @@ export default async function CourseLayout({ children, params }: { children: Rea
             const day = u.unitIndex;
             let state: 'done' | 'active' | 'locked' = 'locked';
 
-            // 🔒 Tant que l’intro n’est pas engagée (check non coché), tous les jours sont verrouillés (y compris J1)
             if (!started) {
                 state = 'locked';
             } else if (completedSet.has(day)) {
@@ -117,7 +116,15 @@ export default async function CourseLayout({ children, params }: { children: Rea
     const displayName = user.name ?? userDoc?.name ?? '';
     const firstName = displayName ? displayName.split(' ')[0] : 'toi';
     const programName = humanizeSlug(safeSlug);
-    const continueHref = started ? `/learn/${safeSlug}/day/${pad(currentDay)}` : `/learn/${safeSlug}/intro`;
+
+    // === CTA principal (aligné avec /member) ===
+    const primaryHref = isCompleted ? `/learn/${safeSlug}/conclusion` : started ? `/learn/${safeSlug}/day/${pad(currentDay)}` : `/learn/${safeSlug}/intro`;
+
+    const primaryLabel = isCompleted ? 'Terminé' : started ? 'Continuer' : 'Commencer';
+
+    const primaryClass =
+        'inline-flex items-center justify-center rounded-xl px-3 py-1.5 text-sm font-medium transition ' +
+        (isCompleted ? 'border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100' : 'bg-brand-600 text-white hover:bg-brand-700');
 
     return (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[300px_1fr]">
@@ -140,11 +147,8 @@ export default async function CourseLayout({ children, params }: { children: Rea
                         </div>
 
                         <div className="mt-3 grid grid-cols-2 gap-2">
-                            <Link
-                                href={continueHref}
-                                className="inline-flex items-center justify-center rounded-xl bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
-                            >
-                                Continuer
+                            <Link href={primaryHref} className={primaryClass}>
+                                {primaryLabel}
                             </Link>
                             <Link
                                 href="/notes"
