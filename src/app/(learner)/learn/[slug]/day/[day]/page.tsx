@@ -1,6 +1,6 @@
 // src/app/(learner)/learn/[slug]/day/[day]/page.tsx
-
 import 'server-only';
+import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { dbConnect } from '@/db/connect';
 import { requireUser } from '@/lib/authz';
@@ -9,6 +9,7 @@ import Enrollment from '@/models/Enrollment';
 import Unit from '@/models/Unit';
 import DayState from '@/models/DayState';
 import LearnDayClient from './LessonClient';
+import ProgramDetailButton from '@/app/(learner)/components/ProgramDetailButton';
 
 type Params = { slug: string; day: string };
 
@@ -16,10 +17,29 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
+// YouTube clean embed
+function detectPlayer(url?: string) {
+    if (!url) return { kind: 'none' as const, src: '' };
+    try {
+        const u = new URL(url.startsWith('http') ? url : `https://${url}`);
+        const host = u.hostname.toLowerCase();
+        if (host.includes('youtu.be') || host.includes('youtube')) {
+            const id = host.includes('youtu.be') ? u.pathname.slice(1) : u.searchParams.get('v');
+            if (id) return { kind: 'youtube' as const, src: `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1` };
+        }
+        if (host.includes('vimeo.com')) {
+            const parts = u.pathname.split('/').filter(Boolean);
+            const id = parts.pop();
+            if (id) return { kind: 'vimeo' as const, src: `https://player.vimeo.com/video/${id}` };
+        }
+        if (/\.(mp4|webm|mov)(\?.*)?$/i.test(u.pathname)) return { kind: 'file' as const, src: u.toString() };
+    } catch {}
+    return { kind: 'none' as const, src: '' };
+}
+
 export default async function LearnDayPage({ params }: { params: Promise<Params> }) {
     await dbConnect();
 
-    // Next 15: params est async
     const { slug, day } = await params;
     const safeSlug = slug.toLowerCase();
 
@@ -28,157 +48,149 @@ export default async function LearnDayPage({ params }: { params: Promise<Params>
     const userDoc = await UserModel.findOne({ email: user.email, deletedAt: null }).select({ _id: 1 }).lean<{ _id: unknown } | null>();
     if (!userDoc?._id) notFound();
 
-    // Jours publiés, triés croissant
+    // Jours publiés
     const units = await Unit.find({ programSlug: safeSlug, unitType: 'day', status: 'published' })
-        .select({
-            _id: 1,
-            unitIndex: 1,
-            title: 1,
-            mantra: 1,
-            durationMin: 1,
-            videoAssetId: 1,
-            audioAssetId: 1,
-            contentParagraphs: 1,
-            safetyNote: 1,
-            journalSchema: 1,
-        })
+        .select({ unitIndex: 1, title: 1, mantra: 1, durationMin: 1, videoUrl: 1, contentParagraphs: 1 })
         .sort({ unitIndex: 1 })
-        .lean<
-            {
-                _id: unknown;
-                unitIndex: number;
-                title?: string;
-                mantra?: string;
-                durationMin?: number;
-                videoAssetId?: string;
-                audioAssetId?: string;
-                contentParagraphs?: string[];
-                safetyNote?: string;
-                journalSchema?: {
-                    sliders?: { key: string; label: string; min?: number; max?: number; step?: number }[];
-                    questions?: { key: string; label: string; placeholder?: string }[];
-                    checks?: { key: string; label: string }[];
-                };
-            }[]
-        >();
+        .lean<{ unitIndex: number; title?: string; mantra?: string; durationMin?: number; videoUrl?: string; contentParagraphs?: string[] }[]>();
 
-    if (units.length === 0) {
-        // pas de contenu publié → vue d’ensemble
-        redirect(`/learn/${safeSlug}`);
-    }
+    if (units.length === 0) redirect(`/learn/${safeSlug}`);
 
-    // Jour demandé (doit exister dans les publiés)
     const requested = Number.parseInt(day, 10);
     if (!Number.isFinite(requested) || requested < 1) notFound();
 
     const unit = units.find((u) => u.unitIndex === requested);
-    if (!unit) {
-        // le jour demandé n'est pas publié → on pousse vers le 1er publié
-        redirect(`/learn/${safeSlug}/day/${units[0].unitIndex}`);
-    }
+    if (!unit) redirect(`/learn/${safeSlug}/day/${units[0].unitIndex}`);
 
-    // Gating séquentiel via enrollment
+    // Gating
     const enr = await Enrollment.findOne({ userId: String(userDoc._id), programSlug: safeSlug })
-        .select({ status: 1, currentDay: 1 })
-        .lean<{ status: 'active' | 'completed' | 'paused'; currentDay?: number | null } | null>();
+        .select({ status: 1, currentDay: 1, introEngaged: 1 })
+        .lean<{ status: 'active' | 'completed' | 'paused'; currentDay?: number | null; introEngaged?: boolean | null } | null>();
+    if (!enr?.introEngaged) redirect(`/learn/${safeSlug}/intro`);
 
     const isCompleted = enr?.status === 'completed';
     const publishedIndices = units.map((u) => u.unitIndex);
     const lastPublished = publishedIndices[publishedIndices.length - 1];
     const currentDay = Math.max(1, Math.min(lastPublished, enr?.currentDay ?? 1));
+    if (!isCompleted && requested > currentDay) redirect(`/learn/${safeSlug}/day/${currentDay}`);
 
-    // Si non terminé et tentative d'ouvrir un jour futur → redirige vers currentDay
-    if (!isCompleted && requested > currentDay) {
-        redirect(`/learn/${safeSlug}/day/${currentDay}`);
-    }
-
-    // prev / next sur la liste publiée
+    // Prev/Next
     const pos = units.findIndex((u) => u.unitIndex === unit.unitIndex);
     const prev = pos > 0 ? units[pos - 1] : null;
     const next = pos < units.length - 1 ? units[pos + 1] : null;
-
-    // État (brouillon / complété)
-    const state = await DayState.findOne({
-        userId: userDoc._id,
-        programSlug: safeSlug,
-        day: unit.unitIndex,
-    })
-        .select({ data: 1, sliders: 1, practiced: 1, mantra3x: 1, completed: 1, updatedAt: 1 })
-        .lean<{
-            data?: Record<string, string>;
-            sliders?: { energie?: number; focus?: number; paix?: number; estime?: number };
-            practiced?: boolean;
-            mantra3x?: boolean;
-            completed?: boolean;
-            updatedAt?: Date;
-        } | null>();
-
-    const totalDays = units.length;
     const prevHref = prev ? `/learn/${safeSlug}/day/${prev.unitIndex}` : null;
     const nextHref = next ? `/learn/${safeSlug}/day/${next.unitIndex}` : null;
 
+    // État actuel + stats
+    const [state, completedCount] = await Promise.all([
+        DayState.findOne({ userId: userDoc._id, programSlug: safeSlug, day: unit.unitIndex })
+            .select({ data: 1, practiced: 1, completed: 1, updatedAt: 1 })
+            .lean<{ data?: Record<string, string>; practiced?: boolean; completed?: boolean; updatedAt?: Date } | null>(),
+        DayState.countDocuments({ userId: userDoc._id, programSlug: safeSlug, completed: true }),
+    ]);
+
+    const totalDays = units.length;
+    const remaining = Math.max(0, totalDays - completedCount);
+    const player = detectPlayer(unit.videoUrl);
+
     return (
-        <div className="mx-auto max-w-4xl space-y-6">
-            {/* En-tête */}
-            <header className="rounded-3xl border border-border bg-card p-6 shadow-sm backdrop-blur">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {safeSlug} · Jour {String(unit.unitIndex).padStart(2, '0')}
-                </p>
-                <h1 className="mt-1 text-2xl font-semibold text-foreground">{unit.title ?? `Jour ${unit.unitIndex}`}</h1>
-                {unit.mantra && <p className="mt-1 text-sm text-muted-foreground">{unit.mantra}</p>}
-                <div className="mt-2 text-xs text-muted-foreground">⏱ {unit.durationMin ?? 25} min · 📝 notes 5–10 min · 💧 pense à t’hydrater</div>
-            </header>
+        <div className="mx-auto w-full max-w-5xl space-y-6 px-4 pb-20 sm:px-5">
+            {/* ===== Header style "admin" adapté learner ===== */}
+            <div className="rounded-2xl border border-brand-200/60 bg-gradient-to-br from-brand-600/10 via-brand-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
+                {/* Breadcrumb */}
+                <div className="text-xs text-muted-foreground">
+                    <Link href={`/learn/${safeSlug}`} className="hover:underline">
+                        Programme
+                    </Link>
+                    <span className="px-1.5">›</span>
+                    <span className="text-foreground">Jour {String(unit.unitIndex).padStart(2, '0')}</span>
+                </div>
 
-            {/* Player (placeholder si pas de vidéo) */}
-            <section className="overflow-hidden rounded-2xl border border-border bg-card p-4 backdrop-blur">
-                {unit.videoAssetId ? (
-                    // Branche ton lecteur HLS/Mux ici
-                    <div className="aspect-video w-full rounded-xl bg-black/90" />
-                ) : (
-                    <div className="grid aspect-video w-full place-items-center rounded-lg bg-muted text-sm text-muted-foreground">Vidéo à venir</div>
-                )}
+                {/* Titre & sous-titre */}
+                <h1 className="mt-1 text-xl md:text-2xl font-semibold tracking-tight">{unit.title ?? `Jour ${unit.unitIndex}`}</h1>
+                <p className="text-sm text-muted-foreground mt-1">{unit.mantra ? unit.mantra : 'Pratique guidée du jour'}</p>
 
-                {!!unit.contentParagraphs?.length && (
-                    <div className="mt-4 space-y-3 text-foreground">
+                {/* Petites stats */}
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-4">
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Total</div>
+                        <div className="text-lg font-semibold">{totalDays}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Terminés</div>
+                        <div className="text-lg font-semibold">{completedCount}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">En cours</div>
+                        <div className="text-lg font-semibold">J{String(currentDay).padStart(2, '0')}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4">
+                        <div className="text-xs text-muted-foreground">Restants</div>
+                        <div className="text-lg font-semibold">{remaining}</div>
+                    </div>
+                </div>
+
+                {/* Actions alignées à droite */}
+                <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                    <ProgramDetailButton slug={safeSlug} label="Vue d’ensemble" />
+
+                    {prevHref && (
+                        <Link href={prevHref} className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50" aria-label="Jour précédent">
+                            ← Précédent
+                        </Link>
+                    )}
+                    {nextHref && (
+                        <Link
+                            href={nextHref}
+                            className="rounded-xl border border-brand-300 bg-brand-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+                            aria-label="Jour suivant"
+                        >
+                            Suivant →
+                        </Link>
+                    )}
+                </div>
+            </div>
+
+            {/* Player (si présent) */}
+            {player.kind !== 'none' && (
+                <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                    <div className="aspect-video w-full">
+                        {player.kind === 'file' ? (
+                            <video className="h-full w-full" src={player.src} controls playsInline preload="metadata" />
+                        ) : (
+                            <iframe
+                                className="h-full w-full"
+                                src={player.src}
+                                title="Lecture vidéo"
+                                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                                referrerPolicy="strict-origin-when-cross-origin"
+                                allowFullScreen
+                            />
+                        )}
+                    </div>
+                </section>
+            )}
+
+            {/* Contenu (si présent) */}
+            {Array.isArray(unit.contentParagraphs) && unit.contentParagraphs.length > 0 && (
+                <section className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+                    <div className="space-y-3 text-[15px] leading-relaxed text-foreground">
                         {unit.contentParagraphs.map((p, i) => (
                             <p key={i}>{p}</p>
                         ))}
                     </div>
-                )}
-            </section>
+                </section>
+            )}
 
-            {/* Journal & actions (client) */}
+            {/* Client — notes optionnelles + “Pratique faite” + footer sticky validation */}
             <LearnDayClient
                 slug={safeSlug}
                 day={unit.unitIndex}
-                totalDays={totalDays}
                 prevHref={prevHref}
                 nextHref={nextHref}
-                meta={{
-                    durationMin: unit.durationMin ?? 25,
-                    safetyNote: unit.safetyNote ?? '',
-                    journal: {
-                        sliders: unit.journalSchema?.sliders ?? [
-                            { key: 'energie', label: 'Énergie', min: 0, max: 10, step: 1 },
-                            { key: 'focus', label: 'Clarté', min: 0, max: 10, step: 1 },
-                            { key: 'paix', label: 'Paix', min: 0, max: 10, step: 1 },
-                        ],
-                        questions: unit.journalSchema?.questions ?? [
-                            { key: 'intention', label: 'Intention du jour', placeholder: 'Ce que je vise aujourd’hui…' },
-                            { key: 'takeaways', label: 'Ce que je retiens', placeholder: '3 points saillants…' },
-                            { key: 'next', label: 'Prochain micro-pas', placeholder: 'Action simple d’ici demain…' },
-                        ],
-                        checks: unit.journalSchema?.checks ?? [
-                            { key: 'pratique', label: 'Pratique faite' },
-                            { key: 'mantra', label: 'Mantra répété 3×' },
-                        ],
-                    },
-                }}
                 initial={{
                     data: state?.data ?? {},
-                    sliders: { energie: 0, focus: 0, paix: 0, estime: 0, ...(state?.sliders ?? {}) },
                     practiced: !!state?.practiced,
-                    mantra3x: !!state?.mantra3x,
                     completed: !!state?.completed,
                     lastSavedAt: state?.updatedAt ? new Date(state.updatedAt).toLocaleTimeString('fr-FR') : null,
                 }}

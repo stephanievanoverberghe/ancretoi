@@ -1,5 +1,4 @@
 // src/app/admin/programs/[slug]/edit/page.tsx
-
 import 'server-only';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -23,13 +22,13 @@ function slugify(s: string) {
         .replace(/^-+|-+$/g, '');
 }
 
-// type minimal pour Unit côté lean (uniquement ce qu’on lit)
 type UnitLean = {
     unitIndex?: number | null;
     title?: string | null;
     videoUrl?: string | null;
     mantra?: string | null;
     contentParagraphs?: string[] | null;
+    status?: 'draft' | 'published' | null; // ⬅️
 };
 
 export default async function EditProgramPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -44,7 +43,6 @@ export default async function EditProgramPage({ params }: { params: Promise<{ sl
 
     const units = await Unit.find({ programSlug }).sort({ unitIndex: 1 }).lean<UnitLean[]>();
 
-    // Reconstituer "idealIf" et "benefits" (max 3) depuis highlights
     const highlights = Array.isArray(page.highlights) ? page.highlights : [];
     const idealIfFromHighlights = highlights.find((h) => (h?.title || '').toLowerCase().startsWith('idéal si'));
     const benefits = highlights
@@ -83,6 +81,7 @@ export default async function EditProgramPage({ params }: { params: Promise<{ sl
             videoUrl: u?.videoUrl || '',
             mantra: u?.mantra || '',
             description: Array.isArray(u?.contentParagraphs) ? u.contentParagraphs.join('\n') : '',
+            status: (u?.status as 'draft' | 'published') || 'draft', // ⬅️
         })),
     };
 

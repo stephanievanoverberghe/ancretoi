@@ -10,9 +10,10 @@ import Enrollment from '@/models/Enrollment';
 import ProgramPage from '@/models/ProgramPage';
 import Unit from '@/models/Unit';
 
-// UI clients (à créer ci-dessous)
+// UI clients
 import ProgressDonutClient from './components/ProgressDonutClient';
 import StreakHeatmapClient from './components/StreakHeatmapClient';
+import ProgramDetailButton from '@/app/(learner)/components/ProgramDetailButton';
 
 type EnrollmentLean = {
     programSlug: string;
@@ -87,13 +88,33 @@ export default async function MemberPage() {
         };
     });
 
-    const resume = rows.find((r) => r.status === 'active') ?? rows[0] ?? null;
+    // ---- FOCUS HEADER ----
+    // 1) Priorité aux cours "nouvellement achetés" (0%)
+    const newlyBought = rows.filter((r) => r.percent === 0 && r.status !== 'completed').sort((a, b) => (b.lastUpdatedAt ?? '').localeCompare(a.lastUpdatedAt ?? ''));
 
-    // === KPIs globaux (simples, basés sur rows) ===
+    // 2) Sinon premier cours non terminé
+    const notCompleted = rows.filter((r) => r.percent < 100 && r.status !== 'completed');
+
+    const resume = newlyBought[0] ?? notCompleted[0] ?? rows[0] ?? null;
+
+    // Href + Label CTA header
+    const headerHref = resume
+        ? resume.percent === 100 || resume.status === 'completed'
+            ? `/learn/${resume.programSlug}/conclusion`
+            : resume.unitsDone === 0
+            ? `/learn/${resume.programSlug}/intro`
+            : '/continue'
+        : '/programs';
+
+    const headerLabel = resume ? (resume.percent === 100 || resume.status === 'completed' ? 'Terminé' : resume.unitsDone === 0 ? 'Commencer' : 'Continuer') : 'Explorer les cours';
+
+    // === KPIs globaux ===
     const activeCount = rows.filter((r) => r.status === 'active').length;
     const avgPercent = rows.length ? Math.round(rows.reduce((s, r) => s + r.percent, 0) / rows.length) : 0;
     const totalUnitsDone = rows.reduce((s, r) => s + r.unitsDone, 0);
     const lastActivityIso = enrollments[0]?.updatedAt ? enrollments[0].updatedAt.toISOString() : null;
+
+    const hasSomethingToResume = rows.some((r) => r.percent < 100);
 
     return (
         <>
@@ -111,21 +132,15 @@ export default async function MemberPage() {
                         <p className="mt-1 text-sm text-muted-foreground">Reprends là où tu t’es arrêté·e, suis ta progression, et retrouve ton bilan.</p>
 
                         <div className="mt-4 flex flex-wrap gap-2">
-                            {resume ? (
-                                <Link
-                                    href={resume.unitsDone === 0 ? `/learn/${resume.programSlug}/intro` : '/continue'}
-                                    className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700"
-                                >
-                                    {resume.unitsDone === 0 ? 'Commencer' : 'Continuer'}
-                                </Link>
-                            ) : (
-                                <Link
-                                    href="/programs"
-                                    className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700"
-                                >
-                                    Explorer les cours
-                                </Link>
-                            )}
+                            <Link
+                                href={headerHref}
+                                className={[
+                                    'inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium shadow-sm transition',
+                                    headerLabel === 'Terminé' ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-brand-600 text-white hover:bg-brand-700',
+                                ].join(' ')}
+                            >
+                                {headerLabel}
+                            </Link>
 
                             <a href="#stats" className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 text-sm hover:bg-white">
                                 Voir mes statistiques
@@ -180,7 +195,7 @@ export default async function MemberPage() {
                     <section id="courses" className="space-y-3">
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-semibold">Mes cours</h2>
-                            {rows.length > 0 && (
+                            {rows.length > 0 && hasSomethingToResume && (
                                 <Link href="/continue" className="text-sm font-medium text-brand-700 hover:underline">
                                     Reprendre →
                                 </Link>
@@ -191,67 +206,80 @@ export default async function MemberPage() {
                             <EmptyState />
                         ) : (
                             <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                {rows.map((r) => (
-                                    <li
-                                        key={r.programSlug}
-                                        className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
-                                    >
-                                        <div className="relative aspect-[16/10] w-full bg-muted">
-                                            {r.coverUrl ? (
-                                                <Image
-                                                    src={r.coverUrl}
-                                                    alt={r.coverAlt ?? ''}
-                                                    fill
-                                                    className="object-cover"
-                                                    sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 320px"
-                                                />
-                                            ) : (
-                                                <div className="flex h-full w-full items-center justify-center text-muted-foreground">Aucune image</div>
-                                            )}
-                                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
-                                            {/* Niveau badge */}
-                                            {r.level && (
-                                                <span className="absolute left-2 top-2 rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-medium ring-1 ring-black/5">
-                                                    {r.level}
-                                                </span>
-                                            )}
-                                        </div>
+                                {rows.map((r) => {
+                                    const isDone = r.percent === 100 || r.status === 'completed';
+                                    const primaryHref = isDone ? `/learn/${r.programSlug}/conclusion` : r.unitsDone === 0 ? `/learn/${r.programSlug}/intro` : '/continue';
+                                    const primaryLabel = isDone ? 'Terminé' : r.unitsDone === 0 ? 'Commencer' : 'Continuer';
 
-                                        <div className="p-4">
-                                            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{r.programSlug}</div>
-                                            <h3 className="line-clamp-2 text-base font-semibold sm:text-lg">{r.title}</h3>
-
-                                            <div
-                                                className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted"
-                                                role="progressbar"
-                                                aria-valuenow={r.percent}
-                                                aria-valuemin={0}
-                                                aria-valuemax={100}
-                                            >
-                                                <div className="h-full bg-brand-600 transition-[width] duration-500" style={{ width: `${r.percent}%` }} />
-                                            </div>
-                                            <div className="mt-1 text-right text-xs text-muted-foreground">
-                                                {r.unitsDone}/{r.unitsTotal} — {r.percent}%
+                                    return (
+                                        <li
+                                            key={r.programSlug}
+                                            className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
+                                        >
+                                            <div className="relative aspect-[16/10] w-full bg-muted">
+                                                {r.coverUrl ? (
+                                                    <Image
+                                                        src={r.coverUrl}
+                                                        alt={r.coverAlt ?? ''}
+                                                        fill
+                                                        className="object-cover"
+                                                        sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 320px"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">Aucune image</div>
+                                                )}
+                                                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+                                                {r.level && (
+                                                    <span className="absolute left-2 top-2 rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-medium ring-1 ring-black/5">
+                                                        {r.level}
+                                                    </span>
+                                                )}
                                             </div>
 
-                                            <div className="mt-3 grid grid-cols-2 gap-2">
-                                                <Link
-                                                    href={r.unitsDone === 0 ? `/learn/${r.programSlug}/intro` : '/continue'}
-                                                    className="inline-flex items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-800 transition hover:bg-brand-100"
+                                            <div className="p-4">
+                                                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{r.programSlug}</div>
+                                                <h3 className="line-clamp-2 text-base font-semibold sm:text-lg">{r.title}</h3>
+
+                                                <div
+                                                    className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted"
+                                                    role="progressbar"
+                                                    aria-valuenow={r.percent}
+                                                    aria-valuemin={0}
+                                                    aria-valuemax={100}
                                                 >
-                                                    {r.unitsDone === 0 ? 'Commencer' : 'Continuer'}
-                                                </Link>
-                                                {/* détail programme */}
-                                                <Link
-                                                    href={`/programs/${encodeURIComponent(r.programSlug)}`}
-                                                    className="inline-flex items-center justify-center rounded-xl border px-3 py-1.5 text-sm hover:bg-muted"
-                                                >
-                                                    Détails
-                                                </Link>
+                                                    <div className="h-full bg-brand-600 transition-[width] duration-500" style={{ width: `${r.percent}%` }} />
+                                                </div>
+                                                <div className="mt-1 text-right text-xs text-muted-foreground">
+                                                    {r.unitsDone}/{r.unitsTotal} — {r.percent}%
+                                                </div>
+
+                                                <div className="mt-3 grid grid-cols-2 gap-2">
+                                                    <Link
+                                                        href={primaryHref}
+                                                        className={[
+                                                            'inline-flex items-center justify-center rounded-xl px-3 py-1.5 text-sm font-medium transition',
+                                                            r.percent === 100 || r.status === 'completed'
+                                                                ? 'border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                                                                : 'border border-brand-200 bg-brand-50 text-brand-800 hover:bg-brand-100',
+                                                        ].join(' ')}
+                                                    >
+                                                        {primaryLabel}
+                                                    </Link>
+
+                                                    <ProgramDetailButton
+                                                        slug={r.programSlug}
+                                                        returnTo="/member"
+                                                        trigger={
+                                                            <button className="inline-flex items-center justify-center rounded-xl border px-3 py-1.5 text-sm hover:bg-muted">
+                                                                Détails
+                                                            </button>
+                                                        }
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    </li>
-                                ))}
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         )}
                     </section>
@@ -262,8 +290,6 @@ export default async function MemberPage() {
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="rounded-2xl border border-border bg-card p-4">
                                 <div className="text-sm font-medium">Assiduité (30 jours)</div>
-                                {/* Le composant va fetch /api/me/streak (à créer plus tard si tu veux du réel).
-                   Pour l’instant, il affiche un mock interne si l’API n’existe pas. */}
                                 <div className="mt-2">
                                     <StreakHeatmapClient days={30} />
                                 </div>

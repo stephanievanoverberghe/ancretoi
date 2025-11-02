@@ -1,3 +1,4 @@
+// app/admin/programs/new/page.tsx
 import 'server-only';
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/authz';

@@ -1,5 +1,4 @@
 // src/app/api/admin/programs/[slug]/route.ts
-
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { z } from 'zod';
@@ -11,7 +10,7 @@ import Unit from '@/models/Unit';
 
 export const dynamic = 'force-dynamic';
 
-/* ---- Validation: identique au "create" ---- */
+/* ---- Validation ---- */
 const zUrl = z.string().url();
 const zBenefit = z.object({ icon: z.string().optional(), title: z.string().min(1), text: z.string().min(1) });
 const zDay = z.object({
@@ -19,6 +18,7 @@ const zDay = z.object({
     videoUrl: zUrl,
     mantra: z.string().max(120).optional(),
     description: z.string().optional(),
+    status: z.enum(['draft', 'published']).optional(),
 });
 const zPayload = z.object({
     slug: z.string().min(1),
@@ -73,11 +73,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
     const raw = await req.json();
     const body = zPayload.parse(raw);
 
-    // ⬇️
     const { slug } = await params;
     const paramSlug = slugify(slug);
     const programSlug = slugify(body.slug);
-
     if (paramSlug !== programSlug) {
         return NextResponse.json({ error: 'slug_mismatch' }, { status: 400 });
     }
@@ -88,7 +86,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
         let unitsTotal = 0;
 
         await session.withTransaction(async () => {
-            // 1) ProgramModel (catalogue)
+            // 1) Program
             await ProgramModel.findOneAndUpdate(
                 { slug: programSlug },
                 {
@@ -103,7 +101,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
                 { new: true, upsert: true, session }
             );
 
-            // 2) ProgramPage (marketing)
+            // 2) ProgramPage
             const hero = body.marketing.hero;
             const durationBadge = body.marketing.durationLabel?.trim() || `${body.durationDays} jours • ${body.estMinutesPerDay} min/j`;
             const idealIfHighlight = body.marketing.idealIf?.trim() ? [{ icon: '✅', title: 'Idéal si…', text: body.marketing.idealIf.trim() }] : [];
@@ -171,7 +169,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
                     contentParagraphs: d.description ? [d.description] : [],
                     safetyNote: '',
                     journalSchema: { sliders: [], questions: [], checks: [] },
-                    status: 'draft',
+                    status: d.status ?? (body.status === 'published' ? 'published' : 'draft'),
                 })),
                 { session }
             );
@@ -187,12 +185,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
     }
 }
 
-// ✅ corrige la signature : params est un Promise
 export async function DELETE(req: Request, { params }: { params: Promise<{ slug: string }> }) {
     await requireAdmin();
     await dbConnect();
 
-    // ✅ await params avant d'utiliser .slug
     const { slug } = await params;
     const programSlug = slugify(slug);
 
@@ -200,13 +196,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ slug:
     const dryRun = ['1', 'true', 'yes'].includes((url.searchParams.get('dryRun') || '').toLowerCase());
 
     const [pageCount, unitCount] = await Promise.all([ProgramPage.countDocuments({ programSlug }), Unit.countDocuments({ programSlug })]);
-    const statesCount = 0; // branche ton vrai modèle ici si tu en as un
+    const statesCount = 0;
 
     if (dryRun) {
-        return NextResponse.json({
-            ok: true,
-            deleted: { programPage: pageCount, units: unitCount, states: statesCount },
-        });
+        return NextResponse.json({ ok: true, deleted: { programPage: pageCount, units: unitCount, states: statesCount } });
     }
 
     const session = await mongoose.startSession();
@@ -215,13 +208,9 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ slug:
             await ProgramPage.deleteOne({ programSlug }, { session });
             await Unit.deleteMany({ programSlug }, { session });
             await ProgramModel.deleteOne({ slug: programSlug }, { session });
-            // await ProgramState.deleteMany({ programSlug }, { session }); // si tu as un modèle
         });
 
-        return NextResponse.json({
-            ok: true,
-            deleted: { programPage: pageCount, units: unitCount, states: statesCount },
-        });
+        return NextResponse.json({ ok: true, deleted: { programPage: pageCount, units: unitCount, states: statesCount } });
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : 'delete_failed';
         return NextResponse.json({ error: message }, { status: 400 });

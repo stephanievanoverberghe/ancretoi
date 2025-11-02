@@ -8,14 +8,15 @@ import { requireUser } from '@/lib/authz';
 import { UserModel } from '@/db/schemas';
 import Enrollment from '@/models/Enrollment';
 import Unit from '@/models/Unit';
+import DayState from '@/models/DayState';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 
 type RouteParams = { slug: string };
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-// Helper: turn "ancre-toi" → "Ancre Toi"
 function humanizeSlug(slug: string): string {
     return slug
         .split('-')
@@ -23,6 +24,8 @@ function humanizeSlug(slug: string): string {
         .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
         .join(' ');
 }
+
+type EnrStatus = 'active' | 'completed' | 'paused';
 
 export default async function CourseLayout({ children, params }: { children: ReactNode; params: Promise<RouteParams> }) {
     await dbConnect();
@@ -33,23 +36,32 @@ export default async function CourseLayout({ children, params }: { children: Rea
     const userDoc = await UserModel.findOne({ email: user.email, deletedAt: null }).select({ _id: 1, name: 1 }).lean<{ _id: unknown; name?: string | null } | null>();
     const userId = String(userDoc?._id ?? '');
 
-    // 📌 Jours publiés uniquement
-    const [enr, units] = await Promise.all([
+    const [enr, units, states] = await Promise.all([
         Enrollment.findOne({ userId, programSlug: safeSlug })
-            .select({ status: 1, currentDay: 1 })
-            .lean<{ status: 'active' | 'completed' | 'paused'; currentDay?: number | null } | null>(),
+            .select({ status: 1, currentDay: 1, startedAt: 1, introEngaged: 1 })
+            .lean<{ status: EnrStatus; currentDay?: number | null; startedAt?: Date | null; introEngaged?: boolean | null } | null>(),
         Unit.find({ programSlug: safeSlug, unitType: 'day', status: 'published' })
             .select({ unitIndex: 1, title: 1, mantra: 1 })
             .sort({ unitIndex: 1 })
             .lean<{ unitIndex: number; title?: string | null; mantra?: string | null }[]>(),
+        DayState.find({ userId: userDoc?._id, programSlug: safeSlug })
+            .select({ day: 1, practiced: 1, completed: 1 })
+            .lean<{ day: number; practiced?: boolean; completed?: boolean }[]>(),
     ]);
 
     const total = units.length;
-    const currentDay = Math.max(1, Math.min(total || 1, enr?.currentDay ?? 1));
+    const lastPublished = total > 0 ? units[total - 1].unitIndex : 0;
+
+    const currentDay = Math.max(1, Math.min(lastPublished || 1, enr?.currentDay ?? 1));
+    const isCompleted = enr?.status === 'completed';
+    const started = !!enr?.introEngaged; // ✅ maintenant, on suit le check persistant
     const pad = (n: number) => String(n).padStart(2, '0');
 
-    const sequential = true;
-    const isCompleted = enr?.status === 'completed';
+    const completedSet = new Set<number>();
+    for (const s of states) if (s.completed) completedSet.add(s.day);
+
+    const doneCount = isCompleted ? total : completedSet.size;
+    const percent = total ? Math.round((doneCount / total) * 100) : 0;
 
     const items: Array<{
         key: string;
@@ -63,16 +75,26 @@ export default async function CourseLayout({ children, params }: { children: Rea
             key: 'intro',
             label: 'Introduction',
             href: `/learn/${safeSlug}/intro`,
-            state: enr?.currentDay ? 'done' : 'active',
+            state: started ? 'done' : 'active',
             sub: undefined,
             locked: false,
         },
         ...units.map((u) => {
             const day = u.unitIndex;
             let state: 'done' | 'active' | 'locked' = 'locked';
-            if (isCompleted || day < currentDay) state = 'done';
-            else if (day === currentDay) state = 'active';
-            const locked = sequential && state === 'locked';
+
+            // 🔒 Tant que l’intro n’est pas engagée (check non coché), tous les jours sont verrouillés (y compris J1)
+            if (!started) {
+                state = 'locked';
+            } else if (completedSet.has(day)) {
+                state = 'done';
+            } else if (!isCompleted && day === currentDay) {
+                state = 'active';
+            } else {
+                state = 'locked';
+            }
+
+            const locked = state === 'locked';
             return {
                 key: `day-${day}`,
                 label: `Jour ${pad(day)} — ${u.title ?? ''}`,
@@ -92,27 +114,16 @@ export default async function CourseLayout({ children, params }: { children: Rea
         },
     ];
 
-    const doneCount = isCompleted ? total : Math.max(0, currentDay - 1);
-    const percent = total ? Math.round((doneCount / total) * 100) : 0;
-
     const displayName = user.name ?? userDoc?.name ?? '';
     const firstName = displayName ? displayName.split(' ')[0] : 'toi';
-
-    // ✅ Program name (humanized slug). If you later have a Program model with a title, swap here.
     const programName = humanizeSlug(safeSlug);
+    const continueHref = started ? `/learn/${safeSlug}/day/${pad(currentDay)}` : `/learn/${safeSlug}/intro`;
 
     return (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[300px_1fr]">
-            {/* ASIDE (desktop) */}
             <aside className="sticky top-6 hidden self-start md:block">
                 <div className="overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-sm backdrop-blur">
-                    {/* Fil d’Ariane */}
-                    <Breadcrumbs
-                        items={[
-                            { label: 'Mon espace', href: '/member' },
-                            { label: programName }, // ⬅️ string, not object
-                        ]}
-                    />
+                    <Breadcrumbs items={[{ label: 'Mon espace', href: '/member' }, { label: programName }]} />
 
                     <div className="mb-4">
                         <div className="text-xs uppercase tracking-wide text-muted-foreground">{programName}</div>
@@ -123,14 +134,14 @@ export default async function CourseLayout({ children, params }: { children: Rea
                                 <div className="h-full bg-brand-600 transition-[width] duration-500" style={{ width: `${percent}%` }} />
                             </div>
                             <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                                <span>{isCompleted ? `Terminé (${total})` : `Jour ${Math.min(currentDay, total || 1)}/${total || 1}`}</span>
+                                <span>{isCompleted ? `Terminé (${total})` : `${doneCount}/${total || 1} complété(s)`}</span>
                                 <span>{percent}%</span>
                             </div>
                         </div>
 
                         <div className="mt-3 grid grid-cols-2 gap-2">
                             <Link
-                                href="/continue"
+                                href={continueHref}
                                 className="inline-flex items-center justify-center rounded-xl bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
                             >
                                 Continuer
@@ -146,7 +157,6 @@ export default async function CourseLayout({ children, params }: { children: Rea
 
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
 
-                    {/* Étapes : jours publiés + conclusion */}
                     <ol className="mt-4 space-y-1">
                         {items.map((it) => {
                             const tone = it.locked
@@ -197,7 +207,6 @@ export default async function CourseLayout({ children, params }: { children: Rea
                 </div>
             </aside>
 
-            {/* CONTENU (intro / day / conclusion) */}
             <main>{children}</main>
         </div>
     );

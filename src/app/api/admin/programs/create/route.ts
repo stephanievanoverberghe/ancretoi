@@ -1,3 +1,4 @@
+// src/app/api/admin/programs/create/route.ts
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { z } from 'zod';
@@ -23,6 +24,7 @@ const zDay = z.object({
     videoUrl: zUrl, // requis
     mantra: z.string().max(120).optional(),
     description: z.string().optional(),
+    status: z.enum(['draft', 'published']).optional(),
 });
 
 const zPayload = z.object({
@@ -40,21 +42,12 @@ const zPayload = z.object({
             ctaHref: z.string().optional(),
             heroImage: z.string().optional(),
         }),
-        // nouveaux champs
         objective: z.string().optional(),
         durationLabel: z.string().optional(),
         idealIf: z.string().optional(),
-
         benefits: z.array(zBenefit).max(3).default([]),
         faq: z.array(z.object({ q: z.string().min(1), a: z.string().min(1) })).optional(),
-        seo: z
-            .object({
-                title: z.string().optional(),
-                description: z.string().optional(),
-                image: z.string().optional(),
-            })
-            .partial()
-            .optional(),
+        seo: z.object({ title: z.string().optional(), description: z.string().optional(), image: z.string().optional() }).partial().optional(),
     }),
     days: z.array(zDay).min(1),
 });
@@ -83,19 +76,23 @@ export async function POST(req: Request) {
             /* 1) Catalogue Program */
             await ProgramModel.findOneAndUpdate(
                 { slug: programSlug },
-                { $setOnInsert: { slug: programSlug }, $set: { title: body.title, 'meta.level': body.level, status: body.status, 'stats.unitsCount': body.days.length } },
+                {
+                    $setOnInsert: { slug: programSlug },
+                    $set: {
+                        title: body.title,
+                        'meta.level': body.level,
+                        status: body.status,
+                        'stats.unitsCount': body.days.length,
+                    },
+                },
                 { new: true, upsert: true, session }
             );
 
-            /* 2) Page marketing ProgramPage */
+            /* 2) Page marketing */
             const hero = body.marketing.hero;
-
-            const durationBadge = body.marketing.durationLabel?.trim() ? body.marketing.durationLabel.trim() : `${body.durationDays} jours • ${body.estMinutesPerDay} min/j`;
-
-            const idealIfHighlight = body.marketing.idealIf?.trim() ? [{ icon: '✅', title: 'Idéal si…', text: body.marketing.idealIf.trim() }] : [];
-
-            // ✅ un seul objet image réutilisé pour hero ET card
             const heroImgObj = hero.heroImage && hero.heroImage.trim() ? { url: hero.heroImage.trim(), alt: '' } : null;
+            const durationBadge = body.marketing.durationLabel?.trim() || `${body.durationDays} jours • ${body.estMinutesPerDay} min/j`;
+            const idealIfHighlight = body.marketing.idealIf?.trim() ? [{ icon: '✅', title: 'Idéal si…', text: body.marketing.idealIf.trim() }] : [];
 
             await ProgramPage.findOneAndUpdate(
                 { programSlug },
@@ -109,11 +106,10 @@ export async function POST(req: Request) {
                             subtitle: hero.subtitle || '',
                             ctaLabel: hero.ctaHref ? 'Commencer' : '',
                             ctaHref: hero.ctaHref || '',
-                            heroImage: heroImgObj, // ✅ ici
+                            heroImage: heroImgObj,
                         },
-                        // Card = objectif + durée lisible + badges + image du hero
                         card: {
-                            image: heroImgObj, // ✅ et ici (au lieu de null)
+                            image: heroImgObj,
                             tagline: body.marketing.durationLabel || durationBadge,
                             summary: body.marketing.objective || '',
                             accentColor: '',
@@ -146,42 +142,26 @@ export async function POST(req: Request) {
             /* 3) Units J1→Jn */
             await Unit.deleteMany({ programSlug }, { session });
 
-            function extractAssetId(url?: string) {
-                if (!url) return '';
-                try {
-                    const u = new URL(url);
-                    if (u.hostname.includes('youtube.com')) return u.searchParams.get('v') ?? '';
-                    if (u.hostname === 'youtu.be') return u.pathname.slice(1);
-                    if (u.hostname.includes('vimeo.com')) return u.pathname.split('/').filter(Boolean).pop() ?? '';
-                    return '';
-                } catch {
-                    return '';
-                }
-            }
-
             const created = await Unit.insertMany(
                 body.days.map((d, i) => ({
                     programSlug,
                     unitType: 'day',
                     unitIndex: i + 1,
                     title: d.title,
-                    durationMin: body.estMinutesPerDay ?? 25,
+                    durationMin: body.estMinutesPerDay,
                     mantra: d.mantra ?? '',
-                    videoAssetId: extractAssetId(d.videoUrl),
                     videoUrl: d.videoUrl,
-                    audioAssetId: '',
                     contentParagraphs: d.description ? [d.description] : [],
-                    safetyNote: '',
-                    journalSchema: { sliders: [], questions: [], checks: [] },
-                    status: 'draft',
+                    status: d.status ?? (body.status === 'published' ? 'published' : 'draft'),
                 })),
                 { session }
             );
+
             unitIds = created.map((u) => u._id);
         });
 
         return NextResponse.json({ ok: true, programSlug, units: unitIds.length });
-    } catch (e: unknown) {
+    } catch (e) {
         const message = e instanceof Error ? e.message : 'create_failed';
         return NextResponse.json({ error: message }, { status: 400 });
     } finally {

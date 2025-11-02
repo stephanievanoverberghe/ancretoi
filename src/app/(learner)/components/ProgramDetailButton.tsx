@@ -1,12 +1,14 @@
 // src/components/program/ProgramDetailButton.tsx
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, isValidElement, cloneElement } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import FullscreenModal from '@/components/ui/FullscreenModal';
+
+type Clickable = { onClick?: React.MouseEventHandler };
 
 type Summary = {
     ok: true;
@@ -37,10 +39,17 @@ const isDataUrl = (u: string | null) => !!u && u.startsWith('data:');
 
 export default function ProgramDetailButton({
     slug,
-    children, // render-prop: (open) => ReactNode
+    label = 'Détails',
+    trigger,
+    className,
+    returnTo, // ⟵ NOUVELLE PROP
 }: {
     slug: string;
-    children?: (open: () => void) => React.ReactNode;
+    label?: string;
+    trigger?: React.ReactElement<Clickable>;
+    className?: string;
+    /** Chemin à rejoindre à la fermeture (facultatif). Si absent : on ne navigue pas, on ferme juste. */
+    returnTo?: string;
 }) {
     const [open, setOpen] = useState(false);
     const router = useRouter();
@@ -100,34 +109,43 @@ export default function ProgramDetailButton({
 
     const normalizedCover = normalizeSrc(summary?.coverUrl ?? null);
 
-    const defaultTrigger = (
+    const openModal = () => {
+        setOpen(true);
+        setTab('overview');
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        if (returnTo) router.push(returnTo); // ⟵ on ne navigue que si demandé
+    };
+
+    let triggerNode: React.ReactNode = (
         <button
             type="button"
-            onClick={() => {
-                setOpen(true);
-                setTab('overview');
-            }}
-            className="inline-flex items-center justify-center rounded-xl cursor-pointer border border-border px-3 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted"
+            onClick={openModal}
+            className={
+                className ??
+                'inline-flex items-center justify-center rounded-xl cursor-pointer border border-border px-3 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted'
+            }
         >
-            Détails
+            {label}
         </button>
     );
 
+    if (trigger && isValidElement(trigger)) {
+        triggerNode = cloneElement<Clickable>(trigger, { onClick: openModal });
+    }
+
     return (
         <>
-            {children
-                ? children(() => {
-                      setOpen(true);
-                      setTab('overview');
-                  })
-                : defaultTrigger}
+            {triggerNode}
 
             <FullscreenModal
                 open={open}
-                onClose={() => setOpen(false)}
+                onClose={handleClose}
                 title={summary ? summary.title : 'Détails du programme'}
-                closeOnBackdrop // clic dehors ok
-                closeOnEsc // ESC ok
+                closeOnBackdrop
+                closeOnEsc
                 footer={
                     summary && cta ? (
                         <div className="flex flex-wrap items-center gap-2">
@@ -160,13 +178,10 @@ export default function ProgramDetailButton({
                     ) : null
                 }
             >
-                {/* Croix qui ferme + retourne à /member si besoin */}
+                {/* Close (respecte returnTo) */}
                 <button
-                    onClick={() => {
-                        setOpen(false);
-                        router.push('/member');
-                    }}
-                    aria-label="Fermer et revenir"
+                    onClick={handleClose}
+                    aria-label="Fermer"
                     className="absolute right-4 top-4 rounded-full border border-border bg-white/80 p-1.5 shadow-sm transition hover:bg-white cursor-pointer"
                 >
                     <X className="h-4 w-4 text-muted-foreground" />
@@ -230,7 +245,7 @@ export default function ProgramDetailButton({
                 {/* Tabs */}
                 <div className="mb-3 flex gap-1 rounded-lg border border-border bg-background p-1 text-sm">
                     <button
-                        className={`flex-1 rounded-md px-3 py-1. cursor-pointer ${tab === 'overview' ? 'bg-white font-medium ring-1 ring-border' : 'hover:bg-white/60'}`}
+                        className={`flex-1 rounded-md px-3 py-1. ${tab === 'overview' ? 'bg-white font-medium ring-1 ring-border' : 'hover:bg-white/60'}`}
                         onClick={() => setTab('overview')}
                         type="button"
                     >
