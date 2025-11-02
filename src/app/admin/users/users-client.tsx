@@ -20,18 +20,35 @@ export type UiUser = {
 };
 
 export type UiEnrollment = {
-    _id: string;
-    programId: string;
+    // champs réellement renvoyés par actions.ts
     programSlug: string;
     programTitle: string;
+    coverUrl: string | null;
+    level: 'Basique' | 'Cible' | 'Premium' | null;
+    status: 'active' | 'completed' | 'paused';
     startedAtIso: string | null;
-    finishedAtIso: string | null;
-    status: 'active' | 'completed' | 'cancelled' | 'paused';
-    progressPct?: number;
+    updatedAtIso: string | null;
+    progressPct: number | null;
+    currentDay: number | null;
+    unitsCount: number | null;
+
+    // optionnels (compat future / anciens imports)
+    _id?: string;
+    programId?: string;
+    finishedAtIso?: string | null;
 };
 
 export type UiUserDetail = UiUser & {
     enrollments: UiEnrollment[];
+    // si tu affiches d’autres champs (theme, marketing…) tu peux les typer ici aussi:
+    theme?: 'system' | 'light' | 'dark';
+    marketing?: boolean;
+    productUpdates?: boolean;
+    passwordChangedAtIso?: string | null;
+    limits?: {
+        maxConcurrentPrograms: number | null;
+        features: string[];
+    };
 };
 
 type RoleFilter = 'all' | 'admin' | 'user';

@@ -83,7 +83,8 @@ export async function setRole(formData: FormData) {
 
 // ----- getUserDetail -----
 export async function getUserDetail(formData: FormData): Promise<UiUserDetail> {
-    await requireAdmin();
+    // Récupère aussi "me" pour connaître son email
+    const me = await requireAdmin(); // <<--- AJOUT
     await dbConnect();
 
     const userIdRaw = String(formData.get('userId') || '');
@@ -156,6 +157,9 @@ export async function getUserDetail(formData: FormData): Promise<UiUserDetail> {
             maxConcurrentPrograms: u.limits?.maxConcurrentPrograms ?? null,
             features: u.limits?.features ?? [],
         },
+
+        // <<--- AJOUT : satisfait UiUserDetail (hérite de UiUser)
+        isSelf: u.email === (me as { email: string }).email,
     };
 }
 
