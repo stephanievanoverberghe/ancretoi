@@ -19,6 +19,21 @@ export type UiUser = {
     isSuspended: boolean;
 };
 
+export type UiEnrollment = {
+    _id: string;
+    programId: string;
+    programSlug: string;
+    programTitle: string;
+    startedAtIso: string | null;
+    finishedAtIso: string | null;
+    status: 'active' | 'completed' | 'cancelled' | 'paused';
+    progressPct?: number;
+};
+
+export type UiUserDetail = UiUser & {
+    enrollments: UiEnrollment[];
+};
+
 type RoleFilter = 'all' | 'admin' | 'user';
 type StatusFilter = 'all' | 'active' | 'archived' | 'suspended';
 type SortKey = 'recent' | 'alpha';
