@@ -59,8 +59,8 @@ export default async function InspirationsListPage() {
         <div className="mx-auto max-w-7xl space-y-6">
             {/* ===== Header style "Utilisateurs" ===== */}
             <div className="rounded-2xl border border-brand-200/60 bg-gradient-to-br from-brand-600/10 via-brand-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
-                <div className="text-xs text-muted-foreground">
-                    <Link href="/admin" className="hover:underline">
+                <div className="hidden md:block text-xs text-muted-foreground">
+                    <Link href="/admin" className="hover:underline cursor-pointer">
                         Admin
                     </Link>
                     <span className="px-1.5">›</span>

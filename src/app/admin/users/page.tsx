@@ -1,20 +1,9 @@
+// src/app/admin/users/page.tsx
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
 import { UserModel } from '@/db/schemas';
 import AdminUsersClient, { type UiUser } from './users-client';
-
-// ⬇️ importe TOUTES les actions directement (le fichier actions.ts commence par "use server")
-import {
-    setRole,
-    getUserDetail, // ⬅️ PAS de rename/wrapper
-    archiveUser,
-    restoreUser,
-    suspendUser,
-    unsuspendUser,
-    hardDeleteUser,
-    setUserLimits,
-} from './actions';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -79,7 +68,7 @@ export default async function AdminUsersPage() {
                     <span className="text-foreground">Utilisateurs</span>
                 </div>
                 <h1 className="mt-1 text-xl md:text-2xl font-semibold tracking-tight">Utilisateurs</h1>
-                <p className="text-sm text-muted-foreground mt-1">Recherche, filtres, modale détaillée, actions admin.</p>
+                <p className="text-sm text-muted-foreground mt-1">Recherche, filtres, cartes et accès aux pages détaillées.</p>
 
                 {/* Stats */}
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
@@ -103,17 +92,7 @@ export default async function AdminUsersPage() {
             </div>
 
             {/* Grid/list (Client) */}
-            <AdminUsersClient
-                users={users}
-                setRoleAction={setRole}
-                getUserDetailAction={getUserDetail}
-                archiveUserAction={archiveUser}
-                restoreUserAction={restoreUser}
-                suspendUserAction={suspendUser}
-                unsuspendUserAction={unsuspendUser}
-                hardDeleteUserAction={hardDeleteUser}
-                setUserLimitsAction={setUserLimits}
-            />
+            <AdminUsersClient users={users} />
         </div>
     );
 }
