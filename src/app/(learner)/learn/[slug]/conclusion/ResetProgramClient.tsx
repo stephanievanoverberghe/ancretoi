@@ -12,7 +12,6 @@ export default function ResetProgramClient({ slug }: { slug: string }) {
     const [busy, setBusy] = useState(false);
     const [err, setErr] = useState<string | null>(null);
     const [val, setVal] = useState('');
-
     const canConfirm = val.trim().toUpperCase() === 'RECOMMENCER';
     const confirmBtnRef = useRef<HTMLButtonElement | null>(null);
 
@@ -25,23 +24,21 @@ export default function ResetProgramClient({ slug }: { slug: string }) {
             setBusy(true);
             setErr(null);
 
-            // wipe complet (DELETE all DayState pour ce slug)
+            // Wipe complet pour CE slug uniquement
             await fetch(`/api/learn/state?slug=${encodeURIComponent(slug)}&all=1`, { method: 'DELETE' });
 
-            // retour focus J1
+            // Retour focus J1 pour CE slug
             await fetch('/api/learn/progress', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({ slug, action: 'setDay', day: 1 }),
             });
 
-            // redirection douce
             startTransition(() => {
                 router.replace(`/learn/${slug}/intro`);
                 router.refresh();
             });
 
-            // reset modale
             setOpen(false);
             setStep2(false);
             setVal('');
@@ -79,13 +76,9 @@ export default function ResetProgramClient({ slug }: { slug: string }) {
                         >
                             Annuler
                         </button>
-
                         <button
                             ref={confirmBtnRef}
-                            onClick={() => {
-                                if (!step2) setStep2(true);
-                                else if (canConfirm) onConfirm();
-                            }}
+                            onClick={() => (!step2 ? setStep2(true) : canConfirm && onConfirm())}
                             disabled={busy || (step2 && !canConfirm)}
                             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
                         >
@@ -94,14 +87,13 @@ export default function ResetProgramClient({ slug }: { slug: string }) {
                     </div>
                 }
             >
-                {/* ❌ Croix pour fermer */}
                 <button onClick={handleCancel} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition" aria-label="Fermer la modale">
                     <X className="h-5 w-5" />
                 </button>
 
                 <div className="space-y-3">
                     <p className="text-sm text-muted-foreground">
-                        Cette action est <span className="font-medium text-foreground">définitive</span> et supprime toutes les données de ce programme :
+                        Cette action est <span className="font-medium text-foreground">définitive</span> et supprime toutes les données de ce programme uniquement.
                     </p>
                     <ul className="list-disc pl-5 text-sm text-muted-foreground">
                         <li>tes notes et réponses</li>

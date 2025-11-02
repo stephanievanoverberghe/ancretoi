@@ -12,11 +12,12 @@ import ProgramPage from '@/models/ProgramPage';
 import ResetProgramClient from './ResetProgramClient';
 
 type RouteParams = { slug: string };
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-// Helper: "ancre-toi" → "Ancre Toi"
+// "ancre-toi" → "Ancre Toi"
 function humanize(slug: string) {
     return slug
         .split('-')
@@ -25,22 +26,8 @@ function humanize(slug: string) {
         .join(' ');
 }
 
-// ——— Card locale, sans “Bientôt”, sans prix ———
-function SimpleProgramCard({
-    slug,
-    title,
-    durationDays,
-    cover,
-    alt,
-    position = 0,
-}: {
-    slug: string;
-    title: string;
-    durationDays: number;
-    cover: string;
-    alt?: string | null;
-    position?: number;
-}) {
+function SimpleProgramCard(props: { slug: string; title: string; durationDays: number; cover: string; alt?: string | null; position?: number }) {
+    const { slug, title, durationDays, cover, alt, position = 0 } = props;
     return (
         <article>
             <Link href={`/programs/${slug}`} className="group block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60">
@@ -49,20 +36,14 @@ function SimpleProgramCard({
                         src={cover}
                         alt={alt ?? ''}
                         fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
+                        sizes="(max-width: 640px) 100vw, (max-width:1024px) 50vw, 320px"
                         className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
                         priority={position < 3}
                     />
-
-                    {/* Overlay dégradé bas */}
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-black/60 via-black/25 to-transparent" />
-
-                    {/* Badge durée */}
                     <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-gold-50/95 px-2.5 py-1 text-xs font-medium text-gold-800 ring-1 ring-gold-200 shadow-sm">
                         {durationDays} jours
                     </span>
-
-                    {/* Titre + flèche */}
                     <div className="absolute inset-x-3 bottom-3 flex items-center gap-3">
                         <h3 className="flex-1 truncate font-serif text-white text-[clamp(1rem,2.6vw,1.1rem)] leading-tight drop-shadow">{title}</h3>
                         <span
@@ -86,26 +67,27 @@ export default async function ConclusionPage({ params }: { params: Promise<Route
     const safeSlug = slug.toLowerCase();
 
     // Auth
-    const user = await requireUser(`/learn/${safeSlug}/conclusion`);
-    const userDoc = await UserModel.findOne({ email: user.email, deletedAt: null }).select({ _id: 1, name: 1 }).lean<{ _id: unknown; name?: string | null } | null>();
-    if (!userDoc?._id) redirect(`/learn/${safeSlug}`);
+    const session = await requireUser(`/learn/${safeSlug}/conclusion`);
+    const me = await UserModel.findOne({ email: session.email, deletedAt: null }).select({ _id: 1, name: 1 }).lean<{ _id: unknown; name?: string | null } | null>();
+    if (!me?._id) redirect(`/learn/${safeSlug}`);
 
-    const userId = String(userDoc._id);
+    const userId = String(me._id);
 
-    // Enrollment + progression
+    // Progression uniquement pour CE programme
     const enr = await Enrollment.findOne({ userId, programSlug: safeSlug })
         .select({ status: 1, currentDay: 1, startedAt: 1, completedAt: 1 })
         .lean<{ status: 'active' | 'completed' | 'paused'; currentDay?: number | null; startedAt?: Date | null; completedAt?: Date | null } | null>();
 
+    // Nombre de jours PUBLIÉS pour CE programme
     const totalPublished = await Unit.countDocuments({ programSlug: safeSlug, unitType: 'day', status: 'published' });
 
-    // Si pas terminé → renvoie vers la dernière leçon atteignable
+    // ⚠️ Accès strict : la conclusion n’est accessible que si le statut de CE programme est "completed"
     if (!enr || enr.status !== 'completed') {
         const current = Math.max(1, Math.min(totalPublished || 1, enr?.currentDay ?? 1));
         redirect(`/learn/${safeSlug}/day/${String(current).padStart(2, '0')}`);
     }
 
-    // Meta pour “stats”
+    // Métadonnées du programme courant
     const page = await ProgramPage.findOne({ programSlug: safeSlug })
         .select({ hero: 1, meta: 1 })
         .lean<{ hero?: { title?: string | null } | null; meta?: { estMinutesPerDay?: number | null; durationDays?: number | null; level?: string | null } | null } | null>();
@@ -114,16 +96,9 @@ export default async function ConclusionPage({ params }: { params: Promise<Route
     const totalMinutes = totalPublished * minutesPerDay;
     const programName = humanize(safeSlug);
 
-    // ⚠️ Uniquement publiés — et on sélectionne l'image exactement comme sur /member
+    // Autres programmes publiés (≠ slug courant)
     const published = await ProgramPage.find({ status: 'published', programSlug: { $ne: safeSlug } })
-        .select({
-            programSlug: 1,
-            hero: 1,
-            // IMPORTANT : même structure que ta page /member
-            card: 1, // on attend card.image.url & card.image.alt
-            meta: 1,
-            status: 1,
-        })
+        .select({ programSlug: 1, hero: 1, card: 1, meta: 1, status: 1 })
         .limit(6)
         .lean<
             Array<{
@@ -135,32 +110,24 @@ export default async function ConclusionPage({ params }: { params: Promise<Route
             }>
         >();
 
-    // Fallback cover si jamais l'image est manquante
     const fallbackCover = '/images/prog-placeholder-4x3.jpg';
-
     const otherPrograms = published
-        .map((p) => {
-            const coverUrl = p.card?.image?.url?.trim() || fallbackCover;
-
-            return {
-                slug: p.programSlug,
-                title: (p.hero?.title ?? humanize(p.programSlug)).trim(),
-                durationDays: Math.max(1, p.meta?.durationDays ?? 1),
-                cover: coverUrl,
-                alt: p.card?.image?.alt ?? null,
-            };
-        })
-        // sécurité : on ne rend que ceux qui ont bien une cover (ou fallback)
+        .map((p) => ({
+            slug: p.programSlug,
+            title: (p.hero?.title ?? humanize(p.programSlug)).trim(),
+            durationDays: Math.max(1, p.meta?.durationDays ?? 1),
+            cover: p.card?.image?.url?.trim() || fallbackCover,
+            alt: p.card?.image?.alt ?? null,
+        }))
         .filter((p) => !!p.cover);
 
-    const displayName = user.name ?? userDoc?.name ?? '';
+    const displayName = session.name ?? me?.name ?? '';
     const firstName = displayName ? displayName.split(' ')[0] : '';
 
     return (
         <div className="mx-auto w-full max-w-5xl space-y-6 px-4 pb-16 sm:px-5">
-            {/* ===== Header style "formation" ===== */}
+            {/* ===== Header ===== */}
             <header className="rounded-2xl border border-brand-200/60 bg-gradient-to-br from-brand-600/10 via-brand-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
-                {/* Fil d’Ariane */}
                 <div className="text-xs text-muted-foreground">
                     <Link href="/member" className="hover:underline">
                         Mon espace
@@ -171,13 +138,11 @@ export default async function ConclusionPage({ params }: { params: Promise<Route
                     <span className="text-foreground">Conclusion</span>
                 </div>
 
-                {/* Titre & sous-titre */}
                 <h1 className="mt-1 text-xl md:text-2xl font-semibold tracking-tight">{page?.hero?.title?.trim() || 'Bilan & prochaines étapes'}</h1>
                 <p className="text-sm text-muted-foreground mt-1">
                     {firstName ? `${firstName}, ` : ''}tu as complété toutes les leçons publiées. Voici ta synthèse et comment poursuivre.
                 </p>
 
-                {/* Stats */}
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <Stat label="Leçons complétées" value={totalPublished} />
                     <Stat label="Temps total estimé" value={`${totalMinutes} min`} />
@@ -185,7 +150,6 @@ export default async function ConclusionPage({ params }: { params: Promise<Route
                     <Stat label="Niveau" value={page?.meta?.level ?? 'Basique'} />
                 </div>
 
-                {/* Actions (droite) */}
                 <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
                     <Link href={`/learn/${safeSlug}`} className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50">
                         Vue d’ensemble
@@ -204,7 +168,7 @@ export default async function ConclusionPage({ params }: { params: Promise<Route
                 <h2 className="text-lg font-semibold text-foreground">Ta synthèse</h2>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
                     <li>{totalPublished} leçon(s) complétée(s)</li>
-                    <li>Notes & journaux enregistrés — export disponibles (PDF/JSON)</li>
+                    <li>Notes & journaux enregistrés — exports disponibles (PDF/JSON)</li>
                 </ul>
 
                 <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -217,7 +181,7 @@ export default async function ConclusionPage({ params }: { params: Promise<Route
                 </div>
             </section>
 
-            {/* ===== Continuer le voyage : autres formations (publiées uniquement, en cards) ===== */}
+            {/* ===== Continuer avec d’autres formations ===== */}
             {otherPrograms.length > 0 && (
                 <section className="rounded-2xl border border-border bg-card p-5">
                     <div className="flex items-center justify-between">
@@ -226,7 +190,6 @@ export default async function ConclusionPage({ params }: { params: Promise<Route
                             Voir tout
                         </Link>
                     </div>
-
                     <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {otherPrograms.map((p, i) => (
                             <SimpleProgramCard key={p.slug} slug={p.slug} title={p.title} durationDays={p.durationDays} cover={p.cover} alt={p.alt} position={i} />
@@ -235,18 +198,15 @@ export default async function ConclusionPage({ params }: { params: Promise<Route
                 </section>
             )}
 
-            {/* ===== Réinitialisation (sécurisée) ===== */}
+            {/* ===== Réinitialiser CE programme uniquement ===== */}
             <section className="rounded-2xl border border-border bg-card p-5">
                 <h3 className="text-base font-semibold text-foreground">Recommencer ce programme</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Supprime tes réponses et remets ta progression au jour 1. Tu seras redirigé vers l’introduction.</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    Supprime tes réponses et remets la progression au jour 1 de <span className="font-medium">{programName}</span>.
+                </p>
 
                 <div className="mt-3 rounded-xl border border-border/80 bg-brand-50/80 p-4">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="text-sm text-muted-foreground">
-                            Action <span className="text-foreground font-medium">définitive</span> : notes, pratiques, validations seront supprimées.
-                        </div>
-                        <ResetProgramClient slug={safeSlug} />
-                    </div>
+                    <ResetProgramClient slug={safeSlug} />
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-2">

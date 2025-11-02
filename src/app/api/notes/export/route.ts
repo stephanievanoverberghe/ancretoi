@@ -1,3 +1,4 @@
+// src/app/api/notes/export/route.ts
 import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
 import { dbConnect } from '@/db/connect';
@@ -13,21 +14,11 @@ export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 export const runtime = 'nodejs';
 
-type SliderBlock = {
-    energie?: number;
-    focus?: number;
-    paix?: number;
-    estime?: number;
-};
-
 type DayStateLean = {
     programSlug: string;
     day: number;
     data?: Record<string, string>;
-    sliders?: SliderBlock;
-    checkout?: SliderBlock;
     practiced?: boolean;
-    mantra3x?: boolean;
     completed?: boolean;
     updatedAt: Date;
 };
@@ -50,6 +41,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const format = (searchParams.get('format') ?? 'json').toLowerCase(); // json | pdf
     const program = searchParams.get('program') ?? undefined;
+    const q = searchParams.get('q')?.trim() || '';
 
     const states = await DayState.find({
         userId: me._id,
@@ -59,28 +51,25 @@ export async function GET(req: NextRequest) {
             programSlug: 1,
             day: 1,
             data: 1,
-            sliders: 1,
-            checkout: 1,
             practiced: 1,
-            mantra3x: 1,
             completed: 1,
             updatedAt: 1,
         })
         .sort({ programSlug: 1, day: 1 })
         .lean<DayStateLean[]>();
 
+    const filtered = q ? states.filter((s) => Object.values(s.data ?? {}).some((v) => v?.toLowerCase().includes(q.toLowerCase()))) : states;
+
     if (format === 'json') {
         const payload = {
             programSlug: program ?? 'all',
             userId: String(me._id),
-            days: states.map((s) => ({
+            q: q || undefined,
+            days: filtered.map((s) => ({
                 programSlug: s.programSlug,
                 day: s.day,
                 data: s.data ?? {},
-                sliders: s.sliders ?? {},
-                checkout: s.checkout ?? {},
                 practiced: Boolean(s.practiced),
-                mantra3x: Boolean(s.mantra3x),
                 completed: Boolean(s.completed),
                 updatedAt: s.updatedAt,
             })),
@@ -96,7 +85,7 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    // -------- PDF (pdf-lib) --------
+    // -------- PDF --------
     const pdf = await PDFDocument.create();
     const pageSize: [number, number] = [595.28, 841.89]; // A4 portrait
     const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -122,37 +111,24 @@ export async function GET(req: NextRequest) {
         }
     };
 
-    const title = `Carnet — ${program ?? 'tous les programmes'} — ${me.email}`;
+    const title = `Carnet — ${program ?? 'tous les programmes'} — ${me.email}${q ? ` — filtre: ${q}` : ''}`;
     draw(title, { bold: true, size: 14 });
-    y -= 4;
-
-    const avg = (key: keyof SliderBlock, field: 'sliders' | 'checkout') => {
-        const vals: number[] = [];
-        for (const s of states) {
-            const v = s[field]?.[key];
-            if (typeof v === 'number') vals.push(v);
-        }
-        if (vals.length === 0) return '—';
-        const m = vals.reduce((a, b) => a + b, 0) / vals.length;
-        return m.toFixed(1);
-    };
-
-    draw(`Moyennes (avant → après)`, { bold: true });
-    draw(`Énergie : ${avg('energie', 'sliders')} → ${avg('energie', 'checkout')}`);
-    draw(`Focus   : ${avg('focus', 'sliders')} → ${avg('focus', 'checkout')}`);
-    draw(`Paix    : ${avg('paix', 'sliders')} → ${avg('paix', 'checkout')}`);
-    draw(`Estime  : ${avg('estime', 'sliders')} → ${avg('estime', 'checkout')}`);
     y -= 6;
 
-    for (const s of states) {
+    for (const s of filtered) {
         ensureSpace(120);
         draw(`${s.programSlug} — Jour ${s.day}${s.completed ? ' ✅' : ''}`, { bold: true });
 
-        const dataEntries = Object.entries(s.data ?? {}) as Array<[string, string]>;
-        if (dataEntries.length === 0) {
+        const flags: string[] = [];
+        if (s.practiced) flags.push('pratique');
+        if (s.completed) flags.push('terminé');
+        draw(flags.length ? `Statut: ${flags.join(', ')}` : 'Statut: —');
+
+        const entries = Object.entries(s.data ?? {});
+        if (entries.length === 0) {
             draw('• (aucune réponse texte)');
         } else {
-            for (const [k, v] of dataEntries) {
+            for (const [k, v] of entries) {
                 const lines = wrap(`${k}: ${v}`, 90);
                 for (const line of lines) {
                     ensureSpace(60);
@@ -161,10 +137,7 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        const before = `Avant — É:${s.sliders?.energie ?? '—'} F:${s.sliders?.focus ?? '—'} P:${s.sliders?.paix ?? '—'} E:${s.sliders?.estime ?? '—'}`;
-        const after = `Après — É:${s.checkout?.energie ?? '—'} F:${s.checkout?.focus ?? '—'} P:${s.checkout?.paix ?? '—'} E:${s.checkout?.estime ?? '—'}`;
-        draw(before);
-        draw(after);
+        draw(`Dernière mise à jour: ${new Date(s.updatedAt).toLocaleString('fr-FR')}`);
         y -= 6;
     }
 

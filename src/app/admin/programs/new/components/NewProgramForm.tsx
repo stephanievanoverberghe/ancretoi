@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useForm, useFieldArray, type SubmitHandler } from 'react-hook-form';
-import { ChevronDown, GripVertical, Copy, Trash2, MoveUp, MoveDown, Plus } from 'lucide-react';
+import { ChevronDown, GripVertical, Copy, Trash2, MoveUp, MoveDown, Plus, Film } from 'lucide-react';
 
 /* ========= Types ========= */
 type Level = 'Basique' | 'Cible' | 'Premium';
@@ -108,6 +108,11 @@ function Button(p: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: '
 }
 const Card = ({ children }: { children: React.ReactNode }) => <section className="rounded-2xl border border-brand-200 bg-white p-4 md:p-5 shadow-sm">{children}</section>;
 
+/** Petit badge neutre */
+const Badge = ({ children }: { children: React.ReactNode }) => (
+    <span className="inline-flex items-center rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700">{children}</span>
+);
+
 /* ========= Slug & thumbs ========= */
 function slugify(s: string) {
     return (s || '')
@@ -210,12 +215,15 @@ export default function NewProgramForm() {
     const [toast, setToast] = useState<string | null>(null);
     const [tab, setTab] = useState<TabKey>('identite');
 
-    const { register, control, handleSubmit, watch, formState } = useForm<NewProgramFormShape>({
+    const { register, control, handleSubmit, watch, formState, setValue } = useForm<NewProgramFormShape>({
         defaultValues: DEFAULT,
         mode: 'onChange',
     });
 
+    /** champs répétés */
     const days = useFieldArray({ control, name: 'days' });
+    const benefits = useFieldArray({ control, name: 'marketing.benefits' });
+    const faq = useFieldArray({ control, name: 'marketing.faq' });
 
     const all = watch();
     const completion = useMemo(() => {
@@ -225,10 +233,19 @@ export default function NewProgramForm() {
 
     const [activeDay, setActiveDay] = useState<number>(0);
 
+    /** Auto : slug & hero.title depuis le title quand on sort du champ */
+    const onTitleBlur = () => {
+        const t = (watch('title') || '').trim();
+        if (!t) return;
+        const currentSlug = (watch('slug') || '').trim();
+        if (!currentSlug) setValue('slug', slugify(t));
+        if (!(watch('marketing.hero.title') || '').trim()) setValue('marketing.hero.title', t);
+    };
+
     const addDay = () => {
         const nextIndex = days.fields.length + 1;
-        days.append({ title: `J${nextIndex}`, videoUrl: '', status: 'draft' }); // ⬅️ default draft
-        setActiveDay(days.fields.length);
+        days.append({ title: `J${nextIndex}`, videoUrl: '', status: 'draft' });
+        setActiveDay(nextIndex - 1);
     };
     const duplicateDay = (i: number) => {
         const dayNum = i + 1;
@@ -342,12 +359,144 @@ export default function NewProgramForm() {
             </div>
 
             {/* ===== PANELS ===== */}
+            {tab === 'identite' && (
+                <Card>
+                    <h2 className="font-semibold mb-3">Identité & Prix</h2>
+                    <div className="grid md:grid-cols-3 gap-3">
+                        <div>
+                            <Label required>Slug</Label>
+                            <InputPill {...register('slug', { required: true })} placeholder="reset-7" />
+                        </div>
+                        <div>
+                            <Label required>Titre</Label>
+                            <InputPill {...register('title', { required: true })} onBlur={onTitleBlur} placeholder="RESET-7" />
+                        </div>
+                        <div>
+                            <Label>Niveau</Label>
+                            <SelectPill {...register('level')}>
+                                <option>Basique</option>
+                                <option>Cible</option>
+                                <option>Premium</option>
+                            </SelectPill>
+                        </div>
+                        <div>
+                            <Label>Jours</Label>
+                            <InputPill type="number" min={1} max={365} {...register('durationDays', { valueAsNumber: true })} />
+                        </div>
+                        <div>
+                            <Label>Minutes / jour</Label>
+                            <InputPill type="number" min={1} max={180} {...register('estMinutesPerDay', { valueAsNumber: true })} />
+                        </div>
+                        <div>
+                            <Label>Prix TTC (cents)</Label>
+                            <InputPill type="number" {...register('priceCents', { valueAsNumber: true })} placeholder="4700" />
+                        </div>
+                    </div>
+                </Card>
+            )}
+
+            {tab === 'marketing' && (
+                <Card>
+                    <h2 className="font-semibold mb-3">Marketing</h2>
+
+                    {/* Hero */}
+                    <div className="grid md:grid-cols-2 gap-3">
+                        <div>
+                            <Label required>Hero • Titre</Label>
+                            <InputPill {...register('marketing.hero.title', { required: true })} placeholder="7 jours pour..." />
+                        </div>
+                        <div>
+                            <Label>Hero • CTA href</Label>
+                            <InputPill {...register('marketing.hero.ctaHref')} placeholder="/checkout/reset-7" />
+                        </div>
+                        <div className="md:col-span-2">
+                            <Label>Hero • Sous-titre</Label>
+                            <TextareaSoft {...register('marketing.hero.subtitle')} placeholder="L’accroche qui donne envie." />
+                        </div>
+                        <div className="md:col-span-2">
+                            <Label>Hero • Image URL</Label>
+                            <InputPill {...register('marketing.hero.heroImage')} placeholder="/images/hero.jpg" />
+                        </div>
+                    </div>
+
+                    {/* Infos clés */}
+                    <div className="mt-4 grid md:grid-cols-2 gap-3">
+                        <div className="md:col-span-2">
+                            <Label>Objectif du programme</Label>
+                            <TextareaSoft {...register('marketing.objective')} placeholder="Ex. Retrouver clarté, énergie et limites saines en 7 jours…" />
+                        </div>
+                        <div>
+                            <Label>Durée (libellé affiché)</Label>
+                            <InputPill {...register('marketing.durationLabel')} placeholder="7 jours • 20–30 min/j" />
+                            <Help>Laisse vide pour déduire depuis “Jours” + “Minutes/jour”.</Help>
+                        </div>
+                        <div>
+                            <Label>Idéal si…</Label>
+                            <TextareaSoft {...register('marketing.idealIf')} placeholder="Tu te sens épuisée, tu n’arrives plus à dire non, tu veux reprendre souffle…" />
+                        </div>
+                    </div>
+
+                    {/* Bénéfices (max 3) */}
+                    <div className="mt-4">
+                        <div className="flex items-center justify-between">
+                            <Label>Bénéfices (max 3)</Label>
+                            {benefits.fields.length < 3 && (
+                                <Button type="button" variant="secondary" onClick={() => benefits.append({ title: '', text: '' })}>
+                                    + Ajouter
+                                </Button>
+                            )}
+                        </div>
+                        {benefits.fields.length === 0 && <div className="mt-2 rounded-xl border border-dashed p-4 text-sm text-gray-500">Ajoute 1 à 3 bénéfices clés.</div>}
+                        <ul className="mt-2 space-y-2">
+                            {benefits.fields.map((f, i) => (
+                                <li key={f.id} className="grid md:grid-cols-3 gap-2 border rounded-xl p-3">
+                                    <InputPill placeholder="✨" {...register(`marketing.benefits.${i}.icon`)} />
+                                    <InputPill placeholder="Titre" {...register(`marketing.benefits.${i}.title`, { required: true })} />
+                                    <InputPill placeholder="Texte" {...register(`marketing.benefits.${i}.text`, { required: true })} />
+                                    <div className="md:col-span-3 flex justify-end">
+                                        <Button type="button" variant="ghost" onClick={() => benefits.remove(i)}>
+                                            Supprimer
+                                        </Button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* FAQ */}
+                    <div className="mt-4">
+                        <div className="flex items-center justify-between">
+                            <Label>FAQ (optionnelle)</Label>
+                            <Button type="button" variant="secondary" onClick={() => faq.append({ q: '', a: '' })}>
+                                + Ajouter
+                            </Button>
+                        </div>
+                        {faq.fields.length === 0 && (
+                            <div className="mt-2 rounded-xl border border-dashed p-4 text-sm text-gray-500">Ajoute des réponses aux objections si besoin.</div>
+                        )}
+                        <ul className="mt-2 space-y-2">
+                            {faq.fields.map((f, i) => (
+                                <li key={f.id} className="grid md:grid-cols-2 gap-2 border rounded-xl p-3">
+                                    <InputPill placeholder="Question" {...register(`marketing.faq.${i}.q`, { required: true })} />
+                                    <InputPill placeholder="Réponse" {...register(`marketing.faq.${i}.a`, { required: true })} />
+                                    <div className="md:col-span-2 flex justify-end">
+                                        <Button type="button" variant="ghost" onClick={() => faq.remove(i)}>
+                                            Supprimer
+                                        </Button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </Card>
+            )}
+
             {tab === 'pedago' && (
                 <Card>
                     <div className="mb-3 flex items-center justify-between">
                         <div>
                             <h2 className="font-semibold">Pédagogie</h2>
-                            <p className="text-xs text-gray-500 mt-0.5">Statut par jour, actions rapides et preview.</p>
+                            <p className="text-xs text-gray-500 mt-0.5">Onglets par jour. Actions rapides et preview intégrée.</p>
                         </div>
                     </div>
 
@@ -421,13 +570,16 @@ export default function NewProgramForm() {
                                 </ul>
                             </aside>
 
-                            {/* Contenu du jour actif */}
+                            {/* Contenu de l’onglet actif */}
                             <section className="rounded-2xl border border-border bg-card p-4">
                                 {activeDay >= 0 && activeDay < days.fields.length && (
                                     <div className="grid md:grid-cols-[1fr,300px] gap-4">
                                         <div>
                                             <div className="flex items-center justify-between">
                                                 <div className="text-sm text-gray-500">Jour {activeDay + 1}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge>Édition</Badge>
+                                                </div>
                                             </div>
 
                                             <div className="mt-2">
@@ -435,22 +587,21 @@ export default function NewProgramForm() {
                                                 <InputPill {...register(`days.${activeDay}.title`, { required: true })} placeholder={`J${activeDay + 1} — titre`} />
                                             </div>
 
-                                            <div className="mt-4 grid md:grid-cols-3 gap-3">
-                                                <div className="md:col-span-2">
-                                                    <Label required>URL vidéo (YouTube / Vimeo / MP4)</Label>
-                                                    <InputPill
-                                                        {...register(`days.${activeDay}.videoUrl`, { required: true })}
-                                                        placeholder="https://youtu.be/... | https://vimeo.com/... | https://cdn/.../video.mp4"
-                                                        inputMode="url"
-                                                    />
-                                                    <Help>Badge source auto.</Help>
-                                                </div>
-                                                <div>
-                                                    <Label>Statut du jour</Label>
-                                                    <SelectPill {...register(`days.${activeDay}.status`)}>
-                                                        <option value="draft">Brouillon</option>
-                                                        <option value="published">Publié</option>
-                                                    </SelectPill>
+                                            <div className="mt-4">
+                                                <Label required>URL vidéo (YouTube / Vimeo / MP4)</Label>
+                                                <InputPill
+                                                    {...register(`days.${activeDay}.videoUrl`, { required: true })}
+                                                    placeholder="https://youtu.be/... | https://vimeo.com/... | https://cdn/.../video.mp4"
+                                                    inputMode="url"
+                                                />
+                                                <Help>Colle une URL http(s) valide. Un badge de source s’affiche automatiquement.</Help>
+                                                <div className="mt-2">
+                                                    <Badge>
+                                                        <span className="inline-flex items-center gap-1">
+                                                            <Film className="h-3.5 w-3.5" />
+                                                            {providerFromUrl((watch(`days.${activeDay}.videoUrl`) as string) || '') || 'Lien'}
+                                                        </span>
+                                                    </Badge>
                                                 </div>
                                             </div>
 
@@ -494,11 +645,28 @@ export default function NewProgramForm() {
                 </Card>
             )}
 
-            {/* autres onglets identiques à ta version */}
-            {/* … (Identité / Marketing / SEO inchangés) … */}
+            {tab === 'seo' && (
+                <Card>
+                    <h2 className="font-semibold mb-3">SEO (facultatif)</h2>
+                    <div className="grid md:grid-cols-3 gap-3">
+                        <div>
+                            <Label>SEO • Title</Label>
+                            <InputPill {...register('marketing.seo.title')} />
+                        </div>
+                        <div>
+                            <Label>SEO • Description</Label>
+                            <InputPill {...register('marketing.seo.description')} />
+                        </div>
+                        <div>
+                            <Label>SEO • Image</Label>
+                            <InputPill {...register('marketing.seo.image')} />
+                        </div>
+                    </div>
+                </Card>
+            )}
 
             {/* erreurs & toasts */}
-            {err && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{err}</div>}
+            {err && <div className="rounded-xl border border-red-2 00 bg-red-50 p-3 text-sm text-red-800">{err}</div>}
             {toast && (
                 <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[9999] flex justify-center px-4">
                     <div className="pointer-events-auto rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 shadow">{toast}</div>

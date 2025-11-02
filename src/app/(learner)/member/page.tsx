@@ -129,7 +129,7 @@ export default async function MemberPage() {
                     <div>
                         <p className="text-sm text-muted-foreground">Bonjour {displayName}</p>
                         <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight">Ton espace d’évolution</h1>
-                        <p className="mt-1 text-sm text-muted-foreground">Reprends là où tu t’es arrêté·e, suis ta progression, et retrouve ton bilan.</p>
+                        <p className="mt-1 text-sm text-muted-foreground">Reprends là où tu t’es arrêté, suis ta progression, et retrouve ton bilan.</p>
 
                         <div className="mt-4 flex flex-wrap gap-2">
                             <Link
