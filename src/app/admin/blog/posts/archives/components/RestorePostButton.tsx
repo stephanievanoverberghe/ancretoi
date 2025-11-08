@@ -13,14 +13,14 @@ export default function RestorePostButton({ slug }: { slug: string }) {
             onClick={() =>
                 start(async () => {
                     // ⚠️ Nécessite un endpoint PATCH /api/admin/blog?slug=...&action=restore
-                    const r = await fetch(`/api/admin/blog?slug=${encodeURIComponent(slug)}&action=restore`, { method: 'PATCH' });
+                    const r = await fetch(`/api/admin/blog/posts?slug=${encodeURIComponent(slug)}&action=restore`, { method: 'PATCH' });
                     const data = await r.json().catch(() => ({}));
                     if (!r.ok || !data?.ok) {
                         alert(data?.error || `HTTP ${r.status}`);
                         return;
                     }
                     // Redirige vers l’édition après restauration (slug possiblement modifié)
-                    location.href = `/admin/blog/${data.slug}`;
+                    location.href = `/admin/blog/posts/${data.slug}`;
                 })
             }
             className="inline-flex w-full items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-emerald-50 bg-emerald-600 hover:bg-emerald-700 cursor-pointer"

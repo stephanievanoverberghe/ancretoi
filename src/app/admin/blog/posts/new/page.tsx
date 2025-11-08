@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
-import { PostModel } from '@/db/schemas';
+import { PostModel, CategoryModel } from '@/db/schemas';
 import SlugPreview from './components/SlugPreview';
 
 export const dynamic = 'force-dynamic';
@@ -59,8 +59,8 @@ async function createPost(formData: FormData) {
     const title = get('title');
     const slugWanted = slugify(get('slug') || title);
 
-    // Catégorie & tags
-    const category = get('category');
+    // Catégorie (slug) & tags
+    const category = get('category'); // slug de Category ou '' (aucune)
     const tags = parseTags(get('tags'));
 
     // Couverture
@@ -84,6 +84,13 @@ async function createPost(formData: FormData) {
 
     if (!title || !slugWanted) throw new Error('Titre et slug requis.');
 
+    // Vérif catégorie: si fournie, elle doit exister (sinon on vide)
+    let categorySlug = category || '';
+    if (categorySlug) {
+        const exists = await CategoryModel.exists({ slug: categorySlug, deletedAt: null });
+        if (!exists) categorySlug = '';
+    }
+
     // Unicité slug (global unique -> suffixe auto si collision)
     let slug = slugWanted;
     let i = 2;
@@ -103,7 +110,7 @@ async function createPost(formData: FormData) {
         coverPath,
         coverAlt,
 
-        category,
+        category: categorySlug, // on stocke le slug
         tags,
 
         seoTitle,
@@ -117,13 +124,16 @@ async function createPost(formData: FormData) {
         deletedAt: null,
     });
 
-    revalidatePath('/admin/blog');
+    revalidatePath('/admin/blog/posts');
     revalidatePath('/blog');
-    redirect('/admin/blog');
+    redirect('/admin/blog/posts');
 }
 
 export default async function NewPostPage() {
     await requireAdmin();
+    await dbConnect();
+
+    const categories = await CategoryModel.find({ deletedAt: null }).select({ name: 1, slug: 1 }).sort({ name: 1 }).lean<{ name: string; slug: string }[]>();
 
     return (
         <div className="mx-auto max-w-5xl p-4 md:p-6 space-y-6">
@@ -165,7 +175,17 @@ export default async function NewPostPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                     <label className="block">
                         <div className="mb-1 text-sm text-muted-foreground">Catégorie</div>
-                        <input name="category" placeholder="ex: création, tech, écriture…" className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm" />
+                        <select name="category" defaultValue="" className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm">
+                            <option value="">(Aucune)</option>
+                            {categories.map((c) => (
+                                <option key={c.slug} value={c.slug}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="mt-1 text-[11px] text-gray-500">
+                            Stockage du <strong>slug</strong> catégorie pour cohérence.
+                        </p>
                     </label>
                     <label className="block">
                         <div className="mb-1 text-sm text-muted-foreground">Tags (séparés par virgules ou lignes)</div>

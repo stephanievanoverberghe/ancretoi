@@ -8,7 +8,7 @@ import type { Types } from 'mongoose';
 
 import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
-import { PostModel } from '@/db/schemas';
+import { PostModel, CategoryModel } from '@/db/schemas';
 import DeletePostButton from '@/components/admin/DeletePostButton';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +24,7 @@ type PostDoc = {
     content?: string | null;
     coverPath?: string | null;
     coverAlt?: string | null;
-    category?: string | null;
+    category?: string | null; // slug stocké
     tags?: string[] | null;
     seoTitle?: string | null;
     seoDescription?: string | null;
@@ -97,7 +97,13 @@ async function updatePost(formData: FormData) {
     const summary = String(formData.get('summary') ?? '').trim();
     const content = String(formData.get('content') ?? '').trim();
 
-    const category = String(formData.get('category') ?? '').trim();
+    // ---- Catégorie : on stocke le slug, et on vérifie qu'il existe sinon on vide
+    let categorySlug = String(formData.get('category') ?? '').trim();
+    if (categorySlug) {
+        const exists = await CategoryModel.exists({ slug: categorySlug, deletedAt: null });
+        if (!exists) categorySlug = '';
+    }
+
     const tags = parseTags(String(formData.get('tags') ?? ''));
 
     const isFeatured = String(formData.get('isFeatured') ?? '') === 'on';
@@ -107,6 +113,12 @@ async function updatePost(formData: FormData) {
     const canonicalUrl = String(formData.get('canonicalUrl') ?? '').trim();
 
     const readingTimeMin = computeReadingTimeMin(content);
+
+    // (optionnel) garantie d'unicité slug vs autres posts
+    const slugOwner = await PostModel.findOne({ slug: nextSlug }).select({ _id: 1 }).lean();
+    if (slugOwner && String(slugOwner._id) !== id) {
+        throw new Error('Ce slug est déjà utilisé par un autre article.');
+    }
 
     const updated = await PostModel.findByIdAndUpdate(
         id,
@@ -120,7 +132,7 @@ async function updatePost(formData: FormData) {
                 content,
                 coverPath,
                 coverAlt,
-                category,
+                category: categorySlug, // stock slug
                 tags,
                 seoTitle,
                 seoDescription,
@@ -134,13 +146,13 @@ async function updatePost(formData: FormData) {
 
     if (!updated) throw new Error('Document introuvable après mise à jour.');
 
-    revalidatePath('/admin/blog');
+    revalidatePath('/admin/blog/posts');
     revalidatePath('/blog');
-    revalidatePath(`/blog/${updated.slug}`, 'page');
+    revalidatePath(`/blog/posts/${updated.slug}`, 'page');
 
     const origSlug = String(formData.get('origSlug') ?? '');
     if (origSlug && origSlug !== updated.slug) {
-        redirect(`/admin/blog/${updated.slug}?renamed=1`);
+        redirect(`/admin/blog/posts/${updated.slug}?renamed=1`);
     }
 }
 
@@ -150,29 +162,32 @@ export default async function EditPostPage(props: { params: Promise<{ slug: stri
 
     const { slug } = await props.params;
 
-    const doc = await PostModel.findOne({ slug, deletedAt: null })
-        .select({
-            _id: 1,
-            title: 1,
-            slug: 1,
-            status: 1,
-            summary: 1,
-            content: 1,
-            coverPath: 1,
-            coverAlt: 1,
-            category: 1,
-            tags: 1,
-            seoTitle: 1,
-            seoDescription: 1,
-            canonicalUrl: 1,
-            isFeatured: 1,
-            readingTimeMin: 1,
-            publishedAt: 1,
-            authorEmail: 1,
-            createdAt: 1,
-            updatedAt: 1,
-        })
-        .lean<PostDoc | null>();
+    const [doc, categories] = await Promise.all([
+        PostModel.findOne({ slug, deletedAt: null })
+            .select({
+                _id: 1,
+                title: 1,
+                slug: 1,
+                status: 1,
+                summary: 1,
+                content: 1,
+                coverPath: 1,
+                coverAlt: 1,
+                category: 1,
+                tags: 1,
+                seoTitle: 1,
+                seoDescription: 1,
+                canonicalUrl: 1,
+                isFeatured: 1,
+                readingTimeMin: 1,
+                publishedAt: 1,
+                authorEmail: 1,
+                createdAt: 1,
+                updatedAt: 1,
+            })
+            .lean<PostDoc | null>(),
+        CategoryModel.find({ deletedAt: null }).select({ name: 1, slug: 1 }).sort({ name: 1 }).lean<{ name: string; slug: string }[]>(),
+    ]);
 
     if (!doc) notFound();
 
@@ -198,7 +213,7 @@ export default async function EditPostPage(props: { params: Promise<{ slug: stri
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Link href="/admin/blog" className="rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-gray-50">
+                        <Link href="/admin/blog/posts" className="rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-gray-50">
                             Retour liste
                         </Link>
                         {doc.status === 'published' ? (
@@ -232,7 +247,17 @@ export default async function EditPostPage(props: { params: Promise<{ slug: stri
                 <section className="grid gap-4 md:grid-cols-2">
                     <label className="block">
                         <div className="text-sm text-gray-600 mb-1">Catégorie</div>
-                        <input name="category" defaultValue={doc.category ?? ''} className="w-full rounded-xl border bg-white px-3 py-2" />
+                        <select name="category" defaultValue={doc.category ?? ''} className="w-full rounded-xl border bg-white px-3 py-2">
+                            <option value="">(Aucune)</option>
+                            {categories.map((c) => (
+                                <option key={c.slug} value={c.slug}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="mt-1 text-[11px] text-gray-500">
+                            Stockage du <strong>slug</strong> catégorie. Les anciennes valeurs libres ne sont plus proposées.
+                        </p>
                     </label>
                     <label className="block">
                         <div className="text-sm text-gray-600 mb-1">Tags</div>

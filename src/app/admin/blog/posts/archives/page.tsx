@@ -55,7 +55,7 @@ export default async function BlogArchivesPage() {
                         <p className="text-xs text-muted-foreground sm:text-sm">Billets supprimés (soft delete). Tu peux les restaurer.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Link href="/admin/blog" className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50">
+                        <Link href="/admin/blog/posts" className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50">
                             ← Retour actifs
                         </Link>
                     </div>

@@ -1,4 +1,4 @@
-// src/app/admin/blog/components/AdminPostsGridClient.tsx
+// src/app/admin/blog/new/components/AdminPostsGridClient.tsx
 'use client';
 
 import Image from 'next/image';
@@ -16,13 +16,20 @@ export type AdminPostRow = {
     title: string;
     coverPath: string | null;
     summary: string | null;
-    tags: string[]; // on les garde sur la carte, mais on ne filtre plus dessus
-    category: string | null; // <-- utilisé pour filtrer
+    tags: string[];
+    category: string | null; // slug (ou ancien nom libre)
     timestamps: {
         createdAt: string | null;
         updatedAt: string | null;
         publishedAt: string | null;
     };
+};
+
+export type CategoryOption = {
+    slug: string;
+    name: string;
+    color: string | null;
+    icon: string | null;
 };
 
 type StatusFilter = 'all' | 'draft' | 'published';
@@ -32,10 +39,10 @@ type PersistedState = {
     q: string;
     status: StatusFilter;
     sort: SortKey;
-    category: string; // '__all__' ou la catégorie sélectionnée
+    category: string; // '__all__' ou slug
 };
 
-const LS_KEY = 'adminPostsToolbar:v3';
+const LS_KEY = 'adminPostsToolbar:v4';
 
 function formatRelative(iso: string | null) {
     if (!iso) return '—';
@@ -56,7 +63,7 @@ function StatusBadge({ s }: { s: 'draft' | 'published' }) {
 }
 
 /* =============== Quick View =============== */
-function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => void; row: AdminPostRow | null }) {
+function QuickViewModal({ open, onClose, row, categoryName }: { open: boolean; onClose: () => void; row: AdminPostRow | null; categoryName: string | null }) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
     useEffect(() => {
@@ -110,12 +117,12 @@ function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => 
                                 <p className="rounded-lg border p-3 text-sm">{row.summary || '—'}</p>
                             </div>
 
-                            {row.tags?.length || row.category ? (
+                            {row.tags?.length || categoryName ? (
                                 <div className="space-y-1">
                                     <div className="text-xs text-muted-foreground">Taxonomie</div>
-                                    {row.category ? (
+                                    {categoryName ? (
                                         <div className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] text-indigo-700 ring-1 ring-indigo-200">
-                                            Catégorie : {row.category}
+                                            Catégorie : {categoryName}
                                         </div>
                                     ) : null}
                                     {row.tags?.length ? (
@@ -135,13 +142,16 @@ function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => 
                         </div>
 
                         <div className="space-y-2">
-                            <Link href={`/admin/blog/${row.slug}`} className="btn-secondary w-full justify-center inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm">
+                            <Link
+                                href={`/admin/blog/posts/${row.slug}`}
+                                className="btn-secondary w-full justify-center inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm"
+                            >
                                 <PencilLine className="h-4 w-4" /> Éditer
                             </Link>
 
                             {row.status === 'published' ? (
                                 <Link
-                                    href={`/blog/${row.slug}`}
+                                    href={`/blog/posts/${row.slug}`}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="inline-flex w-full items-center justify-center gap-1 rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
@@ -172,7 +182,14 @@ function QuickViewModal({ open, onClose, row }: { open: boolean; onClose: () => 
 }
 
 /* =============== GRID =============== */
-export default function AdminPostsGridClient({ rows }: { rows: AdminPostRow[] }) {
+export default function AdminPostsGridClient({ rows, categories }: { rows: AdminPostRow[]; categories: CategoryOption[] }) {
+    /* --- Map utilitaire slug->name --- */
+    const catNameBySlug = useMemo(() => {
+        const m = new Map<string, string>();
+        categories.forEach((c) => m.set(c.slug, c.name));
+        return m;
+    }, [categories]);
+
     /* --- Recherche (/, debounce, clear) --- */
     const [qRaw, setQRaw] = useState('');
     const [q, setQ] = useState('');
@@ -196,16 +213,7 @@ export default function AdminPostsGridClient({ rows }: { rows: AdminPostRow[] })
     const [status, setStatus] = useState<StatusFilter>('all');
     const [sort, setSort] = useState<SortKey>('recent');
 
-    /* --- Catégories (liste + filtre) --- */
-    const allCategories = useMemo(() => {
-        const s = new Set<string>();
-        rows.forEach((r) => {
-            const c = (r.category || '').trim();
-            if (c) s.add(c);
-        });
-        return Array.from(s).sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
-    }, [rows]);
-
+    /* --- Catégories (liste DB) --- */
     const [categoryFilter, setCategoryFilter] = useState<string>('__all__');
 
     /* --- Persistance --- */
@@ -242,15 +250,20 @@ export default function AdminPostsGridClient({ rows }: { rows: AdminPostRow[] })
         const ql = q.trim().toLowerCase();
         const passes = (r: AdminPostRow) => {
             if (status !== 'all' && r.status !== status) return false;
+
             if (categoryFilter && categoryFilter !== '__all__') {
+                // r.category = slug (ou ancien nom libre). On ne garde que ceux dont slug exact correspond.
                 if ((r.category || '').trim() !== categoryFilter) return false;
             }
+
             if (ql) {
-                const hay = `${r.title} ${r.slug} ${r.summary ?? ''} ${r.category ?? ''}`.toLowerCase();
+                const categoryName = r.category ? catNameBySlug.get(r.category) || r.category : '';
+                const hay = `${r.title} ${r.slug} ${r.summary ?? ''} ${categoryName}`.toLowerCase();
                 if (!hay.includes(ql)) return false;
             }
             return true;
         };
+
         const out = rows.filter(passes);
 
         out.sort((a, b) => {
@@ -269,11 +282,12 @@ export default function AdminPostsGridClient({ rows }: { rows: AdminPostRow[] })
         });
 
         return out;
-    }, [rows, q, status, sort, categoryFilter]);
+    }, [rows, q, status, sort, categoryFilter, catNameBySlug]);
 
     /* --- Quick view --- */
     const [openSlug, setOpenSlug] = useState<string | null>(null);
     const current = useMemo(() => rows.find((r) => r.slug === openSlug) ?? null, [openSlug, rows]);
+    const currentCatName = useMemo(() => (current?.category ? catNameBySlug.get(current.category) || current.category : null), [current, catNameBySlug]);
 
     return (
         <>
@@ -324,7 +338,7 @@ export default function AdminPostsGridClient({ rows }: { rows: AdminPostRow[] })
                         <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     </div>
 
-                    {/* Catégorie */}
+                    {/* Catégorie (depuis DB) */}
                     <div className="relative">
                         <label htmlFor="post-category" className="sr-only">
                             Filtrer par catégorie
@@ -336,9 +350,9 @@ export default function AdminPostsGridClient({ rows }: { rows: AdminPostRow[] })
                             className="w-full appearance-none rounded-full border border-brand-300 bg-white pl-3 pr-8 py-2 text-sm text-gray-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
                             <option value="__all__">Toutes les catégories</option>
-                            {allCategories.map((c) => (
-                                <option key={c} value={c}>
-                                    {c}
+                            {categories.map((c) => (
+                                <option key={c.slug} value={c.slug}>
+                                    {c.name}
                                 </option>
                             ))}
                         </select>
@@ -371,7 +385,7 @@ export default function AdminPostsGridClient({ rows }: { rows: AdminPostRow[] })
                     <p className="text-sm text-gray-500">Aucun article ne correspond.</p>
                     <div className="mt-3">
                         <Link
-                            href="/admin/blog/new"
+                            href="/admin/blog/posts/new"
                             className="inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-purple-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600"
                         >
                             <span aria-hidden>＋</span> Nouvel article
@@ -380,82 +394,88 @@ export default function AdminPostsGridClient({ rows }: { rows: AdminPostRow[] })
                 </div>
             ) : (
                 <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {filtered.map((r) => (
-                        <li key={r.id} className="group overflow-hidden rounded-2xl border border-brand-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                            <div className="relative aspect-[16/10] w-full bg-gray-100">
-                                {r.coverPath ? (
-                                    <Image
-                                        src={r.coverPath}
-                                        alt={r.title || 'Couverture'}
-                                        fill
-                                        sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 320px"
-                                        className="object-cover"
-                                    />
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-gray-400">
-                                        <ImageIcon className="h-10 w-10" />
-                                    </div>
-                                )}
-                                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent opacity-90 transition group-hover:opacity-100" />
-                                <div className="absolute right-2 top-2">
-                                    <StatusBadge s={r.status} />
-                                </div>
-                            </div>
-
-                            <div className="p-4">
-                                <div className="text-xs text-gray-500">/{r.slug}</div>
-                                <h3 className="line-clamp-2 text-base font-semibold sm:text-lg">{r.title}</h3>
-
-                                {r.summary && <p className="mt-1 line-clamp-2 text-sm text-gray-600">{r.summary}</p>}
-
-                                {r.category ? <div className="mt-2 text-[11px] text-muted-foreground">Catégorie : {r.category}</div> : null}
-
-                                {r.tags?.length ? (
-                                    <div className="mt-1 flex flex-wrap gap-1">
-                                        {r.tags.map((t) => (
-                                            <span
-                                                key={`${r.id}-${t}`}
-                                                className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-700 ring-1 ring-gray-200"
-                                            >
-                                                #{t}
-                                            </span>
-                                        ))}
-                                    </div>
-                                ) : null}
-
-                                <div className="mt-2 text-xs text-muted-foreground">
-                                    maj {formatRelative(r.timestamps.updatedAt)} • créé {formatRelative(r.timestamps.createdAt)}
-                                </div>
-
-                                <div className="mt-3 grid grid-cols-2 gap-2">
-                                    <Link
-                                        href={`/admin/blog/${r.slug}`}
-                                        className="inline-flex w-full items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-800 bg-brand-50 ring-1 ring-brand-200 hover:ring-brand-500 transition hover:bg-brand-100"
-                                    >
-                                        <PencilLine className="h-4 w-4" /> Éditer
-                                    </Link>
-                                    <button
-                                        onClick={() => setOpenSlug(r.slug)}
-                                        className="inline-flex w-full items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-800 bg-brand-50 ring-1 ring-brand-200 hover:ring-brand-500 transition hover:bg-brand-100 cursor-pointer"
-                                    >
-                                        <Eye className="h-4 w-4" /> Aperçu
-                                    </button>
-
-                                    <DeletePostButton slug={r.slug} className="col-span-2 w-full justify-center" afterDelete="refresh" label="Supprimer" />
-
-                                    {r.status === 'draft' && (
-                                        <div className="col-span-2 inline-flex w-full items-center justify-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-600">
-                                            <Lock className="h-4 w-4" /> Non publié
+                    {filtered.map((r) => {
+                        const catDisplay = r.category ? catNameBySlug.get(r.category) || r.category : null;
+                        return (
+                            <li
+                                key={r.id}
+                                className="group overflow-hidden rounded-2xl border border-brand-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                            >
+                                <div className="relative aspect-[16/10] w-full bg-gray-100">
+                                    {r.coverPath ? (
+                                        <Image
+                                            src={r.coverPath}
+                                            alt={r.title || 'Couverture'}
+                                            fill
+                                            sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 320px"
+                                            className="object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex h-full w-full items-center justify-center text-gray-400">
+                                            <ImageIcon className="h-10 w-10" />
                                         </div>
                                     )}
+                                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent opacity-90 transition group-hover:opacity-100" />
+                                    <div className="absolute right-2 top-2">
+                                        <StatusBadge s={r.status} />
+                                    </div>
                                 </div>
-                            </div>
-                        </li>
-                    ))}
+
+                                <div className="p-4">
+                                    <div className="text-xs text-gray-500">/{r.slug}</div>
+                                    <h3 className="line-clamp-2 text-base font-semibold sm:text-lg">{r.title}</h3>
+
+                                    {r.summary && <p className="mt-1 line-clamp-2 text-sm text-gray-600">{r.summary}</p>}
+
+                                    {catDisplay ? <div className="mt-2 text-[11px] text-muted-foreground">Catégorie : {catDisplay}</div> : null}
+
+                                    {r.tags?.length ? (
+                                        <div className="mt-1 flex flex-wrap gap-1">
+                                            {r.tags.map((t) => (
+                                                <span
+                                                    key={`${r.id}-${t}`}
+                                                    className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-700 ring-1 ring-gray-200"
+                                                >
+                                                    #{t}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    ) : null}
+
+                                    <div className="mt-2 text-xs text-muted-foreground">
+                                        maj {formatRelative(r.timestamps.updatedAt)} • créé {formatRelative(r.timestamps.createdAt)}
+                                    </div>
+
+                                    <div className="mt-3 grid grid-cols-2 gap-2">
+                                        <Link
+                                            href={`/admin/blog/${r.slug}`}
+                                            className="inline-flex w-full items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-800 bg-brand-50 ring-1 ring-brand-200 hover:ring-brand-500 transition hover:bg-brand-100"
+                                        >
+                                            <PencilLine className="h-4 w-4" /> Éditer
+                                        </Link>
+                                        <button
+                                            onClick={() => setOpenSlug(r.slug)}
+                                            className="inline-flex w-full items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-800 bg-brand-50 ring-1 ring-brand-200 hover:ring-brand-500 transition hover:bg-brand-100 cursor-pointer"
+                                        >
+                                            <Eye className="h-4 w-4" /> Aperçu
+                                        </button>
+
+                                        <DeletePostButton slug={r.slug} className="col-span-2 w-full justify-center" afterDelete="refresh" label="Supprimer" />
+
+                                        {r.status === 'draft' && (
+                                            <div className="col-span-2 inline-flex w-full items-center justify-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-600">
+                                                <Lock className="h-4 w-4" /> Non publié
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </li>
+                        );
+                    })}
                 </ul>
             )}
 
-            <QuickViewModal open={!!openSlug} onClose={() => setOpenSlug(null)} row={current} />
+            <QuickViewModal open={!!openSlug} onClose={() => setOpenSlug(null)} row={current} categoryName={currentCatName} />
         </>
     );
 }
