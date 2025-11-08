@@ -117,7 +117,7 @@ export interface ICategory {
 const CategorySchema = new Schema<ICategory>(
     {
         name: { type: String, required: true, trim: true },
-        slug: { type: String, required: true, lowercase: true, trim: true, index: true, unique: true },
+        slug: { type: String, required: true, lowercase: true, trim: true, unique: true },
         description: { type: String, default: '' },
         color: { type: String, default: null },
         icon: { type: String, default: null },
@@ -175,7 +175,7 @@ export interface IPost {
 const PostSchema = new Schema<IPost>(
     {
         title: { type: String, required: true, trim: true },
-        slug: { type: String, required: true, lowercase: true, trim: true, index: true },
+        slug: { type: String, required: true, lowercase: true, trim: true },
 
         status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
 

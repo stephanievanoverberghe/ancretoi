@@ -61,19 +61,26 @@ export default async function AdminCategoriesPage() {
         <div className="mx-auto max-w-7xl space-y-6">
             {/* Header */}
             <div className="rounded-2xl border border-brand-200/60 bg-gradient-to-br from-brand-600/10 via-brand-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
-                <div className="text-xs text-muted-foreground">
-                    <Link href="/admin" className="hover:underline">
-                        Admin
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0">
+                        <nav className="text-xs text-gray-500">
+                            <Link href="/admin" className="hover:underline">
+                                Admin
+                            </Link>
+                            <span className="px-1.5">›</span>
+                            <Link href="/admin/blog/posts" className="hover:underline">
+                                Blog
+                            </Link>
+                            <span className="px-1.5">›</span>
+                            <span className="text-foreground">Catégories</span>
+                        </nav>
+                        <h1 className="mt-1 text-xl md:text-2xl font-semibold tracking-tight">Catégories</h1>
+                        <p className="text-sm text-muted-foreground mt-1">Taxonomie du blog : création, édition, image & suppression (hard delete).</p>
+                    </div>
+                    <Link href="/admin/blog" className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50">
+                        Retour blog
                     </Link>
-                    <span className="px-1.5">›</span>
-                    <Link href="/admin/blog/posts" className="hover:underline">
-                        Blog
-                    </Link>
-                    <span className="px-1.5">›</span>
-                    <span className="text-foreground">Catégories</span>
                 </div>
-                <h1 className="mt-1 text-xl md:text-2xl font-semibold tracking-tight">Catégories</h1>
-                <p className="text-sm text-muted-foreground mt-1">Taxonomie du blog : création, édition, image & suppression (hard delete).</p>
 
                 {/* Stats */}
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
