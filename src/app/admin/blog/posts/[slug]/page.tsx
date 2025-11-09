@@ -9,7 +9,7 @@ import type { Types } from 'mongoose';
 import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
 import { PostModel, CategoryModel } from '@/db/schemas';
-import DeletePostButton from '@/components/admin/DeletePostButton';
+import DeletePostButton from '@/app/admin/blog/posts/components/DeletePostButton';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

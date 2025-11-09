@@ -1,4 +1,4 @@
-// src/app/admin/blog/new/components/SlugPreview.tsx
+// src/app/admin/blog/posts/new/components/SlugPreview.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';

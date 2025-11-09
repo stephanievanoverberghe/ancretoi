@@ -1,20 +1,23 @@
-// src/app/admin/blog/new/page.tsx
+// src/app/admin/blog/posts/new/page.tsx
 import 'server-only';
 
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+
 import { requireAdmin } from '@/lib/authz';
 import { dbConnect } from '@/db/connect';
 import { PostModel, CategoryModel } from '@/db/schemas';
+import { PATHS } from '@/lib/paths';
 import SlugPreview from './components/SlugPreview';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
+/* ================= Helpers ================= */
 function slugify(s: string) {
-    return s
+    return (s || '')
         .toLowerCase()
         .normalize('NFKD')
         .replace(/[\u0300-\u036f]/g, '')
@@ -48,8 +51,10 @@ function sanitizeCoverPath(p: string) {
     return s;
 }
 
-async function createPost(formData: FormData) {
+/* ================= Server Action ================= */
+async function createPostAction(formData: FormData) {
     'use server';
+
     const me = await requireAdmin();
     await dbConnect();
 
@@ -60,7 +65,7 @@ async function createPost(formData: FormData) {
     const slugWanted = slugify(get('slug') || title);
 
     // Catégorie (slug) & tags
-    const category = get('category'); // slug de Category ou '' (aucune)
+    const categorySlug = get('category'); // slug de Category ou '' (aucune)
     const tags = parseTags(get('tags'));
 
     // Couverture
@@ -84,17 +89,19 @@ async function createPost(formData: FormData) {
 
     if (!title || !slugWanted) throw new Error('Titre et slug requis.');
 
-    // Vérif catégorie: si fournie, elle doit exister (sinon on vide)
-    let categorySlug = category || '';
+    // Résolution catégorie -> categoryId (conforme au schéma IPost)
+    let categoryId: string | null = null;
     if (categorySlug) {
-        const exists = await CategoryModel.exists({ slug: categorySlug, deletedAt: null });
-        if (!exists) categorySlug = '';
+        const cat = await CategoryModel.findOne({ slug: categorySlug }).select({ _id: 1 }).lean<{ _id: string } | null>();
+        if (cat?._id) categoryId = String(cat._id);
     }
 
-    // Unicité slug (global unique -> suffixe auto si collision)
+    // Unicité slug sur les posts actifs (deletedAt: null)
     let slug = slugWanted;
     let i = 2;
-    while (await PostModel.exists({ slug })) slug = `${slugWanted}-${i++}`;
+    while (await PostModel.exists({ slug, deletedAt: null })) {
+        slug = `${slugWanted}-${i++}`;
+    }
 
     const readingTimeMin = computeReadingTimeMin(content);
 
@@ -110,7 +117,7 @@ async function createPost(formData: FormData) {
         coverPath,
         coverAlt,
 
-        category: categorySlug, // on stocke le slug
+        categoryId, // ✅ on stocke l'ObjectId, pas le slug
         tags,
 
         seoTitle,
@@ -124,27 +131,32 @@ async function createPost(formData: FormData) {
         deletedAt: null,
     });
 
-    revalidatePath('/admin/blog/posts');
-    revalidatePath('/blog');
-    redirect('/admin/blog/posts');
+    // Revalidate Admin + Public
+    revalidatePath(PATHS.adminBlog);
+    revalidatePath(PATHS.adminBlogPosts);
+    revalidatePath(PATHS.publicBlogIndex);
+    revalidatePath(PATHS.publicPost(slug), 'page');
+
+    redirect(PATHS.adminBlogPosts);
 }
 
+/* ================= Page ================= */
 export default async function NewPostPage() {
     await requireAdmin();
     await dbConnect();
 
-    const categories = await CategoryModel.find({ deletedAt: null }).select({ name: 1, slug: 1 }).sort({ name: 1 }).lean<{ name: string; slug: string }[]>();
+    const categories = await CategoryModel.find({}).select({ name: 1, slug: 1 }).sort({ name: 1 }).lean<{ name: string; slug: string }[]>();
 
     return (
         <div className="mx-auto max-w-5xl p-4 md:p-6 space-y-6">
             {/* Header */}
             <div className="rounded-2xl border border-brand-200/60 bg-gradient-to-br from-brand-600/10 via-brand-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
                 <div className="text-xs text-muted-foreground">
-                    <Link href="/admin" className="hover:underline">
+                    <Link href={PATHS.adminBlog} className="hover:underline">
                         Admin
                     </Link>
                     <span className="px-1.5">›</span>
-                    <Link href="/admin/blog" className="hover:underline">
+                    <Link href={PATHS.adminBlogPosts} className="hover:underline">
                         Articles
                     </Link>
                     <span className="px-1.5">›</span>
@@ -155,7 +167,7 @@ export default async function NewPostPage() {
             </div>
 
             {/* Form */}
-            <form action={createPost} className="space-y-5 rounded-2xl border border-brand-200 bg-white/80 p-5 ring-1 ring-white/40 shadow-sm">
+            <form action={createPostAction} className="space-y-5 rounded-2xl border border-brand-200 bg-white/80 p-5 ring-1 ring-white/40 shadow-sm">
                 {/* Ligne 1 : Titre / Slug / Aperçu */}
                 <div className="grid gap-4 md:grid-cols-[2fr,1fr,auto]">
                     <label className="block">
@@ -184,7 +196,7 @@ export default async function NewPostPage() {
                             ))}
                         </select>
                         <p className="mt-1 text-[11px] text-gray-500">
-                            Stockage du <strong>slug</strong> catégorie pour cohérence.
+                            Le <strong>slug</strong> sélectionné est résolu en <em>categoryId</em> à l’enregistrement.
                         </p>
                     </label>
                     <label className="block">
@@ -217,7 +229,7 @@ export default async function NewPostPage() {
                 {/* Contenu */}
                 <label className="block">
                     <div className="mb-1 text-sm text-muted-foreground">Contenu (Markdown/texte)</div>
-                    <textarea name="content" placeholder="# Titre\n\nTon contenu…" className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm h-72 font-mono" />
+                    <textarea name="content" placeholder={`# Titre\n\nTon contenu…`} className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm h-72 font-mono" />
                 </label>
 
                 {/* SEO */}
@@ -264,7 +276,7 @@ export default async function NewPostPage() {
 
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-2">
-                    <Link href="/admin/blog" className="rounded-lg border px-3 py-2 text-sm hover:bg-brand-50">
+                    <Link href={PATHS.adminBlogPosts} className="rounded-lg border px-3 py-2 text-sm hover:bg-brand-50">
                         Annuler
                     </Link>
                     <button className="rounded-lg border border-brand-300 bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700" type="submit">

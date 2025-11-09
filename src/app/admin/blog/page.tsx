@@ -1,3 +1,5 @@
+// src/app/admin/blog/page.tsx
+
 import 'server-only';
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/authz';
@@ -8,22 +10,40 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
+type LastItem = { title?: string; slug: string; updatedAt?: Date; status: 'draft' | 'published' };
+type LastPublished = { title?: string; slug: string; publishedAt?: Date };
+type RecentItem = { title?: string; slug: string; status: 'draft' | 'published'; updatedAt?: Date };
+
+function fmtRel(d?: Date | null) {
+    if (!d) return '—';
+    const diff = Date.now() - d.getTime();
+    const m = 60_000,
+        h = 60 * m,
+        day = 24 * h;
+    if (diff < h) return `${Math.max(1, Math.round(diff / m))} min`;
+    if (diff < day) return `${Math.round(diff / h)} h`;
+    return d.toLocaleString('fr-FR');
+}
+
 async function getStats() {
     await dbConnect();
-    const [total, published, draft, archived, categories] = await Promise.all([
+
+    const [total, published, draft, featured, archived, categories] = await Promise.all([
         PostModel.countDocuments({ deletedAt: null }),
         PostModel.countDocuments({ status: 'published', deletedAt: null }),
         PostModel.countDocuments({ status: 'draft', deletedAt: null }),
+        PostModel.countDocuments({ isFeatured: true, deletedAt: null }),
         PostModel.countDocuments({ deletedAt: { $ne: null } }),
         CategoryModel.countDocuments({}),
     ]);
 
-    const last = await PostModel.findOne({ deletedAt: null })
-        .select({ title: 1, slug: 1, updatedAt: 1, status: 1 })
-        .sort({ updatedAt: -1 })
-        .lean<{ title?: string; slug: string; updatedAt?: Date; status: 'draft' | 'published' } | null>();
+    const [last, lastPub, recents] = await Promise.all([
+        PostModel.findOne({ deletedAt: null }).select({ title: 1, slug: 1, updatedAt: 1, status: 1 }).sort({ updatedAt: -1 }).lean<LastItem | null>(),
+        PostModel.findOne({ deletedAt: null, status: 'published' }).select({ title: 1, slug: 1, publishedAt: 1 }).sort({ publishedAt: -1 }).lean<LastPublished | null>(),
+        PostModel.find({ deletedAt: null }).select({ title: 1, slug: 1, status: 1, updatedAt: 1 }).sort({ updatedAt: -1 }).limit(3).lean<RecentItem[]>(),
+    ]);
 
-    return { total, published, draft, archived, categories, last };
+    return { total, published, draft, featured, archived, categories, last, lastPub, recents };
 }
 
 export default async function BlogHubPage() {
@@ -41,34 +61,45 @@ export default async function BlogHubPage() {
                     <span className="px-1.5">›</span>
                     <span className="text-foreground">Blog</span>
                 </div>
-                <h1 className="mt-1 text-xl md:text-2xl font-semibold tracking-tight">Blog</h1>
-                <p className="text-sm text-muted-foreground mt-1">Centre de commande : articles, catégories, SEO, archives.</p>
+                <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                        <h1 className="text-xl md:text-2xl font-semibold tracking-tight">Blog</h1>
+                        <p className="text-sm text-muted-foreground mt-1">Centre de commande : articles, catégories, SEO, archives.</p>
+                    </div>
+                    <Link
+                        href="/admin/blog/posts/new"
+                        className="rounded-xl border border-brand-300 bg-brand-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700"
+                    >
+                        + Nouvel article
+                    </Link>
+                </div>
 
                 {/* KPIs */}
-                <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-6 gap-3">
                     <Kpi label="Total" value={s.total} />
                     <Kpi label="Publiés" value={s.published} />
                     <Kpi label="Brouillons" value={s.draft} />
+                    <Kpi label="Mis en avant" value={s.featured} />
                     <Kpi label="Archivés" value={s.archived} />
                     <Kpi label="Catégories" value={s.categories} />
                 </div>
 
-                {s.last && (
-                    <div className="mt-4 rounded-xl bg-white/70 ring-1 ring-black/5 p-4 text-sm">
-                        <div className="text-xs text-muted-foreground">Dernière mise à jour</div>
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-medium">{s.last.title || s.last.slug}</span>
-                            <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] ring-1 ring-zinc-200">{s.last.status === 'published' ? 'Publié' : 'Brouillon'}</span>
-                            <span className="text-xs text-muted-foreground">{s.last.updatedAt ? new Date(s.last.updatedAt).toLocaleString('fr-FR') : '—'}</span>
-                            <Link href={`/admin/blog/posts/${s.last.slug}`} className="ml-auto rounded-lg border px-2 py-1 text-xs hover:bg-gray-50">
-                                Éditer
-                            </Link>
-                            <Link href={`/blog/${s.last.slug}`} target="_blank" className="rounded-lg border px-2 py-1 text-xs hover:bg-gray-50">
-                                Voir public
-                            </Link>
+                {/* Dernier article publiés */}
+                <div className="mt-4">
+                    {s.lastPub && (
+                        <div className="rounded-xl bg-white/70 ring-1 ring-black/5 p-4 text-sm">
+                            <div className="text-xs text-muted-foreground">Dernier article publié</div>
+                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                                <span className="font-medium">{s.lastPub.title || s.lastPub.slug}</span>
+                                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] ring-1 ring-emerald-200">Publié</span>
+                                <span className="text-xs text-muted-foreground">{fmtRel(s.lastPub.publishedAt || null)}</span>
+                                <Link href={`/blog/${s.lastPub.slug}`} target="_blank" className="ml-auto rounded-lg border px-2 py-1 text-xs hover:bg-gray-50">
+                                    Ouvrir
+                                </Link>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Actions principales */}
@@ -106,6 +137,21 @@ export default async function BlogHubPage() {
                     primary={{ href: '/admin/blog/posts?featured=1', label: 'Filtre “featured”' }}
                 />
             </section>
+
+            {/* Empty state si aucun post */}
+            {s.total === 0 && (
+                <div className="rounded-2xl border border-dashed border-brand-400 p-8 text-center">
+                    <p className="text-sm text-muted-foreground">Aucun article pour le moment.</p>
+                    <div className="mt-3">
+                        <Link
+                            href="/admin/blog/posts/new"
+                            className="inline-flex items-center gap-2 rounded-xl border border-brand-300 bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+                        >
+                            + Créer le premier article
+                        </Link>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

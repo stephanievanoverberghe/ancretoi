@@ -1,18 +1,18 @@
-// src/app/admin/blog/archives/components/AdminPostsArchivedGrid.tsx
+// src/app/admin/blog/posts/archives/components/AdminPostsArchivedGrid.tsx
 'use client';
 
 import Image from 'next/image';
 import { CalendarClock, ImageIcon } from 'lucide-react';
 import RestorePostButton from './RestorePostButton';
-import DeletePostButton from '@/components/admin/DeletePostButton';
+import DeleteArchivedPostButton from './DeleteArchivedPostButton';
 
 type Row = {
     id: string;
-    slug: string;
+    slug: string; // utilisé par les actions, pas affiché
     status: 'draft' | 'published';
     title: string;
-    coverUrl: string | null;
-    summary: string | null;
+    coverPath: string | null;
+    summary: string | null; // non affiché ici
     timestamps: { createdAt: string | null; updatedAt: string | null; deletedAt?: string | null };
 };
 
@@ -34,32 +34,37 @@ export default function AdminPostsArchivedGrid({ rows }: { rows: Row[] }) {
     return (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {rows.map((r) => (
-                <li key={r.id} className="group overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
+                <li key={r.id} className="group flex flex-col overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
+                    {/* Media */}
                     <div className="relative aspect-[16/10] w-full bg-amber-50">
-                        {r.coverUrl ? (
-                            <Image src={r.coverUrl} alt="Couverture" fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 320px" className="object-cover" />
+                        {r.coverPath ? (
+                            <Image src={r.coverPath} alt="Couverture" fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw" className="object-cover" />
                         ) : (
-                            <div className="flex h-full w-full items-center justify-center text-amber-400">
+                            <div className="grid h-full w-full place-items-center text-amber-400">
                                 <ImageIcon className="h-10 w-10" />
                             </div>
                         )}
+                        {/* Badge Archivé sur l'image */}
                         <div className="absolute left-2 top-2 rounded bg-amber-600 px-2 py-0.5 text-[11px] font-medium text-white">Archivé</div>
                     </div>
 
-                    <div className="p-4">
-                        <div className="text-xs text-gray-500">/{r.slug}</div>
-                        <h3 className="line-clamp-2 text-base font-semibold">{r.title}</h3>
+                    {/* Body (flex-1 pour pousser le footer en bas) */}
+                    <div className="flex flex-1 flex-col p-4">
+                        {/* Titre uniquement, avec hauteur min pour éviter les décalages */}
+                        <h3 className="line-clamp-2 text-base font-semibold min-h-[2.75rem]">{r.title}</h3>
 
-                        {r.summary && <p className="mt-1 line-clamp-2 text-sm text-gray-600">{r.summary}</p>}
-
-                        <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1.5">
+                        {/* Date d’archivage */}
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                             <CalendarClock className="h-4 w-4" />
-                            archivé {formatRelative(r.timestamps.deletedAt)}
+                            <span>archivé {formatRelative(r.timestamps.deletedAt)}</span>
                         </div>
 
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                            <RestorePostButton slug={r.slug} />
-                            <DeletePostButton slug={r.slug} className="w-full justify-center" afterDelete="refresh" />
+                        {/* Footer actions fixé en bas */}
+                        <div className="mt-auto pt-3">
+                            <div className="grid grid-cols-2 gap-2">
+                                <RestorePostButton id={r.id} slug={r.slug} />
+                                <DeleteArchivedPostButton id={r.id} slug={r.slug} className="w-full justify-center" />
+                            </div>
                         </div>
                     </div>
                 </li>

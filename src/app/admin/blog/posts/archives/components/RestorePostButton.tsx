@@ -1,10 +1,10 @@
-// src/app/admin/blog/archives/components/RestorePostButton.tsx
+// src/app/admin/blog/posts/archives/components/RestorePostButton.tsx
 'use client';
 
 import { useTransition } from 'react';
 import { RotateCcw } from 'lucide-react';
 
-export default function RestorePostButton({ slug }: { slug: string }) {
+export default function RestorePostButton({ id, slug }: { id: string; slug: string }) {
     const [pending, start] = useTransition();
 
     return (
@@ -12,14 +12,17 @@ export default function RestorePostButton({ slug }: { slug: string }) {
             disabled={pending}
             onClick={() =>
                 start(async () => {
-                    // ⚠️ Nécessite un endpoint PATCH /api/admin/blog?slug=...&action=restore
-                    const r = await fetch(`/api/admin/blog/posts?slug=${encodeURIComponent(slug)}&action=restore`, { method: 'PATCH' });
+                    const r = await fetch('/api/admin/blog/posts/archives', {
+                        method: 'PATCH',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({ action: 'restore', id, slug }),
+                    });
                     const data = await r.json().catch(() => ({}));
                     if (!r.ok || !data?.ok) {
                         alert(data?.error || `HTTP ${r.status}`);
                         return;
                     }
-                    // Redirige vers l’édition après restauration (slug possiblement modifié)
+                    // Slug possiblement modifié lors de la restauration
                     location.href = `/admin/blog/posts/${data.slug}`;
                 })
             }

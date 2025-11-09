@@ -1,17 +1,18 @@
-// src/app/admin/blog/archives/page.tsx
+// / /src/app/admin/blog/posts/archives/page.tsx
 import 'server-only';
 import Link from 'next/link';
 import { dbConnect } from '@/db/connect';
 import { requireAdmin } from '@/lib/authz';
 import { PostModel } from '@/db/schemas';
 import AdminPostsArchivedGrid from './components/AdminPostsArchivedGrid';
+import { PATHS } from '@/lib/paths';
 
 type PostLean = {
     _id: unknown;
     title?: string | null;
     slug: string;
     status: 'draft' | 'published';
-    coverUrl?: string | null;
+    coverPath?: string | null;
     summary?: string | null;
     createdAt?: Date | string | null;
     updatedAt?: Date | string | null;
@@ -27,7 +28,7 @@ export default async function BlogArchivesPage() {
     await dbConnect();
 
     const docs = await PostModel.find({ deletedAt: { $ne: null } })
-        .select({ title: 1, slug: 1, status: 1, coverUrl: 1, summary: 1, createdAt: 1, updatedAt: 1, deletedAt: 1 })
+        .select({ title: 1, slug: 1, status: 1, coverPath: 1, summary: 1, createdAt: 1, updatedAt: 1, deletedAt: 1 })
         .sort({ deletedAt: -1 })
         .lean<PostLean[]>();
 
@@ -36,7 +37,7 @@ export default async function BlogArchivesPage() {
         slug: d.slug,
         status: d.status as 'draft' | 'published',
         title: (d.title ?? '').trim() || 'Sans titre',
-        coverUrl: d.coverUrl ?? null,
+        coverPath: d.coverPath ?? null,
         summary: d.summary ?? null,
         timestamps: {
             createdAt: d.createdAt ? new Date(d.createdAt as string | Date).toISOString() : null,
@@ -46,25 +47,32 @@ export default async function BlogArchivesPage() {
     }));
 
     return (
-        <div className="relative">
-            {/* Header sticky */}
-            <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 mb-4 -mx-4 bg-gradient-to-b from-background/80 to-transparent px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:-mx-6 md:-mx-8">
-                <div className="mx-auto flex max-w-7xl items-center justify-between">
-                    <div>
-                        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Archives — Articles</h1>
-                        <p className="text-xs text-muted-foreground sm:text-sm">Billets supprimés (soft delete). Tu peux les restaurer.</p>
+        <div className="mx-auto max-w-7xl space-y-6">
+            {/* Header */}
+            <div className="rounded-2xl border border-violet-200/40 bg-gradient-to-br from-violet-600/10 via-violet-500/5 to-amber-400/10 p-5 md:p-6 ring-1 ring-black/5 backdrop-blur">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0">
+                        <nav className="text-xs text-gray-500">
+                            <Link href={PATHS.adminBlog} className="hover:underline">
+                                Admin
+                            </Link>
+                            <span className="px-1.5">›</span>
+                            <Link href={PATHS.adminBlogPosts} className="hover:underline">
+                                Articles
+                            </Link>
+                            <span className="px-1.5">›</span>
+                            <span className="text-foreground">Archives</span>
+                        </nav>
+                        <h1 className="mt-1 text-xl md:text-2xl font-semibold text-slate-900">Archives — Articles</h1>
+                        <p className="text-sm text-gray-600 mt-1">Billets supprimés (soft delete). Tu peux les restaurer ou les supprimer définitivement.</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Link href="/admin/blog/posts" className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50">
-                            ← Retour actifs
-                        </Link>
-                    </div>
+                    <Link href={PATHS.adminBlogPosts} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50">
+                        Retour liste
+                    </Link>
                 </div>
             </div>
 
-            <div className="mx-auto max-w-7xl px-0 sm:px-2 md:px-4">
-                <AdminPostsArchivedGrid rows={rows} />
-            </div>
+            <AdminPostsArchivedGrid rows={rows} />
         </div>
     );
 }

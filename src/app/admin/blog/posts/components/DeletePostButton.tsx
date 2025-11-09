@@ -9,11 +9,8 @@ import { Trash2, Loader2, AlertTriangle, ImageIcon, Link2, BadgeInfo } from 'luc
 type Props = {
     slug: string;
     className?: string;
-    /** que faire après suppression ? */
     afterDelete?: 'refresh' | 'redirect';
-    /** cible si redirect */
     redirectTo?: string;
-    /** libellé du bouton trigger (défaut: Supprimer) */
     label?: string;
 };
 
@@ -22,11 +19,37 @@ type PreviewDoc = {
     slug: string;
     title: string;
     status: 'draft' | 'published';
-    coverUrl: string | null;
-    summary?: string | null;
+    coverPath: string | null;
+    summary: string | null;
 };
 
-export default function DeletePostButton({ slug, className, afterDelete = 'refresh', redirectTo = '/admin/blog', label }: Props) {
+type ApiGetOk = { ok: true; doc: Partial<PreviewDoc> & { _id?: unknown; slug?: unknown; status?: unknown } };
+type ApiGetErr = { ok: false; error?: string };
+type ApiGetResponse = ApiGetOk | ApiGetErr;
+
+type ApiDeleteOk = { ok: true };
+type ApiDeleteErr = { ok: false; error?: string };
+type ApiDeleteResponse = ApiDeleteOk | ApiDeleteErr;
+
+function toPreviewDoc(raw: ApiGetOk['doc']): PreviewDoc {
+    const statusVal = raw.status === 'published' ? 'published' : 'draft';
+    return {
+        _id: String(raw._id ?? ''),
+        slug: String(raw.slug ?? ''),
+        title: String((raw as { title?: unknown })?.title ?? ''),
+        status: statusVal,
+        coverPath: ((): string | null => {
+            const v = (raw as { coverPath?: unknown })?.coverPath;
+            return typeof v === 'string' ? v : v === null ? null : null;
+        })(),
+        summary: ((): string | null => {
+            const v = (raw as { summary?: unknown })?.summary;
+            return typeof v === 'string' ? v : v === null ? null : null;
+        })(),
+    };
+}
+
+export default function DeletePostButton({ slug, className, afterDelete = 'refresh', redirectTo = '/admin/blog/posts', label }: Props) {
     const [open, setOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [pending, start] = useTransition();
@@ -41,7 +64,6 @@ export default function DeletePostButton({ slug, className, afterDelete = 'refre
 
     useEffect(() => setMounted(true), []);
 
-    // lock scroll pendant la modale
     useEffect(() => {
         if (!open) return;
         const prev = document.body.style.overflow;
@@ -51,7 +73,6 @@ export default function DeletePostButton({ slug, className, afterDelete = 'refre
         };
     }, [open]);
 
-    // ESC pour fermer
     useEffect(() => {
         if (!open) return;
         const onKey = (ev: KeyboardEvent) => {
@@ -67,14 +88,14 @@ export default function DeletePostButton({ slug, className, afterDelete = 'refre
         setPreview(null);
         setOpen(true);
 
-        // Dry run
+        // 🔎 Dry-run: on récupère le doc via GET
         start(async () => {
             try {
-                // ⚠️ nécessite un endpoint DELETE /api/admin/blog?slug=...&dryRun=true
-                const r = await fetch(`/api/admin/blog?slug=${encodeURIComponent(slug)}&dryRun=true`, { method: 'DELETE' });
-                const data = await r.json();
-                if (!r.ok || !data?.ok) throw new Error(data?.error || `HTTP ${r.status}`);
-                setPreview(data.doc ?? null);
+                const r = await fetch(`/api/admin/blog/posts/${encodeURIComponent(slug)}`, { method: 'GET' });
+                const data: ApiGetResponse = await r.json();
+                if (!r.ok || !data.ok) throw new Error(('error' in data && data.error) || `HTTP ${r.status}`);
+                const mapped = toPreviewDoc(data.doc);
+                setPreview(mapped);
             } catch (e) {
                 setError(e instanceof Error ? e.message : String(e));
             }
@@ -85,13 +106,13 @@ export default function DeletePostButton({ slug, className, afterDelete = 'refre
         setError(null);
         start(async () => {
             try {
-                const r = await fetch(`/api/admin/blog?slug=${encodeURIComponent(slug)}`, { method: 'DELETE' });
-                const data = await r.json();
-                if (!r.ok || !data?.ok) throw new Error(data?.error || `HTTP ${r.status}`);
+                const r = await fetch(`/api/admin/blog/posts/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+                const data: ApiDeleteResponse = await r.json();
+                if (!r.ok || !data.ok) throw new Error(('error' in data && data.error) || `HTTP ${r.status}`);
 
                 setOpen(false);
                 if (afterDelete === 'redirect') router.push(redirectTo!);
-                else router.refresh();
+                else router.refresh(); // la carte disparaît et Archives++ (revalidate côté API)
             } catch (e) {
                 setError(e instanceof Error ? e.message : String(e));
             }
@@ -136,16 +157,15 @@ export default function DeletePostButton({ slug, className, afterDelete = 'refre
                                         Supprimer « {slug} »
                                     </h3>
                                     <p id={descId} className="mt-0.5 text-sm text-muted-foreground">
-                                        Cette action est <strong>définitive pour l’interface</strong> (soft delete). La carte et la page publique ne seront plus visibles.
+                                        Cette action est <strong>définitive pour l’interface</strong> (soft delete). L’article apparaîtra dans les Archives.
                                     </p>
                                 </div>
                             </div>
 
                             {/* Body */}
                             <div className="space-y-3 px-5 py-4">
-                                {/* Aperçu */}
                                 <div className="rounded-lg border bg-red-50/40 p-3">
-                                    <div className="mb-2 text-sm font-medium text-red-800">Aperçu (dry run)</div>
+                                    <div className="mb-2 text-sm font-medium text-red-800">Aperçu</div>
                                     {preview ? (
                                         <ul className="grid gap-2 text-sm">
                                             <li className="flex items-center gap-1.5 rounded-md bg-white/70 px-2 py-1 ring-1 ring-red-100">
@@ -156,10 +176,10 @@ export default function DeletePostButton({ slug, className, afterDelete = 'refre
                                                 <BadgeInfo className="h-4 w-4 text-red-600" />
                                                 Statut&nbsp;: <span className="font-semibold">{preview.status}</span>
                                             </li>
-                                            {preview.coverUrl ? (
+                                            {preview.coverPath ? (
                                                 <li className="flex items-center gap-1.5 rounded-md bg-white/70 px-2 py-1 ring-1 ring-red-100">
                                                     <Link2 className="h-4 w-4 text-red-600" />
-                                                    Cover&nbsp;: <span className="truncate">{preview.coverUrl}</span>
+                                                    Cover&nbsp;: <span className="truncate">{preview.coverPath}</span>
                                                 </li>
                                             ) : (
                                                 <li className="flex items-center gap-1.5 rounded-md bg-white/70 px-2 py-1 ring-1 ring-red-100 text-red-700">
@@ -177,11 +197,10 @@ export default function DeletePostButton({ slug, className, afterDelete = 'refre
                                     )}
                                 </div>
 
-                                {/* Consentement */}
                                 <label className="mt-1 flex items-start gap-2 text-sm">
                                     <input type="checkbox" className="mt-0.5" checked={confirm} disabled={pending} onChange={(e) => setConfirm(e.target.checked)} />
                                     <span>
-                                        Je comprends que l’article sera masqué partout (champ <em>deletedAt</em> renseigné) et pourra être restauré via Archives.
+                                        Je comprends que l’article sera masqué (champ <em>deletedAt</em>) et pourra être restauré via Archives.
                                     </span>
                                 </label>
                             </div>
@@ -205,7 +224,7 @@ export default function DeletePostButton({ slug, className, afterDelete = 'refre
                                     ].join(' ')}
                                 >
                                     {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                                    {pending ? 'Suppression…' : 'Supprimer définitivement'}
+                                    {pending ? 'Suppression…' : 'Supprimer'}
                                 </button>
                             </div>
                         </div>
